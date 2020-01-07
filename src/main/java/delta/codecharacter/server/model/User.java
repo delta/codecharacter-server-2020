@@ -29,6 +29,17 @@ public class User {
     @Email
     private String email;
 
+    @Min(2)
+    @Max(50)
+    @NotNull
     private String password;
 
+    private String country;
+    private Boolean isActivated;
+    private String college;
+    private Boolean isAdmin;
+
+    @NotNull
+    @Positive
+    private int avatarId;
 }
