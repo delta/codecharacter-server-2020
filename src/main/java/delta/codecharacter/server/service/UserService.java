@@ -46,6 +46,10 @@ public class UserService {
         return user.getId();
     }
 
+    private User getUser(Integer id) {
+        return userRepository.findFirstById(id);
+    }
+
     public List<PublicUserRequest> getAllUsers() {
         List<User> users = userRepository.findAll();
 

@@ -28,3 +28,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Global Notification model ###
+src/main/java/delta/codecharacter/server/controller/api/GlobalNotificationController.java
+src/main/java/delta/codecharacter/server/controller/request/AddGlobalNotificationRequest.java
+src/main/java/delta/codecharacter/server/model/GlobalNotification.java
+src/main/java/delta/codecharacter/server/repository/GlobalNotificationRepository.java
+src/main/java/delta/codecharacter/server/service/GlobalNotificationService.java
