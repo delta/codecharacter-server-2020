@@ -1,9 +1,7 @@
 package delta.codecharacter.server.model;
 
-<<<<<<< HEAD
-=======
 import lombok.*;
->>>>>>> Add model AI
+
 import org.springframework.data.annotation.Id;
 
 import javax.validation.constraints.NotNull;
