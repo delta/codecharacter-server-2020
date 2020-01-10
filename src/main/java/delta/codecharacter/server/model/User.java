@@ -19,6 +19,8 @@ public class User {
     private Integer id;
 
     @NotBlank(message = "Username is mandatory")
+    @Min(4)
+    @Max(50)
     private String username;
 
     @Field("full_name")
@@ -27,8 +29,28 @@ public class User {
     private String fullName;
 
     @Email
+    @Min(2)
     private String email;
 
+    @NotNull
     private String password;
 
+    private String country;
+
+    @Field("is_activated")
+    @NotNull
+    @Builder.Default
+    private Boolean isActivated = false;
+
+    private String college;
+
+    @Field("is_admin")
+    @NotNull
+    @Builder.Default
+    private Boolean isAdmin = false;
+
+    @Field("avatar_id")
+    @NotNull
+    @Positive
+    private int avatarId;
 }
