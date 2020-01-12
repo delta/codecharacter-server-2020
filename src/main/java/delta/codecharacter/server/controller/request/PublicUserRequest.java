@@ -9,8 +9,7 @@ import lombok.Setter;
 @Builder
 public class PublicUserRequest {
     private String username;
-
     private String email;
-
     private String fullName;
+    private Integer avatarId;
 }
