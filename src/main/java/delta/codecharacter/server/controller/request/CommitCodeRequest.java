@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 @Setter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SaveCodeRequest {
+public class CommitCodeRequest {
     @NotNull
     @Length(min = 2)
-    private String code;
+    private String commitMessage;
 }
