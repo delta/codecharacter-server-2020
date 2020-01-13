@@ -1,8 +1,10 @@
 package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.CommitCodeRequest;
+import delta.codecharacter.server.controller.request.PrivateCodeResponse;
 import delta.codecharacter.server.controller.request.SaveCodeRequest;
 import delta.codecharacter.server.service.CodeService;
+import delta.codecharacter.server.utils.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,14 @@ public class CodeController {
     public ResponseEntity<String> commit(@RequestBody @Valid CommitCodeRequest request, @PathVariable("userId") Integer userId) {
         int statusCode = codeService.commitCode(request, userId);
         return getResponseEntityByHttpStatusCode(statusCode);
+    }
+
+    @RequestMapping(value = "/latest/userId/{userId}/", method = RequestMethod.GET)
+    public ResponseEntity<PrivateCodeResponse> getLastSavedCode(@PathVariable("userId") Integer userId) {
+        Response<PrivateCodeResponse> response = codeService.getLastSavedCode(userId);
+        PrivateCodeResponse codeResponse = response.getResponse();
+        HttpStatus status = response.getHttpStatus();
+        return new ResponseEntity<>(codeResponse, status);
     }
 
     private ResponseEntity<String> getResponseEntityByHttpStatusCode(int statusCode) {

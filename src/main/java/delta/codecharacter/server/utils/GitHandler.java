@@ -4,13 +4,16 @@ import lombok.*;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.util.FileUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -45,6 +48,14 @@ public class GitHandler {
             return false;
         }
         return true;
+    }
+
+    public static String readFile(File file) {
+        try {
+            return Files.readString(Paths.get(file.getPath()), StandardCharsets.US_ASCII);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static String getUserDir(String username) {

@@ -1,6 +1,7 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.request.CommitCodeRequest;
+import delta.codecharacter.server.controller.request.PrivateCodeResponse;
 import delta.codecharacter.server.controller.request.SaveCodeRequest;
 import delta.codecharacter.server.model.CodeStatus;
 import delta.codecharacter.server.model.User;
@@ -9,6 +10,7 @@ import delta.codecharacter.server.repository.CodeVersionRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.utils.GitHandler;
 import delta.codecharacter.server.utils.GitRepository;
+import delta.codecharacter.server.utils.Response;
 import delta.codecharacter.server.utils.Status;
 import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,8 +130,42 @@ public class CodeService {
         return null;
     }
 
-    public String getLastSavedCode() {
-        return null;
+    public Response<PrivateCodeResponse> getLastSavedCode(Integer userId) {
+        Response<PrivateCodeResponse> response;
+        User user = findUserById(userId);
+        if (user == null) {
+            PrivateCodeResponse codeResponse = PrivateCodeResponse.builder()
+                    .status("Unauthorized")
+                    .build();
+            response = Response.<PrivateCodeResponse>builder()
+                    .status(401)
+                    .response(codeResponse)
+                    .build();
+            return response;
+        }
+        String path = GitHandler.getUserCodeFilePath(user.getUsername());
+        File file = new File(path);
+        String code = GitHandler.readFile(file);
+        if (code == null) {
+            PrivateCodeResponse codeResponse = PrivateCodeResponse.builder()
+                    .status("Not found")
+                    .build();
+            response = Response.<PrivateCodeResponse>builder()
+                    .status(404)
+                    .response(codeResponse)
+                    .build();
+            return response;
+        }
+        PrivateCodeResponse codeResponse = PrivateCodeResponse.builder()
+                .status("Success")
+                .code(code)
+                .build();
+
+        response = Response.<PrivateCodeResponse>builder()
+                .status(200)
+                .response(codeResponse)
+                .build();
+        return response;
     }
 
     private CodeStatus getCodeStatus(Integer userId) {
