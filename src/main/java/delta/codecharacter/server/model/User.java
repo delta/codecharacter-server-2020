@@ -1,6 +1,8 @@
 package delta.codecharacter.server.model;
 
-import lombok.*;
+import delta.codecharacter.server.util.AuthMethod;
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -25,10 +27,14 @@ public class User {
     @Max(50)
     private String fullName;
 
+    @NotNull
     @Email
     private String email;
 
+    @Field("auth_method")
     @NotNull
+    private AuthMethod authMethod;
+
     private String password;
 
     private String country;
@@ -48,5 +54,6 @@ public class User {
     @Field("avatar_id")
     @NotNull
     @Positive
-    private int avatarId;
+    @Builder.Default
+    private int avatarId = 1;
 }
