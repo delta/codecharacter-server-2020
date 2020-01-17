@@ -3,6 +3,7 @@ package delta.codecharacter.server.model;
 import delta.codecharacter.server.util.Status;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
@@ -14,6 +15,11 @@ import java.time.ZoneId;
 @Data
 @Builder
 public class CodeStatus {
+    @Id
+    @NotNull
+    @Positive
+    private Integer id;
+
     @Field("user_id")
     @NotNull
     @Positive
