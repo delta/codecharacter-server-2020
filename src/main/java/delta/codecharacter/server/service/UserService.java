@@ -5,9 +5,12 @@ import delta.codecharacter.server.controller.request.RegisterUserRequest;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.AuthMethod;
+import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +21,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final Logger LOG = Logger.getLogger(UserService.class.getName());
 
@@ -97,5 +100,23 @@ public class UserService {
                 .build();
 
         userRepository.save(newUser);
+    }
+
+    @SneakyThrows
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        //TODO: Check for email in Pragyan DB
+
+        User user = userRepository.findByEmail(email);
+
+        if (user == null)
+            throw new UsernameNotFoundException("Email Not Found");
+
+        //Check AuthType
+        if (user.getAuthMethod().equals(AuthMethod.MANUAL))
+            return new CustomUserDetails(user);
+
+        //AuthType is not PRAGYAN and MANUAL
+        throw new Exception("Use Github/Google to Login");
     }
 }
