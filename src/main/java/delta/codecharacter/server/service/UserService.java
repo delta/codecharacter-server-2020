@@ -1,23 +1,26 @@
 package delta.codecharacter.server.service;
 
-import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.request.PublicUserRequest;
 import delta.codecharacter.server.controller.request.RegisterUserRequest;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.UserRepository;
+import delta.codecharacter.server.util.AuthMethod;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
 public class UserService {
 
-    private final Logger LOG = Logger.getLogger(UserController.class.getName());
+    private final Logger LOG = Logger.getLogger(UserService.class.getName());
 
     @Autowired
     private UserRepository userRepository;
@@ -60,5 +63,39 @@ public class UserService {
         }
 
         return publicUsers;
+    }
+
+    public boolean isEmailPresent(String email) {
+        User user = userRepository.findByEmail(email);
+        return user != null;
+    }
+
+    public boolean isUsernamePresent(String userName) {
+        User user = userRepository.findByUsername(userName);
+        return user != null;
+    }
+
+    @SneakyThrows
+    @Transactional
+    public void registerOAuthUser(Map<String, String> userDetails) {
+        Integer userId = getMaxUserId() + 1;
+
+        String email = userDetails.get("email");
+        String name = userDetails.get("name");
+        String username = userDetails.get("login");
+
+        if (username == null) username = email.split("@")[0];
+        if (name == null) name = email.split("@")[0];
+
+        User newUser = User.builder()
+                .id(userId)
+                .email(email)
+                .fullName(name)
+                .username(username)
+                .authMethod(AuthMethod.SSO)
+                .isActivated(true)
+                .build();
+
+        userRepository.save(newUser);
     }
 }
