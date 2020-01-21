@@ -9,6 +9,7 @@ Spring Boot server for Codecharacter 2020
 3. MongoDB
 4. IDE - Intellij IDEA (Preferably, makes life easier)
 5. MongoDB GUI - Robo 3T (Optional)
+6. RabbitMQ
 
 ## Setup
 
