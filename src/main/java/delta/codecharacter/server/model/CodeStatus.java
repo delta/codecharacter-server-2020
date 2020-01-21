@@ -3,6 +3,7 @@ package delta.codecharacter.server.model;
 import delta.codecharacter.server.util.Status;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import java.time.ZoneId;
 @Data
 @Builder
 public class CodeStatus {
+    @Id
     @Field("user_id")
     @NotNull
     @Positive
@@ -27,4 +29,13 @@ public class CodeStatus {
     @NotNull
     @Builder.Default
     private LocalDateTime lastSavedAt = LocalDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
+
+    @Field("read_only")
+    @NotNull
+    @Builder.Default
+    private boolean readOnly = false;
+
+    // null, if head is at latest
+    @Field("current_commit")
+    private String currentCommit;
 }
