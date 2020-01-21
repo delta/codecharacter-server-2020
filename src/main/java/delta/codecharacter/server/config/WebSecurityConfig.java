@@ -3,14 +3,18 @@ package delta.codecharacter.server.config;
 import delta.codecharacter.server.service.UserService;
 import delta.codecharacter.server.util.UserAuthUtil.ClientResources;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthProcessingFilter;
+import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationFailureHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
@@ -27,22 +31,33 @@ import java.util.logging.Logger;
 
 @Configuration
 @EnableOAuth2Client
+@EnableWebSecurity
 @RestController
-public class OAuthSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final Logger LOG = Logger.getLogger(OAuthSecurityConfig.class.getName());
+    private final Logger LOG = Logger.getLogger(WebSecurityConfig.class.getName());
 
     @Autowired
-    OAuth2ClientContext oauth2ClientContext;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private OAuth2ClientContext oauth2ClientContext;
 
     @Autowired
     private UserService userService;
+
+    //Configures where to fetch the user from
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userService).passwordEncoder(bCryptPasswordEncoder);
+    }
 
     //Prevent unauthenticated access and also exclude specified end-point
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/**").authorizeRequests().antMatchers("/", "/login/**", "/error/**", "/logout").permitAll().anyRequest().authenticated().and()
                 .exceptionHandling().and()
+                .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).and()
                 .logout().logoutSuccessUrl("/").and()
                 .csrf().ignoringAntMatchers("/login**", "/logout**").csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
                 .addFilterBefore(ssoFilters(), BasicAuthenticationFilter.class);
@@ -90,5 +105,10 @@ public class OAuthSecurityConfig extends WebSecurityConfigurerAdapter {
         registration.setFilter(filter);
         registration.setOrder(-100);
         return registration;
+    }
+
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
