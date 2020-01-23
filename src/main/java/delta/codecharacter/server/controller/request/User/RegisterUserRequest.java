@@ -1,19 +1,14 @@
-package delta.codecharacter.server.controller.request;
+package delta.codecharacter.server.controller.request.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RegisterUserRequest {
@@ -21,6 +16,7 @@ public class RegisterUserRequest {
     @Length(min = 5, max = 50)
     private String username;
 
+    @NotEmpty(message = "{constraints.NotEmpty.message}")
     @Email
     private String email;
 
@@ -29,6 +25,11 @@ public class RegisterUserRequest {
     private String fullName;
 
     @NotEmpty(message = "{constraints.NotEmpty.message}")
-    @Length(min = 5, max = 50)
     private String password;
+
+    private String country;
+
+    private String college;
+
+    private String avatarId;
 }

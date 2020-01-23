@@ -13,9 +13,10 @@ import javax.validation.constraints.*;
 public class User {
 
     @Id
+    @Field("user_id")
     @NotNull
     @Positive
-    private Integer id;
+    private Integer userId;
 
     @NotBlank(message = "Username is mandatory")
     @Min(4)
