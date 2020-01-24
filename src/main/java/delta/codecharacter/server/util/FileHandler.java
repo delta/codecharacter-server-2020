@@ -46,7 +46,7 @@ public class FileHandler {
      * @return File, if file exists. Null, otherwise
      */
     public static File getFile(String directoryUri) {
-        if (checkFileExists(directoryUri)) {
+        if (!checkFileExists(directoryUri)) {
             return null;
         }
 
@@ -67,12 +67,12 @@ public class FileHandler {
     /**
      * Check if a URI is a directory
      *
-     * @param fileUri
-     * @return
+     * @param fileUri Absolute path to file
+     * @return True, if the given uri is a directory. False, otherwise
      */
     public static boolean isDirectory(String fileUri) {
         File file = new File(fileUri);
-        return file.isDirectory();
+        return (file.exists() && file.isDirectory());
     }
 
 
@@ -80,11 +80,11 @@ public class FileHandler {
      * Get the contents of a file
      *
      * @param fileUri Absolute path of file to be accessed
-     * @return
+     * @return String, if file exists and is not empty
      */
     @SneakyThrows
     public static String getFileContents(String fileUri) {
-        if (!FileHandler.checkFileExists(fileUri) && !FileHandler.isDirectory(fileUri)) {
+        if (!FileHandler.checkFileExists(fileUri) || !FileHandler.isDirectory(fileUri)) {
             throw new Exception("File does not exist");
         }
 
@@ -100,7 +100,7 @@ public class FileHandler {
      */
     @SneakyThrows
     public static void writeFileContents(String fileUri, String content) {
-        if (!FileHandler.checkFileExists(fileUri) && !FileHandler.isDirectory(fileUri)) {
+        if (!FileHandler.checkFileExists(fileUri) || !FileHandler.isDirectory(fileUri)) {
             throw new Exception("File does not exist");
         }
 

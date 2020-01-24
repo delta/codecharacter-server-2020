@@ -6,7 +6,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +30,12 @@ public class VersionControlService {
         return System.getProperty("user.dir") + codeStoragePath + File.separator + username;
     }
 
+    /**
+     * Return the absolute path to the player code file of given username
+     *
+     * @param username - Username of whose code is to be accessed
+     * @return Path to player code file
+     */
     private String getCodeFileUri(String username) {
         return getCodeRepositoryUri(username) + File.separator + codeFileName;
     }
@@ -42,7 +47,7 @@ public class VersionControlService {
      */
     @SneakyThrows
     public void createCodeRepository(Integer userId, String username) {
-        var codeRepositoryUri = getCodeRepositoryUri(username);
+        String codeRepositoryUri = getCodeRepositoryUri(username);
 
         if (!FileHandler.checkFileExists(codeRepositoryUri)) {
             boolean dirCreated = FileHandler.createDirectory(codeRepositoryUri);
@@ -51,16 +56,21 @@ public class VersionControlService {
             }
         }
 
+        // git init
         Git git = Git.init().setDirectory(FileHandler.getFile(codeRepositoryUri)).call();
 
-        var repository = git.getRepository();
+        Repository repository = git.getRepository();
         if (repository == null) {
             git.close();
             throw new Exception("Repository cannot be created");
         }
 
         // Create code file, add and commit
-        FileHandler.createFile(codeRepositoryUri + File.separator + codeFileName);
+        if (!FileHandler.createFile(getCodeFileUri(username))) {
+            git.close();
+            throw new Exception("Code file cannot be created");
+        }
+
         add(username);
         commit(username);
 
@@ -75,6 +85,7 @@ public class VersionControlService {
     @SneakyThrows
     private void add(String username) {
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+        // git add .
         git.add().addFilepattern(".").call();
         git.close();
     }
@@ -91,6 +102,7 @@ public class VersionControlService {
         Repository repository = git.getRepository();
         ObjectId HEAD = repository.resolve("refs/heads/master");
 
+        // git log on master
         Iterable<RevCommit> log = git.log().add(HEAD).call();
         git.close();
 
@@ -106,7 +118,14 @@ public class VersionControlService {
     @SneakyThrows
     private long getCommitCount(String username) {
         var log = log(username);
-        return log.spliterator().getExactSizeIfKnown();
+        long commitCount = log.spliterator().getExactSizeIfKnown();
+
+        // Iterable is not sized
+        if (commitCount == -1) {
+            commitCount = 0;
+        }
+
+        return commitCount;
     }
 
     /**
@@ -118,6 +137,8 @@ public class VersionControlService {
     public void commit(String username) {
         var commitCount = getCommitCount(username);
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+
+        // git commit -m "Commit #{commitCount}"
         git.commit()
                 .setAuthor("Codecharacter", "codecharacter@pragyan.org")
                 .setMessage("Commit #" + commitCount)
@@ -134,6 +155,10 @@ public class VersionControlService {
     @SneakyThrows
     public void checkout(String username, String commitHash) {
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+
+        // If already checked out, need to reset head to master
+        git.checkout().setName("master").call();
+        // git checkout {commitHash}
         git.checkout().setName(commitHash).call();
         git.close();
     }
@@ -146,6 +171,8 @@ public class VersionControlService {
     @SneakyThrows
     public void resetHead(String username) {
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+
+        // git checkout master
         git.checkout().setName("master").call();
         git.close();
     }
