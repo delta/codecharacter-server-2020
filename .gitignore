@@ -14,3 +14,6 @@ target/
 
 ### Spring-Boot ###
 build.properties
+
+### Storage ###
+storage
