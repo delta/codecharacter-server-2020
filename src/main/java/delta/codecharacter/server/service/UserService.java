@@ -38,6 +38,9 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Autowired
+    private UserStatsService userStatsService;
+
+    @Autowired
     private UserActivationRepository userActivationRepository;
 
     @Autowired
@@ -68,6 +71,7 @@ public class UserService implements UserDetailsService {
                 .build();
 
         userRepository.save(newUser);
+        userStatsService.initializeUserStats(userId);
 
         sendActivationToken(newUser.getUserId());
     }
@@ -282,5 +286,10 @@ public class UserService implements UserDetailsService {
     public boolean isUsernamePresent(String username) {
         User user = userRepository.findByUsername(username);
         return user != null;
+    }
+
+    public Integer getUserId(String username){
+        User user=userRepository.findByUsername(username);
+        return user.getUserId();
     }
 }
