@@ -38,6 +38,9 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Autowired
+    private UserStatsService userStatsService;
+
+    @Autowired
     private UserActivationRepository userActivationRepository;
 
     @Autowired
@@ -45,6 +48,7 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    
 
     /**
      * Register a new User for AuthType MANUAL
@@ -68,6 +72,7 @@ public class UserService implements UserDetailsService {
                 .build();
 
         userRepository.save(newUser);
+        userStatsService.initializeUserStats(userId);
 
         sendActivationToken(newUser.getUserId());
     }
@@ -99,6 +104,7 @@ public class UserService implements UserDetailsService {
                 .build();
 
         userRepository.save(newUser);
+        userStatsService.initializeUserStats(userId);
     }
 
     /**
@@ -283,4 +289,5 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByUsername(username);
         return user != null;
     }
+
 }

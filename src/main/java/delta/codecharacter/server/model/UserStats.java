@@ -18,6 +18,10 @@ public class UserStats {
     private Integer userId;
 
     @NotNull
+    @Field("total_matches")
+    private Integer totalMatches;
+
+    @NotNull
     @Field("total_wins")
     private Integer totalWins;
 
