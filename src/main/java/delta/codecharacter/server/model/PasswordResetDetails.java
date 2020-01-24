@@ -1,6 +1,7 @@
 package delta.codecharacter.server.model;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
@@ -11,10 +12,10 @@ import java.time.ZoneId;
 
 @Data
 @Builder
-public class ForgotPasswordDetails {
-    @Field("password_change_token")
+public class PasswordResetDetails {
+    @Field("password_reset_token")
     @NotNull
-    private String passwordChangeToken;
+    private String passwordResetToken;
 
     @Field("user_id")
     @NotNull
