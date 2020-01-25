@@ -46,6 +46,9 @@ public class UserService implements UserDetailsService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    UserRatingService userRatingService;
+
     /**
      * Register a new User for AuthType MANUAL
      *
@@ -68,6 +71,9 @@ public class UserService implements UserDetailsService {
                 .build();
 
         userRepository.save(newUser);
+
+        //create initial entry for new user in UserRating table
+        userRatingService.initializeUserRating(userId);
 
         sendActivationToken(newUser.getUserId());
     }
@@ -99,6 +105,9 @@ public class UserService implements UserDetailsService {
                 .build();
 
         userRepository.save(newUser);
+
+        //create initial entry for new user in UserRating table
+        userRatingService.initializeUserRating(userId);
     }
 
     /**

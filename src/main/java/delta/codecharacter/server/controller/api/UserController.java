@@ -3,6 +3,8 @@ package delta.codecharacter.server.controller.api;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
+import delta.codecharacter.server.controller.response.UserRatingsResponse;
+import delta.codecharacter.server.service.UserRatingService;
 import delta.codecharacter.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRatingService userRatingService;
 
     @PostMapping(value = "")
     public ResponseEntity<String> registerUser(@RequestBody @Valid RegisterUserRequest user) {
@@ -49,5 +54,11 @@ public class UserController {
     public ResponseEntity<String> changePassword(@RequestBody @Valid PasswordResetRequest passwordResetRequest) {
         userService.changePassword(passwordResetRequest);
         return new ResponseEntity<>("Password Changed Successfully!", HttpStatus.OK);
+    }
+
+    //Get all the Ratings of a User from the beginning to the current rating.
+    @GetMapping(value = "/ratings/{username}")
+    public ResponseEntity<List<UserRatingsResponse>> getUserRatings(@PathVariable String username) {
+        return new ResponseEntity<List<UserRatingsResponse>>(userRatingService.getUserRatings(username), HttpStatus.OK);
     }
 }
