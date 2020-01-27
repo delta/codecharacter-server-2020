@@ -31,6 +31,12 @@ public class UserStatsController {
     @GetMapping(value = "/{username}")
     public ResponseEntity<UserStatsResponse> getUserStats(@PathVariable @NotEmpty String username) {
         return new ResponseEntity<UserStatsResponse>(userStatsService.getUserStats(username), HttpStatus.OK);
-
     }
+
+    @SneakyThrows
+    @GetMapping(value = "/timer/{userName}")
+    public ResponseEntity<String> getWaitTime(@PathVariable @NotEmpty String userName) {
+        return new ResponseEntity<String>(userStatsService.getWaitTime(userName),HttpStatus.OK);
+    }
+
 }

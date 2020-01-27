@@ -3,6 +3,7 @@ package delta.codecharacter.server.service;
 import delta.codecharacter.server.controller.response.UserStatsResponse;
 import delta.codecharacter.server.controller.api.UserStatsController;
 import delta.codecharacter.server.model.UserStats;
+import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.repository.UserStatsRepository;
 import lombok.SneakyThrows;
@@ -21,6 +22,9 @@ public class UserStatsService {
 
     @Autowired
     private UserStatsRepository userStatsRepository;
+
+    @Autowired
+    private ConstantRepository constantRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -53,6 +57,24 @@ public class UserStatsService {
                 .lastMatchAt(zeroDate)
                 .build();
         userStatsRepository.save(initialStats);
+    }
+
+    @SneakyThrows
+    public String getWaitTime(@NotEmpty String username){
+        String response;
+        if (userRepository.findByUsername(username)==null)
+            throw new Exception("Invalid username");
+
+        Integer userId=userRepository.findByUsername(username).getUserId();
+        Float minWaitTime=Float.parseFloat(constantRepository.findByKey("MATCH_WAIT_TIME").getValue());
+        Date lastMatchTime=userStatsRepository.findByUserId(userId).getLastMatchAt();
+        Date currentTime=new Date();
+
+        Long timepassed=(currentTime.getTime()-lastMatchTime.getTime())/60000;
+        if (timepassed>minWaitTime)
+            return "Success!";
+        else
+            return (minWaitTime-timepassed)+" minutes left!";
     }
 
 }
