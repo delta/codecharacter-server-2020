@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.util.Date;
 
 /**
  * A match between two players. It may consist of more than one game.
@@ -45,4 +46,8 @@ public class Match {
     @Field("score_2")
     @NotNull
     private Integer score2;
+
+    @Field("created_at")
+    @NotNull
+    private Date createdAt;
 }
