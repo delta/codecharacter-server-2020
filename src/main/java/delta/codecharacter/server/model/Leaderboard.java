@@ -24,4 +24,9 @@ public class Leaderboard {
     @NotNull
     @Builder.Default
     private Division division = Division.DIV_2;
+
+    @Field("match_mode")
+    @NotNull
+    @Builder.Default
+    private Mode matchMode = Mode.AUTO_PLAYER;
 }

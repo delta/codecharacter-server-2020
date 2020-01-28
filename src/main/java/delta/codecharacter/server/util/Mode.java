@@ -1,5 +1,5 @@
 package delta.codecharacter.server.util;
 
 public enum Mode {
-    MANUAL, AUTO
+    SELF_MATCH, AI_MATCH, PREV_COMMIT_MATCH, MANUAL_PLAYER, AUTO_PLAYER
 }
