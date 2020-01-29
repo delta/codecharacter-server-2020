@@ -14,7 +14,6 @@ import delta.codecharacter.server.util.MailTemplate;
 import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -208,13 +207,7 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByUserId(userId);
 
-        // Create the message to be sent
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
-        message.setSubject("Code Character - Account Activation");
-        message.setText(MailTemplate.getActivationMessage(user.getUsername(), newUserActivation.getActivationToken()));
-
-        javaMailSender.send(message);
+        javaMailSender.send(MailTemplate.getActivationMessage(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken()));
 
         userActivationRepository.save(newUserActivation);
     }
@@ -238,13 +231,7 @@ public class UserService implements UserDetailsService {
                 .passwordResetToken(UUID.randomUUID().toString())
                 .build();
 
-        // Create the message to be sent
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
-        message.setSubject("Code Character - Password Reset");
-        message.setText(MailTemplate.getPasswordResetMessage(user.getUsername(), newPasswordResetDetails.getPasswordResetToken()));
-
-        javaMailSender.send(message);
+        javaMailSender.send(MailTemplate.getPasswordResetMessage(user.getEmail(), user.getUsername(), newPasswordResetDetails.getPasswordResetToken()));
 
         passwordResetDetailsRepository.save(newPasswordResetDetails);
     }
