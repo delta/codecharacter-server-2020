@@ -1,5 +1,6 @@
 package delta.codecharacter.server.controller.request.User;
 
+import delta.codecharacter.server.util.enums.UserType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,4 +12,6 @@ public class PublicUserRequest {
     private String email;
 
     private String fullName;
+
+    private UserType userType;
 }

@@ -82,7 +82,7 @@ public class MatchService {
             throw new Exception("Invalid username");
         Integer userId = userRepository.findByUsername(username).getUserId();
 
-        List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2(userId, userId);
+        List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2AndMatchModeOrMatchMode(userId, userId, MatchMode.MANUAL, MatchMode.AUTO);
 
         UserMatchStatData initiated = new UserMatchStatData();
         UserMatchStatData faced = new UserMatchStatData();
@@ -139,7 +139,11 @@ public class MatchService {
             }
         }
 
+<<<<<<< HEAD
         Date lastMatchAt = getLastInitiatedManualMatchTime(userId);
+=======
+        Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL).getCreatedAt();
+>>>>>>> Update routes for User
 
         return UserMatchStatsResponse.builder()
                 .userId(userId)

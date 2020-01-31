@@ -1,6 +1,7 @@
 package delta.codecharacter.server.model;
 
 import delta.codecharacter.server.util.enums.AuthMethod;
+import delta.codecharacter.server.util.enums.UserType;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -28,6 +29,10 @@ public class User {
     @Min(2)
     @Max(50)
     private String fullName;
+
+    @Field("user_type")
+    @NotNull
+    private UserType userType;
 
     @NotNull
     @Email

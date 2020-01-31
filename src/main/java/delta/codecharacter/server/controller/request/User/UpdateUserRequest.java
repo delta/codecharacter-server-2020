@@ -6,27 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-
 @Data
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RegisterUserRequest {
-    @NotEmpty(message = "{constraints.NotEmpty.message}")
-    @Length(min = 5, max = 50)
+public class UpdateUserRequest {
+    @Length(min = 1, max = 100)
     private String username;
 
-    @NotEmpty(message = "{constraints.NotEmpty.message}")
-    @Email
-    private String email;
-
-    @NotEmpty(message = "{constraints.NotEmpty.message}")
     @Length(min = 1, max = 100)
     private String fullName;
-
-    @NotEmpty(message = "{constraints.NotEmpty.message}")
-    private String password;
 
     private String country;
 

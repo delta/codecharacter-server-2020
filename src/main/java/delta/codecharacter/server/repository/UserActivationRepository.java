@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface UserActivationRepository extends MongoRepository<UserActivation, Integer> {
     void deleteByUserId(Integer userId);
 
-    UserActivation findByActivationToken(String activationToken);
+    UserActivation findByUserId(Integer userId);
 }

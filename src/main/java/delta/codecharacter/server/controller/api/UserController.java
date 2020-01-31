@@ -1,8 +1,6 @@
 package delta.codecharacter.server.controller.api;
 
-import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
-import delta.codecharacter.server.controller.request.User.PublicUserRequest;
-import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
+import delta.codecharacter.server.controller.request.User.*;
 import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
 import delta.codecharacter.server.model.User;
@@ -36,15 +34,35 @@ public class UserController {
     @Autowired
     private MatchService matchService;
 
-    @PostMapping(value = "")
+    @PostMapping(value = "/")
     public ResponseEntity<String> registerUser(@RequestBody @Valid RegisterUserRequest user) {
+        if (userService.isEmailPresent(user.getEmail()))
+            return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
         userService.registerUser(user);
         return new ResponseEntity<>("User Registration Successful!", HttpStatus.CREATED);
     }
 
+    @PutMapping(value = "/")
+    public ResponseEntity<String> updateUser(@RequestBody @Valid UpdateUserRequest updateUserRequest, Authentication authentication) {
+        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
+        if (user == null)
+            return new ResponseEntity<>("Invalid Login", HttpStatus.NOT_FOUND);
+        userService.updateUser(user.getEmail(), updateUserRequest);
+        return new ResponseEntity<>("User Account Updation Successful!", HttpStatus.OK);
+    }
+
+    @PatchMapping(value = "/password")
+    public ResponseEntity<String> updatePassword(@RequestBody @NotEmpty String newPassword, Authentication authentication) {
+        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
+        if (user == null)
+            return new ResponseEntity<>("Invalid Login", HttpStatus.NOT_FOUND);
+        userService.updatePassword(user.getEmail(), newPassword);
+        return new ResponseEntity<>("User Password Updation Successful!", HttpStatus.OK);
+    }
+
     @GetMapping(value = "")
-    public ResponseEntity<List<PublicUserRequest>> getAllUsers() {
-        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+    public ResponseEntity<PublicUserRequest> getTheUser(Authentication authentication) {
+        return new ResponseEntity<>(userService.getTheUser(authentication), HttpStatus.OK);
     }
 
     @GetMapping(value = "/match-stats/{username}")
@@ -58,9 +76,21 @@ public class UserController {
         return new ResponseEntity<>(matchService.getWaitTime(user.getUserId()), HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/email/{email}", method = RequestMethod.HEAD)
+    public ResponseEntity<HttpStatus> checkUserExistsByEmail(@PathVariable String email) {
+        Boolean exists = userService.isEmailPresent(email);
+
+        //if username exits, return Response code 200
+        //else return Response code 404
+        if (exists)
+            return new ResponseEntity<>(HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
     @PostMapping(value = "/activate")
-    public ResponseEntity<String> activateUser(@RequestBody String authToken) {
-        userService.activateUser(authToken);
+    public ResponseEntity<String> activateUser(@RequestBody ActivateUserRequest activateUserRequest) {
+        userService.activateUser(activateUserRequest);
         return new ResponseEntity<>("Account Activation Successful!", HttpStatus.OK);
     }
 

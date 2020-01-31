@@ -6,6 +6,7 @@ import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.response.PragyanApiResponse;
+import delta.codecharacter.server.controller.request.User.*;
 import delta.codecharacter.server.model.PasswordResetDetails;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.model.UserActivation;
@@ -38,6 +39,8 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 @Service
@@ -92,6 +95,7 @@ public class UserService implements UserDetailsService {
         User newUser = User.builder()
                 .userId(userId)
                 .email(user.getEmail())
+                .userType(user.getUserType())
                 .fullName(user.getFullName())
                 .username(user.getUsername())
                 .password(bCryptPasswordEncoder.encode(user.getPassword()))
@@ -174,24 +178,19 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Get the details of all the Users
+     * Get the details of the logged in user
      *
-     * @return Details of all Users
+     * @return Details of the logged in user
      */
-    public List<PublicUserRequest> getAllUsers() {
-        List<User> users = userRepository.findAll();
+    public PublicUserRequest getTheUser(Authentication authentication) {
+        User user = userRepository.findByEmail(getEmailFromAuthentication(authentication));
 
-        List<PublicUserRequest> publicUsers = new ArrayList<>();
-
-        for (var user : users) {
-            publicUsers.add(PublicUserRequest.builder()
-                    .username(user.getUsername())
-                    .fullName(user.getFullName())
-                    .email(user.getEmail())
-                    .build());
-        }
-
-        return publicUsers;
+        return PublicUserRequest.builder()
+                .username(user.getUsername())
+                .fullName(user.getFullName())
+                .userType(user.getUserType())
+                .email(user.getEmail())
+                .build();
     }
 
     /**
@@ -262,21 +261,20 @@ public class UserService implements UserDetailsService {
     /**
      * Activate the User account by verifying the activation token
      *
-     * @param activationToken Activation Token received from the Request
+     * @param activateUserRequest - Activation Details from the activate Request
      */
     @SneakyThrows
     @Transactional
-    public void activateUser(String activationToken) {
-        UserActivation userActivation = userActivationRepository.findByActivationToken(activationToken);
+    public void activateUser(ActivateUserRequest activateUserRequest) {
+        UserActivation userActivation = userActivationRepository.findByUserId(activateUserRequest.getUserId());
 
         if (userActivation == null) {
             throw new Exception("User Already Activated. Please Login");
         }
 
         User user = userRepository.findByUserId(userActivation.getUserId());
-
         if (userActivation.getTokenExpiry().isAfter(LocalDateTime.now(ZoneId.of("Asia/Kolkata"))))
-            if (activationToken.equals(userActivation.getActivationToken())) {
+            if (activateUserRequest.getAuthToken().equals(userActivation.getActivationToken())) {
                 user.setIsActivated(true);
                 userRepository.save(user);
                 userActivationRepository.deleteByUserId(user.getUserId());
@@ -304,7 +302,7 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByUserId(userId);
 
-        javaMailSender.send(MailTemplate.getActivationMessage(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken()));
+        javaMailSender.send(MailTemplate.getActivationMessage(user.getUserId(), user.getEmail(), user.getUsername(), newUserActivation.getActivationToken()));
 
         userActivationRepository.save(newUserActivation);
     }
@@ -422,6 +420,46 @@ public class UserService implements UserDetailsService {
     public boolean getIsAdminUserByEmail(String email) {
         User user = userRepository.findByEmail(email);
         return (user != null) && (user.getIsAdmin());
+    }
+
+    /**
+     * Update a user's details
+     *
+     * @param email             - User's email
+     * @param updateUserRequest - User Details from the updateUserRequest
+     */
+    @SneakyThrows
+    @Transactional
+    public void updateUser(String email, @NotNull UpdateUserRequest updateUserRequest) {
+        User user = getUserByEmail(email);
+        User newUser = User.builder()
+                .userId(user.getUserId())
+                .username(updateUserRequest.getUsername() == null ? user.getUsername() : updateUserRequest.getUsername())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .userType(updateUserRequest.getUserType() == null ? user.getUserType() : updateUserRequest.getUserType())
+                .authMethod(user.getAuthMethod())
+                .fullName(updateUserRequest.getFullName() == null ? user.getFullName() : updateUserRequest.getFullName())
+                .college(updateUserRequest.getCollege() == null ? user.getCollege() : updateUserRequest.getCollege())
+                .country(updateUserRequest.getCountry() == null ? user.getCountry() : updateUserRequest.getCountry())
+                .avatarId(updateUserRequest.getAvatarId() == null ? user.getAvatarId() : Integer.parseInt(updateUserRequest.getAvatarId()))
+                .build();
+
+        userRepository.save(newUser);
+    }
+
+    /**
+     * Change a user's password
+     *
+     * @param email    - user's email
+     * @param password - new password of user
+     */
+    @SneakyThrows
+    @Transactional
+    public void updatePassword(String email, String password) {
+        User user = getUserByEmail(email);
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+        userRepository.save(user);
     }
 
     /**
