@@ -10,9 +10,11 @@ import delta.codecharacter.server.repository.PasswordResetDetailsRepository;
 import delta.codecharacter.server.repository.UserActivationRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.AuthMethod;
+import delta.codecharacter.server.util.MailTemplate;
 import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,6 +37,9 @@ public class UserService implements UserDetailsService {
     private final Logger LOG = Logger.getLogger(UserService.class.getName());
 
     @Autowired
+    UserRatingService userRatingService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -47,7 +52,7 @@ public class UserService implements UserDetailsService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    UserRatingService userRatingService;
+    private JavaMailSender javaMailSender;
 
     /**
      * Register a new User for AuthType MANUAL
@@ -193,14 +198,16 @@ public class UserService implements UserDetailsService {
      * @param userId UserId of the user
      */
     @Transactional
-    private void sendActivationToken(int userId) {
+    void sendActivationToken(int userId) {
         UserActivation newUserActivation = UserActivation.builder()
                 .userId(userId)
                 .activationToken(UUID.randomUUID().toString())
                 .tokenExpiry(LocalDateTime.now(ZoneId.of("Asia/Kolkata")).plusDays(1))
                 .build();
 
-        //TODO: Send Email
+        User user = userRepository.findByUserId(userId);
+
+        javaMailSender.send(MailTemplate.getActivationMessage(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken()));
 
         userActivationRepository.save(newUserActivation);
     }
@@ -224,7 +231,7 @@ public class UserService implements UserDetailsService {
                 .passwordResetToken(UUID.randomUUID().toString())
                 .build();
 
-        //TODO: Send email
+        javaMailSender.send(MailTemplate.getPasswordResetMessage(user.getEmail(), user.getUsername(), newPasswordResetDetails.getPasswordResetToken()));
 
         passwordResetDetailsRepository.save(newPasswordResetDetails);
     }
