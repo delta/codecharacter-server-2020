@@ -5,6 +5,7 @@ import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsRe
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
+import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.MatchService;
