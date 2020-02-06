@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -30,37 +31,45 @@ public class NotificationController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping(value = "/{notificationId}/")
-    public ResponseEntity<PrivateNotificationResponse> getNotificationById(@PathVariable("notificationId") Integer notificationId, Authentication authentication) {
+    @GetMapping(value = "/{notificationId}")
+    public ResponseEntity<PrivateNotificationResponse> getNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        PrivateNotificationResponse response = notificationService.getNotificationById(notificationId, user);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        Notification notification = notificationService.getNotificationById(notificationId);
+        checkNotificationAccess(user, notification);
+        PrivateNotificationResponse notificationResponse = getNotificationResponse(notification);
+        return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
     @PostMapping(value = "/")
-    public PrivateNotificationResponse addNotification(@RequestBody @Valid PrivateAddNotificationRequest privateAddNotificationRequest, Authentication authentication) {
-        User user = getAuthenticatedUser(authentication.getName());
-        return notificationService.addNotification(privateAddNotificationRequest);
+    public ResponseEntity<PrivateNotificationResponse> addNotification(@RequestBody @Valid PrivateAddNotificationRequest privateAddNotificationRequest, Authentication authentication) {
+        User user = getAuthenticatedAdminUser(authentication.getName());
+        Notification notification = notificationService.addNotification(privateAddNotificationRequest);
+        PrivateNotificationResponse notificationResponse = getNotificationResponse(notification);
+        return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{notificationId}/")
-    public ResponseEntity<String> deleteNotificationById(@PathVariable("notificationId") Integer notificationId, Authentication authentication) {
+    public ResponseEntity<String> deleteNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        notificationService.deleteNotificationById(notificationId, user);
+        Notification notification = notificationService.getNotificationById(notificationId);
+        checkNotificationAccess(user, notification);
+        notificationService.deleteNotificationById(notificationId);
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/type/{type}/")
-    public ResponseEntity<String> deleteNotificationsByType(@PathVariable("type") Type type, Authentication authentication) {
+    public ResponseEntity<String> deleteNotificationsByType(@PathVariable Type type, Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        notificationService.deleteNotificationsByType(type, user);
+        notificationService.deleteNotificationsByTypeAndUser(type, user);
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
     @PostMapping(value = "/read/{notificationId}/")
-    public ResponseEntity<String> readNotification(@PathVariable("notificationId") Integer notificationId, Authentication authentication) {
+    public ResponseEntity<String> readNotification(@PathVariable Integer notificationId, Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        notificationService.readNotification(notificationId);
+        Notification notification = notificationService.getNotificationById(notificationId);
+        checkNotificationAccess(user, notification);
+        notificationService.readNotificationById(notificationId);
         return new ResponseEntity<>("Successfully read", HttpStatus.OK);
     }
 
@@ -69,7 +78,8 @@ public class NotificationController {
                                                                 @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                 Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        return notificationService.getAllUnreadNotificationsByUserId(user, page, size);
+        handlePaginationBadRequests(page, size);
+        return notificationService.getAllUnreadNotificationsByUser(user, page, size);
     }
 
     @GetMapping(value = "")
@@ -77,15 +87,57 @@ public class NotificationController {
                                                           @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                           Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        return notificationService.getAllNotificationsByUserId(user, page, size);
+        handlePaginationBadRequests(page, size);
+        return notificationService.getAllNotificationsByUser(user, page, size);
+    }
+
+    private PrivateNotificationResponse getNotificationResponse(Notification notification) {
+        return PrivateNotificationResponse.builder()
+                .notificationId(notification.getId())
+                .userId(notification.getUserId())
+                .title(notification.getTitle())
+                .content(notification.getContent())
+                .type(notification.getType())
+                .isRead(notification.getIsRead())
+                .build();
     }
 
     @SneakyThrows
-    private User getAuthenticatedUser(String username) {
+    public User getAuthenticatedUser(String username) {
         User user = userRepository.findByEmail(username);
         if (user == null) {
             throw new Exception("Unauthorized");
         }
         return user;
+    }
+
+    @SneakyThrows
+    public User getAuthenticatedAdminUser(String username) {
+        User user = userRepository.findByEmail(username);
+        if ((user == null) || (!user.getIsAdmin())) {
+            throw new Exception("Unauthorized");
+        }
+        return user;
+    }
+
+    @SneakyThrows
+    private void checkNotificationAccess(@NotNull User user, @NotNull Notification notification) {
+        if (!(notification.getUserId().equals(user.getUserId())) && !(user.getIsAdmin())) {
+            throw new Exception("Unauthorized");
+        }
+    }
+
+
+    @SneakyThrows
+    private void handlePaginationBadRequests(Integer pageNumber, Integer size) {
+        if (pageNumber < 1) {
+            throw new Exception("Page number should not be less than 1");
+        }
+        if (size < 1) {
+            throw new Exception("Size should not be less than 1");
+        }
+        if (size > 100) {
+            throw new Exception("Size should not be greater than 100");
+        }
     }
 }
