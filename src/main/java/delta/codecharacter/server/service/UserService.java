@@ -304,4 +304,22 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByUsername(username);
         return user != null;
     }
+
+    @SneakyThrows
+    public User getAuthenticatedUser(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new Exception("Unauthorized");
+        }
+        return user;
+    }
+
+    @SneakyThrows
+    public User getAuthenticatedAdminUser(String username) {
+        User user = userRepository.findByEmail(username);
+        if ((user == null) || (!user.getIsAdmin())) {
+            throw new Exception("Unauthorized");
+        }
+        return user;
+    }
 }
