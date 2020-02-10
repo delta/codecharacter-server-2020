@@ -17,5 +17,5 @@ public interface NotificationRepository extends MongoRepository<Notification, In
 
     List<Notification> findAllByTypeAndUserId(Type type, Integer userId);
 
-    Page<Notification> findAllByUserIdAndIsReadFalseOrderByIdDesc(Integer userId,Pageable pageable);
+    Page<Notification> findAllByUserIdAndIsReadFalseOrderByIdDesc(Integer userId, Pageable pageable);
 }

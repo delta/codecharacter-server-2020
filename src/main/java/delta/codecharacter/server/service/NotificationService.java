@@ -89,21 +89,19 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public List<Notification> getAllNotificationsByUser(@NotNull User user,
-                                                          @NotNull @Positive int pageNumber,
-                                                          @NotNull @PositiveOrZero int size) {
+    public Page<Notification> getAllNotificationsByUser(@NotNull User user,
+                                                        @NotNull @Positive int pageNumber,
+                                                        @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
-        Page<Notification> notificationsPage = notificationRepository.findAllByUserIdOrderByIdDesc(user.getUserId(), pageable);
-        return notificationsPage.getContent();
+        return notificationRepository.findAllByUserIdOrderByIdDesc(user.getUserId(), pageable);
     }
 
     @SneakyThrows
-    public List<Notification> getAllUnreadNotificationsByUser(@NotNull User user,
-                                                                @NotNull @Positive int pageNumber,
-                                                                @NotNull @PositiveOrZero int size) {
+    public Page<Notification> getAllUnreadNotificationsByUser(@NotNull User user,
+                                                              @NotNull @Positive int pageNumber,
+                                                              @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
-        Page<Notification> notificationsPage = notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(user.getUserId(), pageable);
-        return notificationsPage.getContent();
+        return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(user.getUserId(), pageable);
     }
 
     private Integer getMaxNotificationId() {

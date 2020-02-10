@@ -10,6 +10,7 @@ import delta.codecharacter.server.service.NotificationService;
 import delta.codecharacter.server.util.Type;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -78,8 +79,8 @@ public class NotificationController {
                                                                 @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                 Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        handlePaginationBadRequests(page, size);
-        return notificationService.getAllUnreadNotificationsByUser(user, page, size);
+        Page<Notification> notificationPage = notificationService.getAllUnreadNotificationsByUser(user, page, size);
+        return notificationPage.getContent();
     }
 
     @GetMapping(value = "")
@@ -87,8 +88,8 @@ public class NotificationController {
                                                           @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                           Authentication authentication) {
         User user = getAuthenticatedUser(authentication.getName());
-        handlePaginationBadRequests(page, size);
-        return notificationService.getAllNotificationsByUser(user, page, size);
+        Page<Notification> notificationPage = notificationService.getAllNotificationsByUser(user, page, size);
+        return notificationPage.getContent();
     }
 
     private PrivateNotificationResponse getNotificationResponse(Notification notification) {
