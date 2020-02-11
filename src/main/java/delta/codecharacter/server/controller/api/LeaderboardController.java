@@ -31,7 +31,7 @@ public class LeaderboardController {
         return new ResponseEntity<List<LeaderboardResponse>>(leaderboardService.getLeaderboardData(PageNo, PageSize), HttpStatus.OK);
     }
 
-    @GetMapping("{search}/{PageNo}/{PageSize}")
+    @GetMapping("/{search}/{PageNo}/{PageSize}")
     public ResponseEntity<List<LeaderboardResponse>> searchLeaderboardByUsername(@PathVariable @NotEmpty String search, @PathVariable @NotEmpty Integer PageNo, @PathVariable @NotEmpty Integer PageSize) {
         PageUtils.validatePaginationParams(PageNo, PageSize);
         return new ResponseEntity<List<LeaderboardResponse>>(leaderboardService.searchLeaderboardByUsername(search, PageNo, PageSize), HttpStatus.OK);
