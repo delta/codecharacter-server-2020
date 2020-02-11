@@ -49,6 +49,9 @@ public class UserService implements UserDetailsService {
     private PasswordResetDetailsRepository passwordResetDetailsRepository;
 
     @Autowired
+    private LeaderboardService leaderboardService;
+
+    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
@@ -76,6 +79,7 @@ public class UserService implements UserDetailsService {
                 .build();
 
         userRepository.save(newUser);
+        leaderboardService.initializeLeaderboardData(userId);
 
         //create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
@@ -113,6 +117,7 @@ public class UserService implements UserDetailsService {
 
         //create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
+        leaderboardService.initializeLeaderboardData(userId);
     }
 
     /**
