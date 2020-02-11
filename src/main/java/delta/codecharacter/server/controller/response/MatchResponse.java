@@ -1,6 +1,6 @@
 package delta.codecharacter.server.controller.response;
 
-import delta.codecharacter.server.util.Mode;
+import delta.codecharacter.server.util.MatchMode;
 import delta.codecharacter.server.util.Status;
 import delta.codecharacter.server.util.Verdict;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class MatchResponse {
 
     private Integer score2;
 
-    private Mode matchMode;
+    private MatchMode matchMode;
 
     private Date createdAt;
 }
