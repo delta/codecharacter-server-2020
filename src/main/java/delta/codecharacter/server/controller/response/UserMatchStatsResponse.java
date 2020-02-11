@@ -11,33 +11,22 @@ public class UserMatchStatsResponse {
 
     private Integer userId;
 
-    private Long numMatches;
+    private Integer numMatches;
 
     private Date lastMatchAt;
 
-
     //Matches initiated by user
-
-    private Long initiatedWins;
-
-    private Long initiatedLosses;
-
-    private Long initiatedTies;
+    private Integer initiatedWins;
+    private Integer initiatedLosses;
+    private Integer initiatedTies;
 
     //Matches initiated against user
-
-    private Long facedWins;
-
-    private Long facedLosses;
-
-    private Long facedTies;
-
+    private Integer facedWins;
+    private Integer facedLosses;
+    private Integer facedTies;
 
     //Matches played by user in auto matching
-
-    private Long autoWins;
-
-    private Long autoLosses;
-
-    private Long autoTies;
+    private Integer autoWins;
+    private Integer autoLosses;
+    private Integer autoTies;
 }

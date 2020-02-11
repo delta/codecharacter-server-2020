@@ -49,10 +49,10 @@ public class MatchService {
 
         List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2(userId, userId);
 
-        Long totalMatches = (long) 0;
-        Long initiatedWins = (long) 0, initiatedLosses = (long) 0, initiatedTies = (long) 0;
-        Long facedWins = (long) 0, facedLosses = (long) 0, facedTies = (long) 0;
-        Long autoWins = (long) 0, autoLosses = (long) 0, autoTies = (long) 0;
+        Integer totalMatches = 0;
+        Integer initiatedWins = 0, initiatedLosses = 0, initiatedTies = 0;
+        Integer facedWins = 0, facedLosses = 0, facedTies = 0;
+        Integer autoWins = 0, autoLosses = 0, autoTies = 0;
         Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
 
         for (var match : matches) {
