@@ -48,50 +48,55 @@ public class MatchService {
         Integer userId = userRepository.findByUsername(username).getUserId();
 
         List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2(userId, userId);
-
+        class LeaderboardData {
+            Integer wins = 0;
+            Integer losses = 0;
+            Integer ties = 0;
+        }
+        LeaderboardData initiated = new LeaderboardData();
+        LeaderboardData faced = new LeaderboardData();
+        LeaderboardData auto = new LeaderboardData();
         Integer totalMatches = 0;
-        Integer initiatedWins = 0, initiatedLosses = 0, initiatedTies = 0;
-        Integer facedWins = 0, facedLosses = 0, facedTies = 0;
-        Integer autoWins = 0, autoLosses = 0, autoTies = 0;
         Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
 
         for (var match : matches) {
             if (match.getMatchMode() == MatchMode.AUTO) {
                 if ((match.getPlayerId1() == userId && match.getVerdict() == Verdict.PLAYER_1) || (match.getPlayerId2() == userId && match.getVerdict() == Verdict.PLAYER_2))
-                    autoWins++;
+                    auto.wins++;
                 else if ((match.getPlayerId1() == userId && match.getVerdict() == Verdict.PLAYER_2) || (match.getPlayerId2() == userId && match.getVerdict() == Verdict.PLAYER_1))
-                    autoLosses++;
+                    auto.losses++;
                 else if (match.getVerdict() == Verdict.TIE)
-                    autoTies++;
+                    auto.ties++;
             } else if (match.getPlayerId1() == userId) {
                 if (match.getVerdict() == Verdict.PLAYER_1)
-                    initiatedWins++;
+                    initiated.wins++;
                 else if (match.getVerdict() == Verdict.PLAYER_2)
-                    initiatedLosses++;
+                    initiated.losses++;
                 else if (match.getVerdict() == Verdict.TIE)
-                    initiatedTies++;
+                    initiated.ties++;
             } else if (match.getPlayerId2() == userId) {
                 if (match.getVerdict() == Verdict.PLAYER_2)
-                    facedWins++;
+                    faced.wins++;
                 else if (match.getVerdict() == Verdict.PLAYER_1)
-                    facedLosses++;
+                    faced.losses++;
                 else if (match.getVerdict() == Verdict.TIE)
-                    facedTies++;
+                    faced.ties++;
             }
+            totalMatches++;
         }
 
         return UserMatchStatsResponse.builder()
                 .userId(userId)
                 .numMatches(totalMatches)
-                .initiatedWins(initiatedWins)
-                .initiatedLosses(initiatedLosses)
-                .initiatedTies(initiatedTies)
-                .facedWins(facedWins)
-                .facedLosses(facedLosses)
-                .facedTies(facedTies)
-                .autoWins(autoWins)
-                .autoLosses(autoLosses)
-                .autoTies(autoTies)
+                .initiatedWins(initiated.wins)
+                .initiatedLosses(initiated.losses)
+                .initiatedTies(initiated.ties)
+                .facedWins(faced.wins)
+                .facedLosses(faced.losses)
+                .facedTies(faced.ties)
+                .autoWins(auto.wins)
+                .autoLosses(auto.losses)
+                .autoTies(auto.ties)
                 .lastMatchAt(lastMatchAt)
                 .build();
     }
