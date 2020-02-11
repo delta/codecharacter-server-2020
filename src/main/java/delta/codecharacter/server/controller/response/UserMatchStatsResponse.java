@@ -16,7 +16,7 @@ public class UserMatchStatsResponse {
     private Date lastMatchAt;
 
 
-    //matches with user as player1
+    //Matches initiated by user
 
     private Long initiatedWins;
 
@@ -24,7 +24,7 @@ public class UserMatchStatsResponse {
 
     private Long initiatedTies;
 
-    //matches with user as player2
+    //Matches initiated against user
 
     private Long facedWins;
 
@@ -33,7 +33,7 @@ public class UserMatchStatsResponse {
     private Long facedTies;
 
 
-    //matches with user as AUTO_PLAYER
+    //Matches played by user in auto matching
 
     private Long autoWins;
 

@@ -22,12 +22,16 @@ import java.util.logging.Logger;
 public class MatchService {
 
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
+
     @Autowired
     MongoTemplate mongoTemplate;
+
     @Autowired
     private ConstantRepository constantRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private MatchRepository matchRepository;
 
