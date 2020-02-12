@@ -93,13 +93,13 @@ public class MatchService {
             } else if (match.getPlayerId2() == userId) {
                 switch (match.getVerdict()) {
                     case PLAYER_1:
-                        auto.losses++;
+                        faced.losses++;
                         break;
                     case PLAYER_2:
-                        auto.wins++;
+                        faced.wins++;
                         break;
                     default:
-                        auto.ties++;
+                        faced.ties++;
                 }
             }
         }
