@@ -26,6 +26,5 @@ public class PrivateNotificationResponse {
     private Type type;
 
     @NotNull
-    @Builder.Default
-    private Boolean isRead = false;
+    private Boolean isRead;
 }

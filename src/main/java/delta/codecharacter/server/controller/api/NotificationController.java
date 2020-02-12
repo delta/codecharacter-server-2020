@@ -57,7 +57,7 @@ public class NotificationController {
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/{notificationId}/")
+    @DeleteMapping(value = "/{notificationId}r ")
     @SneakyThrows
     public ResponseEntity<String> deleteNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
