@@ -1,14 +1,13 @@
 package delta.codecharacter.server.controller.api;
 
+
 import delta.codecharacter.server.model.Announcement;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.service.AnnouncementService;
 import delta.codecharacter.server.service.UserService;
-import delta.codecharacter.server.util.PageUtils;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -45,12 +44,11 @@ public class AnnouncementController {
 
     @GetMapping(value = "")
     public ResponseEntity<List<Announcement>> getAllAnnouncements(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
-                                                                  @RequestParam(value = "size", defaultValue = "10", required = false) int size,
-                                                                  Authentication authentication) {
+                                                  @RequestParam(value = "size", defaultValue = "10", required = false) int size,
+                                                  Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
-        PageUtils.validatePaginationParams(page, size);
-        Page<Announcement> announcementPage = announcementService.getAllAnnouncements(page, size);
-        return new ResponseEntity<>(announcementPage.getContent(), HttpStatus.OK);
+        List<Announcement> announcements = announcementService.getAllAnnouncements(page, size).getContent();
+        return new ResponseEntity<>(announcements, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{announcementId}/")
