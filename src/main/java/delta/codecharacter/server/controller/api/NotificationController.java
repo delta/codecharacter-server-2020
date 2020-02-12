@@ -1,7 +1,7 @@
 package delta.codecharacter.server.controller.api;
 
 
-import delta.codecharacter.server.controller.request.NotificationRequest;
+import delta.codecharacter.server.controller.request.CreateNotificationRequest;
 import delta.codecharacter.server.controller.response.PrivateNotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
@@ -42,7 +42,7 @@ public class NotificationController {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
         if (notification == null) {
-            throw new Exception("Notification not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
         notificationService.checkNotificationAccess(user, notification);
         PrivateNotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
@@ -50,22 +50,26 @@ public class NotificationController {
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<PrivateNotificationResponse> createNotification(@RequestBody @Valid NotificationRequest notificationRequest, Authentication authentication) {
-        authenticateAdmin(authentication.getName());
-        Notification notification = notificationService.addNotification(notificationRequest);
+    public ResponseEntity<PrivateNotificationResponse> createNotification(@RequestBody @Valid CreateNotificationRequest createNotificationRequest, Authentication authentication) {
+        if (isAdmin(authentication.getName())) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        Notification notification = notificationService.addNotification(createNotificationRequest);
         PrivateNotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/{notificationId}r ")
+    @DeleteMapping(value = "/{notificationId}")
     @SneakyThrows
     public ResponseEntity<String> deleteNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
         if (notification == null) {
-            throw new Exception("Notification not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        notificationService.checkNotificationAccess(user, notification);
+        if (!notificationService.checkNotificationAccess(user, notification)) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
         notificationService.deleteNotificationById(notificationId);
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
@@ -84,7 +88,7 @@ public class NotificationController {
         Notification notification = notificationService.getNotificationById(notificationId);
         notificationService.checkNotificationAccess(user, notification);
         if (!notificationService.setIsReadNotificationById(notificationId)) {
-            throw new Exception("Notification not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>("Successfully read", HttpStatus.OK);
     }
@@ -110,9 +114,7 @@ public class NotificationController {
     }
 
     @SneakyThrows
-    private void authenticateAdmin(String username) {
-        if (!userService.getIsAdminUserByUsername(username)) {
-            throw new Exception("Unauthorized");
-        }
+    private boolean isAdmin(String username) {
+        return userService.getIsAdminUserByUsername(username);
     }
 }

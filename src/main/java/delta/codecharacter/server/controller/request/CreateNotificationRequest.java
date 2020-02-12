@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NotificationRequest {
+public class CreateNotificationRequest {
 
     @NotNull
     private Integer userId;

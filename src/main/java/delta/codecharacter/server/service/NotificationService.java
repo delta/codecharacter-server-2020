@@ -1,6 +1,6 @@
 package delta.codecharacter.server.service;
 
-import delta.codecharacter.server.controller.request.NotificationRequest;
+import delta.codecharacter.server.controller.request.CreateNotificationRequest;
 import delta.codecharacter.server.controller.response.PrivateNotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
@@ -33,14 +33,14 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public Notification addNotification(@NotNull NotificationRequest addNotificationRequest) {
+    public Notification addNotification(@NotNull CreateNotificationRequest addCreateNotificationRequest) {
         Integer notificationId = getMaxNotificationId() + 1;
         Notification notification = Notification.builder()
                 .id(notificationId)
-                .userId(addNotificationRequest.getUserId())
-                .title(addNotificationRequest.getTitle())
-                .content(addNotificationRequest.getContent())
-                .type(addNotificationRequest.getType())
+                .userId(addCreateNotificationRequest.getUserId())
+                .title(addCreateNotificationRequest.getTitle())
+                .content(addCreateNotificationRequest.getContent())
+                .type(addCreateNotificationRequest.getType())
                 .build();
 
         notificationRepository.save(notification);
@@ -112,10 +112,11 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public void checkNotificationAccess(@NotNull User user, @NotNull Notification notification) {
+    public boolean checkNotificationAccess(@NotNull User user, @NotNull Notification notification) {
         if (!(notification.getUserId().equals(user.getUserId())) && !(user.getIsAdmin())) {
-            throw new Exception("Unauthorized");
+            return false;
         }
+        return true;
     }
 
     private Integer getMaxNotificationId() {
