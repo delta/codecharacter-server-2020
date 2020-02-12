@@ -1,6 +1,6 @@
 package delta.codecharacter.server.service;
 
-import delta.codecharacter.server.controller.request.CreateNotificationRequest;
+import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
 import delta.codecharacter.server.controller.response.NotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;

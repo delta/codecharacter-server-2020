@@ -1,4 +1,4 @@
-package delta.codecharacter.server.controller.request;
+package delta.codecharacter.server.controller.request.Notification;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import delta.codecharacter.server.util.Type;

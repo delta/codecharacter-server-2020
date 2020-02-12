@@ -1,7 +1,7 @@
 package delta.codecharacter.server.controller.api;
 
 
-import delta.codecharacter.server.controller.request.CreateNotificationRequest;
+import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
 import delta.codecharacter.server.controller.response.NotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
@@ -74,14 +74,14 @@ public class NotificationController {
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/type/{type}/")
+    @DeleteMapping(value = "/type/{type}")
     public ResponseEntity<String> deleteNotificationsByType(@PathVariable Type type, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         notificationService.deleteNotificationsByTypeAndUser(type, user);
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
-    @PostMapping(value = "/read/{notificationId}/")
+    @PostMapping(value = "/read/{notificationId}")
     public ResponseEntity<String> setIsReadNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
@@ -95,7 +95,7 @@ public class NotificationController {
         return new ResponseEntity<>("Successfully read", HttpStatus.OK);
     }
 
-    @GetMapping(value = "/unread/")
+    @GetMapping(value = "/unread")
     public ResponseEntity<List<Notification>> getAllUnreadNotificationsByUserId(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                 @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                 Authentication authentication) {
