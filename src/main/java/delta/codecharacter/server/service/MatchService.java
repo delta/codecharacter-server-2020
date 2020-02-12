@@ -48,14 +48,14 @@ public class MatchService {
         Integer userId = userRepository.findByUsername(username).getUserId();
 
         List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2(userId, userId);
-        class LeaderboardData {
+        class UserMatchStatData {
             Integer wins = 0;
             Integer losses = 0;
             Integer ties = 0;
         }
-        LeaderboardData initiated = new LeaderboardData();
-        LeaderboardData faced = new LeaderboardData();
-        LeaderboardData auto = new LeaderboardData();
+        UserMatchStatData initiated = new UserMatchStatData();
+        UserMatchStatData faced = new UserMatchStatData();
+        UserMatchStatData auto = new UserMatchStatData();
         Integer totalMatches = 0;
         Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
 
