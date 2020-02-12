@@ -37,14 +37,15 @@ public class NotificationController {
     UserService userService;
 
     @GetMapping(value = "/{notificationId}")
-    @SneakyThrows
     public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        notificationService.checkNotificationAccess(user, notification);
+        if (!notificationService.checkNotificationAccess(user, notification)) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
         NotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
@@ -54,13 +55,12 @@ public class NotificationController {
         if (isAdmin(authentication.getName())) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
-        Notification notification = notificationService.addNotification(createNotificationRequest);
+        Notification notification = notificationService.createNotification(createNotificationRequest);
         NotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{notificationId}")
-    @SneakyThrows
     public ResponseEntity<String> deleteNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
@@ -70,7 +70,7 @@ public class NotificationController {
         if (!notificationService.checkNotificationAccess(user, notification)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
-        notificationService.deleteNotificationById(notificationId);
+        notificationService.deleteNotification(notification);
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
@@ -82,14 +82,16 @@ public class NotificationController {
     }
 
     @PostMapping(value = "/read/{notificationId}/")
-    @SneakyThrows
-    public ResponseEntity<String> readNotification(@PathVariable Integer notificationId, Authentication authentication) {
+    public ResponseEntity<String> setIsReadNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
-        notificationService.checkNotificationAccess(user, notification);
-        if (!notificationService.setIsReadNotificationById(notificationId)) {
+        if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
+        if (!notificationService.checkNotificationAccess(user, notification)) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        notificationService.setIsReadNotification(notification);
         return new ResponseEntity<>("Successfully read", HttpStatus.OK);
     }
 

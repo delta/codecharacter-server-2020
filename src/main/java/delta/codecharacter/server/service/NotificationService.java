@@ -33,7 +33,7 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public Notification addNotification(@NotNull CreateNotificationRequest addCreateNotificationRequest) {
+    public Notification createNotification(@NotNull CreateNotificationRequest addCreateNotificationRequest) {
         Integer notificationId = getMaxNotificationId() + 1;
         Notification notification = Notification.builder()
                 .id(notificationId)
@@ -49,28 +49,14 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public boolean setIsReadNotificationById(@NotNull Integer notificationId) {
-        Notification notification = findNotificationById(notificationId);
-
-        if (notification == null) {
-            return false;
-        }
-
+    public void setIsReadNotification(@NotNull Notification notification) {
         notification.setIsRead(true);
         notificationRepository.save(notification);
-        return true;
     }
 
     @SneakyThrows
-    public boolean deleteNotificationById(@NotNull Integer notificationId) {
-        Notification notification = findNotificationById(notificationId);
-
-        if (notification == null) {
-            return false;
-        }
-
+    public void deleteNotification(@NotNull Notification notification) {
         notificationRepository.delete(notification);
-        return true;
     }
 
     @SneakyThrows
@@ -113,10 +99,7 @@ public class NotificationService {
 
     @SneakyThrows
     public boolean checkNotificationAccess(@NotNull User user, @NotNull Notification notification) {
-        if (!(notification.getUserId().equals(user.getUserId())) && !(user.getIsAdmin())) {
-            return false;
-        }
-        return true;
+        return notification.getUserId().equals(user.getUserId()) || user.getIsAdmin();
     }
 
     private Integer getMaxNotificationId() {
