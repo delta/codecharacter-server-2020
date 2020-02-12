@@ -1,5 +1,6 @@
 package delta.codecharacter.server.controller.response;
 
+import delta.codecharacter.server.util.UserMatchStatData;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,18 +16,12 @@ public class UserMatchStatsResponse {
 
     private Date lastMatchAt;
 
-    //Matches initiated by user
-    private Integer initiatedWins;
-    private Integer initiatedLosses;
-    private Integer initiatedTies;
+    // Matches initiated by user
+    private UserMatchStatData initiated;
 
-    //Matches initiated against user
-    private Integer facedWins;
-    private Integer facedLosses;
-    private Integer facedTies;
+    // Matches faced by user
+    private UserMatchStatData faced;
 
-    //Matches played by user in auto matching
-    private Integer autoWins;
-    private Integer autoLosses;
-    private Integer autoTies;
+    // Matches played as auto
+    private UserMatchStatData auto;
 }

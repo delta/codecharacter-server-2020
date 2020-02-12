@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface MatchRepository extends MongoRepository<Match, Integer> {
-    List<Match> findAllByPlayerId1OrPlayerId2(Integer iuserId1, Integer userId2);
+    List<Match> findAllByPlayerId1OrPlayerId2(Integer userId1, Integer userId2);
 
     Match findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(Integer userId, MatchMode matchmode);
 }

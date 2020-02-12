@@ -46,12 +46,12 @@ public class UserController {
 
     @GetMapping(value = "/match-stats/{username}")
     public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable String username) {
-        return new ResponseEntity<UserMatchStatsResponse>(matchService.getUserMatchStats(username), HttpStatus.OK);
+        return new ResponseEntity<>(matchService.getUserMatchStats(username), HttpStatus.OK);
     }
 
     @GetMapping(value = "/wait-time/{username}")
-    public ResponseEntity<Float> getWaitTime(@PathVariable @NotEmpty String username) {
-        return new ResponseEntity<Float>(matchService.getWaitTime(username), HttpStatus.OK);
+    public ResponseEntity<Long> getWaitTime(@PathVariable @NotEmpty String username) {
+        return new ResponseEntity<>(matchService.getWaitTime(username), HttpStatus.OK);
     }
 
     @PostMapping(value = "/activate")

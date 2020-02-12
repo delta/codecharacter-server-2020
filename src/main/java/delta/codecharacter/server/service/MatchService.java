@@ -7,7 +7,7 @@ import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.MatchMode;
-import delta.codecharacter.server.util.Verdict;
+import delta.codecharacter.server.util.UserMatchStatData;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -48,55 +48,70 @@ public class MatchService {
         Integer userId = userRepository.findByUsername(username).getUserId();
 
         List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2(userId, userId);
-        class UserMatchStatData {
-            Integer wins = 0;
-            Integer losses = 0;
-            Integer ties = 0;
-        }
+
         UserMatchStatData initiated = new UserMatchStatData();
         UserMatchStatData faced = new UserMatchStatData();
         UserMatchStatData auto = new UserMatchStatData();
-        Integer totalMatches = 0;
-        Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
+        Integer totalMatches = matches.size();
 
         for (var match : matches) {
             if (match.getMatchMode() == MatchMode.AUTO) {
-                if ((match.getPlayerId1() == userId && match.getVerdict() == Verdict.PLAYER_1) || (match.getPlayerId2() == userId && match.getVerdict() == Verdict.PLAYER_2))
-                    auto.wins++;
-                else if ((match.getPlayerId1() == userId && match.getVerdict() == Verdict.PLAYER_2) || (match.getPlayerId2() == userId && match.getVerdict() == Verdict.PLAYER_1))
-                    auto.losses++;
-                else if (match.getVerdict() == Verdict.TIE)
-                    auto.ties++;
+                if (match.getPlayerId1() == userId) {
+                    switch (match.getVerdict()) {
+                        case PLAYER_1:
+                            auto.wins++;
+                            break;
+                        case PLAYER_2:
+                            auto.losses++;
+                            break;
+                        default:
+                            auto.ties++;
+                    }
+                } else if (match.getPlayerId2() == userId) {
+                    switch (match.getVerdict()) {
+                        case PLAYER_1:
+                            auto.losses++;
+                            break;
+                        case PLAYER_2:
+                            auto.wins++;
+                            break;
+                        default:
+                            auto.ties++;
+                    }
+                }
             } else if (match.getPlayerId1() == userId) {
-                if (match.getVerdict() == Verdict.PLAYER_1)
-                    initiated.wins++;
-                else if (match.getVerdict() == Verdict.PLAYER_2)
-                    initiated.losses++;
-                else if (match.getVerdict() == Verdict.TIE)
-                    initiated.ties++;
+                switch (match.getVerdict()) {
+                    case PLAYER_1:
+                        initiated.wins++;
+                        break;
+                    case PLAYER_2:
+                        initiated.losses++;
+                        break;
+                    default:
+                        initiated.ties++;
+                }
             } else if (match.getPlayerId2() == userId) {
-                if (match.getVerdict() == Verdict.PLAYER_2)
-                    faced.wins++;
-                else if (match.getVerdict() == Verdict.PLAYER_1)
-                    faced.losses++;
-                else if (match.getVerdict() == Verdict.TIE)
-                    faced.ties++;
+                switch (match.getVerdict()) {
+                    case PLAYER_1:
+                        auto.losses++;
+                        break;
+                    case PLAYER_2:
+                        auto.wins++;
+                        break;
+                    default:
+                        auto.ties++;
+                }
             }
-            totalMatches++;
         }
+
+        Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
 
         return UserMatchStatsResponse.builder()
                 .userId(userId)
                 .numMatches(totalMatches)
-                .initiatedWins(initiated.wins)
-                .initiatedLosses(initiated.losses)
-                .initiatedTies(initiated.ties)
-                .facedWins(faced.wins)
-                .facedLosses(faced.losses)
-                .facedTies(faced.ties)
-                .autoWins(auto.wins)
-                .autoLosses(auto.losses)
-                .autoTies(auto.ties)
+                .initiated(initiated)
+                .faced(faced)
+                .auto(auto)
                 .lastMatchAt(lastMatchAt)
                 .build();
     }
@@ -108,7 +123,7 @@ public class MatchService {
      * @return remaining time in seconds
      */
     @SneakyThrows
-    public Float getWaitTime(@NotEmpty String username) {
+    public Long getWaitTime(@NotEmpty String username) {
         if (userRepository.findByUsername(username) == null)
             throw new Exception("Invalid username");
 
@@ -117,11 +132,12 @@ public class MatchService {
         Date lastMatchTime = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
         Date currentTime = new Date();
 
-        Long timepassed = (currentTime.getTime() - lastMatchTime.getTime()) / 1000;
-        if (timepassed > minWaitTime)
-            return Float.valueOf(0);
+        // Seconds passed since last initiated match
+        Long timePassedSeconds = (currentTime.getTime() - lastMatchTime.getTime()) / 1000;
+        if (timePassedSeconds > minWaitTime)
+            return (long) 0;
         else
-            return (minWaitTime - timepassed);
+            return (long) (minWaitTime - timePassedSeconds);
     }
 
 }
