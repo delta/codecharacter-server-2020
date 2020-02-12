@@ -24,7 +24,7 @@ public class MatchService {
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
 
     @Autowired
-    MongoTemplate mongoTemplate;
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     private ConstantRepository constantRepository;

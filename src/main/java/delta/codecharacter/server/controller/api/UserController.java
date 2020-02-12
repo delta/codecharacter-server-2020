@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/match-stats/{username}")
-    public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable String username) {
+    public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable @NotEmpty String username) {
         return new ResponseEntity<>(matchService.getUserMatchStats(username), HttpStatus.OK);
     }
 
