@@ -9,7 +9,7 @@ import javax.validation.constraints.Positive;
 
 @Data
 @Builder
-public class PrivateNotificationResponse {
+public class NotificationResponse {
     @NotNull
     @Positive
     private Integer notificationId;

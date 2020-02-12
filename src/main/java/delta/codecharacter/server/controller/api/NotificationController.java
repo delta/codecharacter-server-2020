@@ -2,7 +2,7 @@ package delta.codecharacter.server.controller.api;
 
 
 import delta.codecharacter.server.controller.request.CreateNotificationRequest;
-import delta.codecharacter.server.controller.response.PrivateNotificationResponse;
+import delta.codecharacter.server.controller.response.NotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.UserRepository;
@@ -38,24 +38,24 @@ public class NotificationController {
 
     @GetMapping(value = "/{notificationId}")
     @SneakyThrows
-    public ResponseEntity<PrivateNotificationResponse> getNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
+    public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
         notificationService.checkNotificationAccess(user, notification);
-        PrivateNotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
+        NotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<PrivateNotificationResponse> createNotification(@RequestBody @Valid CreateNotificationRequest createNotificationRequest, Authentication authentication) {
+    public ResponseEntity<NotificationResponse> createNotification(@RequestBody @Valid CreateNotificationRequest createNotificationRequest, Authentication authentication) {
         if (isAdmin(authentication.getName())) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         Notification notification = notificationService.addNotification(createNotificationRequest);
-        PrivateNotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
+        NotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 

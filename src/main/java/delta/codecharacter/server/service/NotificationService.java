@@ -1,7 +1,7 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.request.CreateNotificationRequest;
-import delta.codecharacter.server.controller.response.PrivateNotificationResponse;
+import delta.codecharacter.server.controller.response.NotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.NotificationRepository;
@@ -100,8 +100,8 @@ public class NotificationService {
         return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(user.getUserId(), pageable);
     }
 
-    public PrivateNotificationResponse getNotificationResponse(Notification notification) {
-        return PrivateNotificationResponse.builder()
+    public NotificationResponse getNotificationResponse(Notification notification) {
+        return NotificationResponse.builder()
                 .notificationId(notification.getId())
                 .userId(notification.getUserId())
                 .title(notification.getTitle())
