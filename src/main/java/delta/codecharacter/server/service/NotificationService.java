@@ -1,6 +1,7 @@
 package delta.codecharacter.server.service;
 
-import delta.codecharacter.server.controller.request.PrivateAddNotificationRequest;
+import delta.codecharacter.server.controller.request.NotificationRequest;
+import delta.codecharacter.server.controller.response.PrivateNotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.NotificationRepository;
@@ -28,17 +29,11 @@ public class NotificationService {
 
     @SneakyThrows
     public Notification getNotificationById(@NotNull Integer notificationId) {
-        Notification notification = findNotificationById(notificationId);
-
-        if (notification == null) {
-            throw new Exception("Notification not found");
-        }
-
-        return notification;
+        return findNotificationById(notificationId);
     }
 
     @SneakyThrows
-    public Notification addNotification(@NotNull PrivateAddNotificationRequest addNotificationRequest) {
+    public Notification addNotification(@NotNull NotificationRequest addNotificationRequest) {
         Integer notificationId = getMaxNotificationId() + 1;
         Notification notification = Notification.builder()
                 .id(notificationId)
@@ -54,27 +49,28 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public void readNotificationById(@NotNull Integer notificationId) {
+    public boolean setIsReadNotificationById(@NotNull Integer notificationId) {
         Notification notification = findNotificationById(notificationId);
 
         if (notification == null) {
-            throw new Exception("Not Found");
+            return false;
         }
 
         notification.setIsRead(true);
-
         notificationRepository.save(notification);
+        return true;
     }
 
     @SneakyThrows
-    public void deleteNotificationById(@NotNull Integer notificationId) {
+    public boolean deleteNotificationById(@NotNull Integer notificationId) {
         Notification notification = findNotificationById(notificationId);
 
         if (notification == null) {
-            throw new Exception("Not Found");
+            return false;
         }
 
         notificationRepository.delete(notification);
+        return true;
     }
 
     @SneakyThrows
@@ -102,6 +98,24 @@ public class NotificationService {
                                                               @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(user.getUserId(), pageable);
+    }
+
+    public PrivateNotificationResponse getNotificationResponse(Notification notification) {
+        return PrivateNotificationResponse.builder()
+                .notificationId(notification.getId())
+                .userId(notification.getUserId())
+                .title(notification.getTitle())
+                .content(notification.getContent())
+                .type(notification.getType())
+                .isRead(notification.getIsRead())
+                .build();
+    }
+
+    @SneakyThrows
+    public void checkNotificationAccess(@NotNull User user, @NotNull Notification notification) {
+        if (!(notification.getUserId().equals(user.getUserId())) && !(user.getIsAdmin())) {
+            throw new Exception("Unauthorized");
+        }
     }
 
     private Integer getMaxNotificationId() {

@@ -1,7 +1,7 @@
 package delta.codecharacter.server.controller.api;
 
 
-import delta.codecharacter.server.controller.request.PrivateAddNotificationRequest;
+import delta.codecharacter.server.controller.request.NotificationRequest;
 import delta.codecharacter.server.controller.response.PrivateNotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
@@ -19,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -38,44 +37,55 @@ public class NotificationController {
     UserService userService;
 
     @GetMapping(value = "/{notificationId}")
+    @SneakyThrows
     public ResponseEntity<PrivateNotificationResponse> getNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
-        User user = userService.getAuthenticatedUser(authentication.getName());
+        User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
-        checkNotificationAccess(user, notification);
-        PrivateNotificationResponse notificationResponse = getNotificationResponse(notification);
+        if (notification == null) {
+            throw new Exception("Notification not found");
+        }
+        notificationService.checkNotificationAccess(user, notification);
+        PrivateNotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<PrivateNotificationResponse> addNotification(@RequestBody @Valid PrivateAddNotificationRequest privateAddNotificationRequest, Authentication authentication) {
-        User user = userService.getAuthenticatedAdminUser(authentication.getName());
-        Notification notification = notificationService.addNotification(privateAddNotificationRequest);
-        PrivateNotificationResponse notificationResponse = getNotificationResponse(notification);
+    public ResponseEntity<PrivateNotificationResponse> createNotification(@RequestBody @Valid NotificationRequest notificationRequest, Authentication authentication) {
+        authenticateAdmin(authentication.getName());
+        Notification notification = notificationService.addNotification(notificationRequest);
+        PrivateNotificationResponse notificationResponse = notificationService.getNotificationResponse(notification);
         return new ResponseEntity<>(notificationResponse, HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{notificationId}/")
+    @SneakyThrows
     public ResponseEntity<String> deleteNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
-        User user = userService.getAuthenticatedUser(authentication.getName());
+        User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
-        checkNotificationAccess(user, notification);
+        if (notification == null) {
+            throw new Exception("Notification not found");
+        }
+        notificationService.checkNotificationAccess(user, notification);
         notificationService.deleteNotificationById(notificationId);
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/type/{type}/")
     public ResponseEntity<String> deleteNotificationsByType(@PathVariable Type type, Authentication authentication) {
-        User user = userService.getAuthenticatedUser(authentication.getName());
+        User user = userService.getUserByUsername(authentication.getName());
         notificationService.deleteNotificationsByTypeAndUser(type, user);
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
     @PostMapping(value = "/read/{notificationId}/")
+    @SneakyThrows
     public ResponseEntity<String> readNotification(@PathVariable Integer notificationId, Authentication authentication) {
-        User user = userService.getAuthenticatedUser(authentication.getName());
+        User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.getNotificationById(notificationId);
-        checkNotificationAccess(user, notification);
-        notificationService.readNotificationById(notificationId);
+        notificationService.checkNotificationAccess(user, notification);
+        if (!notificationService.setIsReadNotificationById(notificationId)) {
+            throw new Exception("Notification not found");
+        }
         return new ResponseEntity<>("Successfully read", HttpStatus.OK);
     }
 
@@ -83,7 +93,7 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getAllUnreadNotificationsByUserId(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                 @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                 Authentication authentication) {
-        User user = userService.getAuthenticatedUser(authentication.getName());
+        User user = userService.getUserByUsername(authentication.getName());
         PageUtils.validatePaginationParams(page, size);
         Page<Notification> notificationPage = notificationService.getAllUnreadNotificationsByUser(user, page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
@@ -93,26 +103,15 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getAllNotificationsByUserId(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                           @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                           Authentication authentication) {
-        User user = userService.getAuthenticatedUser(authentication.getName());
+        User user = userService.getUserByUsername(authentication.getName());
         PageUtils.validatePaginationParams(page, size);
         Page<Notification> notificationPage = notificationService.getAllNotificationsByUser(user, page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
     }
 
-    private PrivateNotificationResponse getNotificationResponse(Notification notification) {
-        return PrivateNotificationResponse.builder()
-                .notificationId(notification.getId())
-                .userId(notification.getUserId())
-                .title(notification.getTitle())
-                .content(notification.getContent())
-                .type(notification.getType())
-                .isRead(notification.getIsRead())
-                .build();
-    }
-
     @SneakyThrows
-    private void checkNotificationAccess(@NotNull User user, @NotNull Notification notification) {
-        if (!(notification.getUserId().equals(user.getUserId())) && !(user.getIsAdmin())) {
+    private void authenticateAdmin(String username) {
+        if (!userService.getIsAdminUserByUsername(username)) {
             throw new Exception("Unauthorized");
         }
     }
