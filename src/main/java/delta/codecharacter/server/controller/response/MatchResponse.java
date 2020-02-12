@@ -1,8 +1,8 @@
 package delta.codecharacter.server.controller.response;
 
-import delta.codecharacter.server.util.MatchMode;
-import delta.codecharacter.server.util.Status;
-import delta.codecharacter.server.util.Verdict;
+import delta.codecharacter.server.util.Enums.MatchMode;
+import delta.codecharacter.server.util.Enums.Status;
+import delta.codecharacter.server.util.Enums.Verdict;
 import lombok.Builder;
 import lombok.Data;
 

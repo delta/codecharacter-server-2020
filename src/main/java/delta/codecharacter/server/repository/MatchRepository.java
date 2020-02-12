@@ -1,8 +1,7 @@
 package delta.codecharacter.server.repository;
 
 import delta.codecharacter.server.model.Match;
-import delta.codecharacter.server.util.MatchMode;
-import delta.codecharacter.server.util.Verdict;
+import delta.codecharacter.server.util.Enums.MatchMode;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

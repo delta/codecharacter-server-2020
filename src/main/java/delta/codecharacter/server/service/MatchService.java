@@ -6,7 +6,7 @@ import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.MatchMode;
+import delta.codecharacter.server.util.Enums.MatchMode;
 import delta.codecharacter.server.util.UserMatchStatData;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
