@@ -1,7 +1,7 @@
 package delta.codecharacter.server.model;
 
 import delta.codecharacter.server.util.Division;
-import delta.codecharacter.server.util.Mode;
+import delta.codecharacter.server.util.MatchMode;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -24,4 +24,9 @@ public class Leaderboard {
     @NotNull
     @Builder.Default
     private Division division = Division.DIV_2;
+
+    @Field("match_mode")
+    @NotNull
+    @Builder.Default
+    private MatchMode matchMode = MatchMode.AUTO;
 }

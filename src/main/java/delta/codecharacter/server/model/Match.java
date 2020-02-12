@@ -1,13 +1,16 @@
 package delta.codecharacter.server.model;
 
+import delta.codecharacter.server.util.MatchMode;
 import delta.codecharacter.server.util.Status;
 import delta.codecharacter.server.util.Verdict;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.util.Date;
 
 /**
  * A match between two players. It may consist of more than one game.
@@ -45,4 +48,13 @@ public class Match {
     @Field("score_2")
     @NotNull
     private Integer score2;
+
+    @Field("match_mode")
+    @NotNull
+    @Builder.Default
+    private MatchMode matchMode = MatchMode.AUTO;
+
+    @Field("created_at")
+    @NotNull
+    private Date createdAt;
 }
