@@ -1,6 +1,6 @@
 package delta.codecharacter.server.model;
 
-import delta.codecharacter.server.util.Status;
+import delta.codecharacter.server.util.EnumFiles.Status;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;

@@ -5,7 +5,7 @@ import delta.codecharacter.server.controller.response.LeaderboardResponse;
 import delta.codecharacter.server.model.Leaderboard;
 import delta.codecharacter.server.repository.LeaderboardRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.Division;
+import delta.codecharacter.server.util.EnumFiles.Division;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
