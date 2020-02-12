@@ -1,4 +1,4 @@
-package delta.codecharacter.server.util.EnumFiles;
+package delta.codecharacter.server.util.Enums;
 
 public enum AuthMethod {
     SSO, PRAGYAN, MANUAL

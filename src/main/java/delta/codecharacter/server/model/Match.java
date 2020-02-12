@@ -1,10 +1,8 @@
 package delta.codecharacter.server.model;
 
-import delta.codecharacter.server.util.EnumFiles.Status;
-import delta.codecharacter.server.util.EnumFiles.Verdict;
-import delta.codecharacter.server.util.MatchMode;
-import lombok.Builder;
-import lombok.Data;
+import delta.codecharacter.server.util.Enums.Status;
+import delta.codecharacter.server.util.Enums.Verdict;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 

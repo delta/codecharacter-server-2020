@@ -2,7 +2,7 @@ package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.response.LeaderboardResponse;
 import delta.codecharacter.server.service.LeaderboardService;
-import delta.codecharacter.server.util.EnumFiles.Division;
+import delta.codecharacter.server.util.Enums.Division;
 import delta.codecharacter.server.util.PageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

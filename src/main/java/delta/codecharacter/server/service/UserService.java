@@ -9,7 +9,7 @@ import delta.codecharacter.server.model.UserActivation;
 import delta.codecharacter.server.repository.PasswordResetDetailsRepository;
 import delta.codecharacter.server.repository.UserActivationRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.EnumFiles.AuthMethod;
+import delta.codecharacter.server.util.Enums.AuthMethod;
 import delta.codecharacter.server.util.MailTemplate;
 import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import lombok.SneakyThrows;
