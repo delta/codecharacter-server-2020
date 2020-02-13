@@ -1,7 +1,6 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
-import delta.codecharacter.server.controller.response.NotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.NotificationRepository;
@@ -61,8 +60,12 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public List<Notification> getAllNotificationsByTypeAndUserId(@NotNull Type type, @NotNull Integer userId) {
-        return notificationRepository.findAllByTypeAndUserId(type, userId);
+    public Page<Notification> getAllNotificationsByTypeAndUserId(@NotNull Type type,
+                                                                 @NotNull Integer userId,
+                                                                 @NotNull int pageNumber,
+                                                                 @NotNull int size) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, size);
+        return notificationRepository.findAllByTypeAndUserId(type, userId, pageable);
     }
 
     @SneakyThrows
@@ -85,17 +88,6 @@ public class NotificationService {
                                                                 @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(userId, pageable);
-    }
-
-    public NotificationResponse getNotificationResponse(Notification notification) {
-        return NotificationResponse.builder()
-                .notificationId(notification.getId())
-                .userId(notification.getUserId())
-                .title(notification.getTitle())
-                .content(notification.getContent())
-                .type(notification.getType())
-                .isRead(notification.getIsRead())
-                .build();
     }
 
     @SneakyThrows
