@@ -1,6 +1,6 @@
 package delta.codecharacter.server.model;
 
-import delta.codecharacter.server.util.Enums.Type;
+import delta.codecharacter.server.util.enums.Type;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;

@@ -1,4 +1,4 @@
-package delta.codecharacter.server.util.Enums;
+package delta.codecharacter.server.util.enums;
 
 public enum Type {
     INFO, SUCCESS, ERROR
