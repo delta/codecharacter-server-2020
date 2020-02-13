@@ -54,7 +54,7 @@ public class NotificationController {
         if (!userService.getIsAdminUserByUsername(authentication.getName())) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
-        Notification notification = notificationService.createNotification(createNotificationRequest);
+        notificationService.createNotification(createNotificationRequest);
         return new ResponseEntity<>("Notification created successfully", HttpStatus.CREATED);
     }
 
