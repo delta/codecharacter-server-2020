@@ -78,7 +78,7 @@ public class NotificationController {
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
-    @PostMapping(value = "/read/{notificationId}")
+    @PatchMapping(value = "/read/{notificationId}")
     public ResponseEntity<String> setIsReadNotificationById(@PathVariable Integer notificationId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Notification notification = notificationService.findNotificationById(notificationId);
