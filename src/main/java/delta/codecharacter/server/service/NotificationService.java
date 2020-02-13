@@ -48,31 +48,31 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public void setIsReadNotification(@NotNull Integer notificationId) {
+    public void setIsReadNotificationById(@NotNull Integer notificationId) {
         Notification notification = notificationRepository.findFirstById(notificationId);
         notification.setIsRead(true);
         notificationRepository.save(notification);
     }
 
     @SneakyThrows
-    public void deleteNotification(@NotNull Integer notificationId) {
+    public void deleteNotificationById(@NotNull Integer notificationId) {
         Notification notification = notificationRepository.findFirstById(notificationId);
         notificationRepository.delete(notification);
     }
 
     @SneakyThrows
-    public List<Notification> getAllNotificationsByTypeAndUser(@NotNull Type type, @NotNull Integer userId) {
+    public List<Notification> getAllNotificationsByTypeAndUserId(@NotNull Type type, @NotNull Integer userId) {
         return notificationRepository.findAllByTypeAndUserId(type, userId);
     }
 
     @SneakyThrows
-    public void deleteNotificationsByTypeAndUser(@NotNull Type type, @NotNull Integer userId) {
+    public void deleteNotificationsByTypeAndUserId(@NotNull Type type, @NotNull Integer userId) {
         List<Notification> notifications = notificationRepository.findAllByTypeAndUserId(type, userId);
         notificationRepository.deleteAll(notifications);
     }
 
     @SneakyThrows
-    public Page<Notification> getAllNotificationsByUser(@NotNull Integer userId,
+    public Page<Notification> getAllNotificationsByUserId(@NotNull Integer userId,
                                                         @NotNull @Positive int pageNumber,
                                                         @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
@@ -80,9 +80,9 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public Page<Notification> getAllUnreadNotificationsByUser(@NotNull Integer userId,
-                                                              @NotNull @Positive int pageNumber,
-                                                              @NotNull @PositiveOrZero int size) {
+    public Page<Notification> getAllUnreadNotificationsByUserId(@NotNull Integer userId,
+                                                                @NotNull @Positive int pageNumber,
+                                                                @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(userId, pageable);
     }
