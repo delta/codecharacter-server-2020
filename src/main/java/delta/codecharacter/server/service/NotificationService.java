@@ -99,8 +99,10 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public boolean checkNotificationAccess(@NotNull User user, @NotNull Notification notification) {
-        return notification.getUserId().equals(user.getUserId()) || user.getIsAdmin();
+    public boolean checkNotificationAccess(@NotNull Integer userId, @NotNull Integer notificationId) {
+        Notification notification = notificationRepository.findFirstById(notificationId);
+        User user = userRepository.findByUserId(userId);
+        return notification.getUserId().equals(userId) || user.getIsAdmin();
     }
 
     private Integer getMaxNotificationId() {

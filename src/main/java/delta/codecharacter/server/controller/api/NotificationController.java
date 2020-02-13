@@ -41,7 +41,7 @@ public class NotificationController {
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        if (!notificationService.checkNotificationAccess(user, notification)) {
+        if (!notificationService.checkNotificationAccess(user.getUserId(), notificationId)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
 
@@ -49,12 +49,12 @@ public class NotificationController {
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<Notification> createNotification(@RequestBody @Valid CreateNotificationRequest createNotificationRequest, Authentication authentication) {
+    public ResponseEntity<String> createNotification(@RequestBody @Valid CreateNotificationRequest createNotificationRequest, Authentication authentication) {
         if (userService.getIsAdminUserByUsername(authentication.getName())) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         Notification notification = notificationService.createNotification(createNotificationRequest);
-        return new ResponseEntity<>(notification, HttpStatus.OK);
+        return new ResponseEntity<>("Notification created successfully", HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{notificationId}")
@@ -64,7 +64,7 @@ public class NotificationController {
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        if (!notificationService.checkNotificationAccess(user, notification)) {
+        if (!notificationService.checkNotificationAccess(user.getUserId(), notificationId)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         notificationService.deleteNotification(notification.getId());
@@ -85,7 +85,7 @@ public class NotificationController {
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        if (!notificationService.checkNotificationAccess(user, notification)) {
+        if (!notificationService.checkNotificationAccess(user.getUserId(), notificationId)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         notificationService.setIsReadNotification(notificationId);
