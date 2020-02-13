@@ -5,6 +5,7 @@ import delta.codecharacter.server.controller.response.NotificationResponse;
 import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.NotificationRepository;
+import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.Type;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,20 +28,18 @@ public class NotificationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    @SneakyThrows
-    public Notification getNotificationById(@NotNull Integer notificationId) {
-        return findNotificationById(notificationId);
-    }
+    @Autowired
+    private UserRepository userRepository;
 
     @SneakyThrows
-    public Notification createNotification(@NotNull CreateNotificationRequest addCreateNotificationRequest) {
+    public Notification createNotification(@NotNull CreateNotificationRequest createNotificationRequest) {
         Integer notificationId = getMaxNotificationId() + 1;
         Notification notification = Notification.builder()
                 .id(notificationId)
-                .userId(addCreateNotificationRequest.getUserId())
-                .title(addCreateNotificationRequest.getTitle())
-                .content(addCreateNotificationRequest.getContent())
-                .type(addCreateNotificationRequest.getType())
+                .userId(createNotificationRequest.getUserId())
+                .title(createNotificationRequest.getTitle())
+                .content(createNotificationRequest.getContent())
+                .type(createNotificationRequest.getType())
                 .build();
 
         notificationRepository.save(notification);
@@ -49,41 +48,43 @@ public class NotificationService {
     }
 
     @SneakyThrows
-    public void setIsReadNotification(@NotNull Notification notification) {
+    public void setIsReadNotification(@NotNull Integer notificationId) {
+        Notification notification = notificationRepository.findFirstById(notificationId);
         notification.setIsRead(true);
         notificationRepository.save(notification);
     }
 
     @SneakyThrows
-    public void deleteNotification(@NotNull Notification notification) {
+    public void deleteNotification(@NotNull Integer notificationId) {
+        Notification notification = notificationRepository.findFirstById(notificationId);
         notificationRepository.delete(notification);
     }
 
     @SneakyThrows
-    public List<Notification> getAllNotificationsByTypeAndUser(@NotNull Type type, @NotNull User user) {
-        return notificationRepository.findAllByTypeAndUserId(type, user.getUserId());
+    public List<Notification> getAllNotificationsByTypeAndUser(@NotNull Type type, @NotNull Integer userId) {
+        return notificationRepository.findAllByTypeAndUserId(type, userId);
     }
 
     @SneakyThrows
-    public void deleteNotificationsByTypeAndUser(@NotNull Type type, @NotNull User user) {
-        List<Notification> notifications = notificationRepository.findAllByTypeAndUserId(type, user.getUserId());
+    public void deleteNotificationsByTypeAndUser(@NotNull Type type, @NotNull Integer userId) {
+        List<Notification> notifications = notificationRepository.findAllByTypeAndUserId(type, userId);
         notificationRepository.deleteAll(notifications);
     }
 
     @SneakyThrows
-    public Page<Notification> getAllNotificationsByUser(@NotNull User user,
+    public Page<Notification> getAllNotificationsByUser(@NotNull Integer userId,
                                                         @NotNull @Positive int pageNumber,
                                                         @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
-        return notificationRepository.findAllByUserIdOrderByIdDesc(user.getUserId(), pageable);
+        return notificationRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
     }
 
     @SneakyThrows
-    public Page<Notification> getAllUnreadNotificationsByUser(@NotNull User user,
+    public Page<Notification> getAllUnreadNotificationsByUser(@NotNull Integer userId,
                                                               @NotNull @Positive int pageNumber,
                                                               @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
-        return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(user.getUserId(), pageable);
+        return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(userId, pageable);
     }
 
     public NotificationResponse getNotificationResponse(Notification notification) {
@@ -110,7 +111,8 @@ public class NotificationService {
         return notification.getId();
     }
 
-    private Notification findNotificationById(Integer notificationId) {
+    @SneakyThrows
+    public Notification findNotificationById(Integer notificationId) {
         return notificationRepository.findFirstById(notificationId);
     }
 }
