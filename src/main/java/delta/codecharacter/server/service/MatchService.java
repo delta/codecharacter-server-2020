@@ -17,6 +17,18 @@ import javax.validation.constraints.NotEmpty;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import delta.codecharacter.server.controller.request.Match.GameResult;
+import delta.codecharacter.server.controller.request.Match.GameDetails;
+import delta.codecharacter.server.controller.request.Match.UpdateMatchRequest;
+import delta.codecharacter.server.model.Game;
+import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.repository.GameRepository;
+import delta.codecharacter.server.repository.MatchRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Service
 public class MatchService {
@@ -35,6 +47,8 @@ public class MatchService {
     @Autowired
     private MatchRepository matchRepository;
 
+    @Autowired
+    GameRepository gameRepository;
     /**
      * Return the match statistics of a user
      *
@@ -140,4 +154,16 @@ public class MatchService {
             return (long) (minWaitTime - timePassedSeconds);
     }
 
+    public void updateMatch(@NotNull UpdateMatchRequest updateMatchRequest) {
+        Integer matchId = updateMatchRequest.getMatchId();
+        Match match = matchRepository.findFirstById(matchId);
+        List<GameDetails> gameDetailsList = updateMatchRequest.getGameResults();
+        for (GameDetails gameDetails : gameDetailsList) {
+            Game game = gameRepository.findFirstById(gameDetails.getGameId());
+            GameResult gameResult = gameDetails.getResults();
+            game.setInterestingness(gameResult.getInterestingness());
+            game.setPoints1(gameResult.getScores().getScore());
+            game.setPoints2(gameResult.getScores().getScore());
+        }
+    }
 }
