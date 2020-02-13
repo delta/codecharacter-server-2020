@@ -309,7 +309,7 @@ public class UserService implements UserDetailsService {
     public User getUserByUsername(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new Exception("Unauthorized");
+            throw new Exception("User not found");
         }
         return user;
     }

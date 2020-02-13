@@ -73,7 +73,7 @@ public class NotificationController {
     }
 
     @DeleteMapping(value = "/type/{type}")
-    public ResponseEntity<String> deleteNotificationsByType(@PathVariable @NotEmpty Tygipe type, Authentication authentication) {
+    public ResponseEntity<String> deleteNotificationsByType(@PathVariable @NotEmpty Type type, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         notificationService.deleteNotificationsByTypeAndUserId(type, user.getUserId());
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
@@ -114,7 +114,7 @@ public class NotificationController {
     }
 
     @GetMapping(value = "/type/{type}")
-    public ResponseEntity<List<Notification>> getAllNotificationsByTypeAndUserId(@PathVariable Type type,
+    public ResponseEntity<List<Notification>> getAllNotificationsByTypeAndUserId(@PathVariable @NotEmpty Type type,
                                                                                  @RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                                  @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                                  Authentication authentication) {
