@@ -1,7 +1,7 @@
 package delta.codecharacter.server.repository;
 
 import delta.codecharacter.server.model.Notification;
-import delta.codecharacter.server.util.Type;
+import delta.codecharacter.server.util.enums.Type;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;

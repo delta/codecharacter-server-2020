@@ -8,7 +8,7 @@ import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.service.NotificationService;
 import delta.codecharacter.server.service.UserService;
 import delta.codecharacter.server.util.PageUtils;
-import delta.codecharacter.server.util.Type;
+import delta.codecharacter.server.util.enums.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -73,7 +73,7 @@ public class NotificationController {
     }
 
     @DeleteMapping(value = "/type/{type}")
-    public ResponseEntity<String> deleteNotificationsByType(@PathVariable @NotEmpty Type type, Authentication authentication) {
+    public ResponseEntity<String> deleteNotificationsByType(@PathVariable @NotEmpty Tygipe type, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         notificationService.deleteNotificationsByTypeAndUserId(type, user.getUserId());
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);

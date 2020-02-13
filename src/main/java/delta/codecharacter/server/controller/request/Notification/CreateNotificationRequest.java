@@ -1,7 +1,7 @@
 package delta.codecharacter.server.controller.request.Notification;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import delta.codecharacter.server.util.Type;
+import delta.codecharacter.server.util.enums.Type;
 import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;

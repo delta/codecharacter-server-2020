@@ -5,7 +5,7 @@ import delta.codecharacter.server.model.Notification;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.NotificationRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.Type;
+import delta.codecharacter.server.util.enums.Type;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
