@@ -1,7 +1,7 @@
 package delta.codecharacter.server.model;
 
-import delta.codecharacter.server.util.Status;
-import delta.codecharacter.server.util.Verdict;
+import delta.codecharacter.server.util.enums.Status;
+import delta.codecharacter.server.util.enums.Verdict;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;

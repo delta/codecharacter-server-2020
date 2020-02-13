@@ -1,6 +1,6 @@
 package delta.codecharacter.server.controller.response;
 
-import delta.codecharacter.server.util.Division;
+import delta.codecharacter.server.util.enums.Division;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Field;

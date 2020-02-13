@@ -1,5 +1,7 @@
 package delta.codecharacter.server.util;
 
+import delta.codecharacter.server.util.enums.MatchMode;
+import delta.codecharacter.server.util.enums.Verdict;
 import lombok.Builder;
 import lombok.Data;
 
