@@ -64,7 +64,7 @@ public class LeaderboardService {
         Aggregation aggregation = newAggregation(
                 lookup("user", "user_id", "_id", "join"),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
-                skip((long)pageable.getPageNumber() * pageable.getPageSize()),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
         );
 
@@ -73,7 +73,7 @@ public class LeaderboardService {
         List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
-            leaderboardData.setRank(1+leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()));
+            leaderboardData.setRank(leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()) + 1);
         }
         return leaderboard;
     }
@@ -92,7 +92,7 @@ public class LeaderboardService {
                 lookup("user", "user_id", "_id", "join"),
                 match(Criteria.where("join.username").regex(username)),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
-                skip((long)pageable.getPageNumber() * pageable.getPageSize()),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
         );
 
@@ -102,7 +102,7 @@ public class LeaderboardService {
 
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
-            leaderboardData.setRank(1+leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()));
+            leaderboardData.setRank(leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()) + 1);
         }
         return leaderboard;
     }
@@ -121,7 +121,7 @@ public class LeaderboardService {
                 match(Criteria.where("division").is(division)),
                 lookup("user", "user_id", "_id", "join"),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
-                skip((long)pageable.getPageNumber() * pageable.getPageSize()),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
         );
 
@@ -130,7 +130,7 @@ public class LeaderboardService {
         List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
-            leaderboardData.setRank(1+leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()));
+            leaderboardData.setRank(leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()) + 1);
         }
         return leaderboard;
     }
