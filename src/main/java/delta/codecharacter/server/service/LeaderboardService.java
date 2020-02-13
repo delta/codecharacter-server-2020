@@ -73,6 +73,7 @@ public class LeaderboardService {
         List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
+            leaderboardData.setRank(1+leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()));
         }
         return leaderboard;
     }
@@ -101,6 +102,7 @@ public class LeaderboardService {
 
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
+            leaderboardData.setRank(1+leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()));
         }
         return leaderboard;
     }
@@ -128,6 +130,7 @@ public class LeaderboardService {
         List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
+            leaderboardData.setRank(1+leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()));
         }
         return leaderboard;
     }

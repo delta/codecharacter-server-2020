@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LeaderboardRepository extends MongoRepository<Leaderboard, Integer> {
+    Integer countByRatingGreaterThan(Integer rating);
 }
