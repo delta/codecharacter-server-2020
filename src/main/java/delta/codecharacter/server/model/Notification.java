@@ -36,5 +36,6 @@ public class Notification {
     private String content;
 
     @NotBlank(message = "Type is mandatory")
-    private Type type;
+    @Builder.Default
+    private Type type = Type.INFO;
 }

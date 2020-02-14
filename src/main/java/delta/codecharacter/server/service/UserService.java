@@ -304,4 +304,19 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByUsername(username);
         return user != null;
     }
+
+    @SneakyThrows
+    public User getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new Exception("User not found");
+        }
+        return user;
+    }
+
+    @SneakyThrows
+    public boolean getIsAdminUserByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        return (user != null) && (user.getIsAdmin());
+    }
 }
