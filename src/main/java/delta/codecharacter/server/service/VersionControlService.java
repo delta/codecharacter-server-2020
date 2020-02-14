@@ -1,5 +1,6 @@
 package delta.codecharacter.server.service;
 
+import delta.codecharacter.server.util.DllFile;
 import delta.codecharacter.server.util.FileHandler;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
@@ -21,33 +22,33 @@ public class VersionControlService {
     private String codeFileName;
 
     /**
-     * Return the absolute path to the codes directory of given username
+     * Return the absolute path to the codes directory of given userId
      *
-     * @param username - Username of whose directory is to be accessed
+     * @param userId - Username of whose directory is to be accessed
      * @return Path to codes directory
      */
-    private String getCodeRepositoryUri(String username) {
-        return System.getProperty("user.dir") + codeStoragePath + File.separator + username;
+    private String getCodeRepositoryUri(Integer userId) {
+        return System.getProperty("user.dir") + codeStoragePath + File.separator + userId;
     }
 
     /**
-     * Return the absolute path to the player code file of given username
+     * Return the absolute path to the player code file of given userId
      *
-     * @param username - Username of whose code is to be accessed
+     * @param userId - Username of whose code is to be accessed
      * @return Path to player code file
      */
-    private String getCodeFileUri(String username) {
-        return getCodeRepositoryUri(username) + File.separator + codeFileName;
+    private String getCodeFileUri(Integer userId) {
+        return getCodeRepositoryUri(userId) + File.separator + codeFileName;
     }
 
     /**
-     * Create a new code repository with git initialized for given username
+     * Create a new code repository with git initialized for given userId
      *
-     * @param username Username of the user
+     * @param userId Username of the user
      */
     @SneakyThrows
-    public void createCodeRepository(Integer userId, String username) {
-        String codeRepositoryUri = getCodeRepositoryUri(username);
+    public void createCodeRepository(Integer userId) {
+        String codeRepositoryUri = getCodeRepositoryUri(userId);
 
         if (!FileHandler.checkFileExists(codeRepositoryUri)) {
             boolean dirCreated = FileHandler.createDirectory(codeRepositoryUri);
@@ -66,13 +67,13 @@ public class VersionControlService {
         }
 
         // Create code file, add and commit
-        if (!FileHandler.createFile(getCodeFileUri(username))) {
+        if (!FileHandler.createFile(getCodeFileUri(userId))) {
             git.close();
             throw new Exception("Code file cannot be created");
         }
 
-        add(username);
-        commit(username);
+        add(userId);
+        commit(userId);
 
         git.close();
     }
@@ -80,11 +81,11 @@ public class VersionControlService {
     /**
      * Add all files to stage
      *
-     * @param username Username of user
+     * @param userId Username of user
      */
     @SneakyThrows
-    private void add(String username) {
-        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+    private void add(Integer userId) {
+        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
         // git add .
         git.add().addFilepattern(".").call();
         git.close();
@@ -93,12 +94,12 @@ public class VersionControlService {
     /**
      * Get git log of user's code repository
      *
-     * @param username Username of user
+     * @param userId Username of user
      * @return Iterable of commits
      */
     @SneakyThrows
-    public Iterable<RevCommit> log(String username) {
-        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+    public Iterable<RevCommit> log(Integer userId) {
+        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
         Repository repository = git.getRepository();
         ObjectId HEAD = repository.resolve("refs/heads/master");
 
@@ -112,12 +113,12 @@ public class VersionControlService {
     /**
      * Get number of commits in user's code repository
      *
-     * @param username Username of user
+     * @param userId Username of user
      * @return long Number of commits
      */
     @SneakyThrows
-    private long getCommitCount(String username) {
-        var log = log(username);
+    private long getCommitCount(Integer userId) {
+        var log = log(userId);
         long commitCount = log.spliterator().getExactSizeIfKnown();
 
         // Iterable is not sized
@@ -131,12 +132,12 @@ public class VersionControlService {
     /**
      * Commit the user's code repository
      *
-     * @param username Username of user
+     * @param userId Username of user
      */
     @SneakyThrows
-    public void commit(String username) {
-        var commitCount = getCommitCount(username);
-        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+    public void commit(Integer userId) {
+        var commitCount = getCommitCount(userId);
+        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
 
         // git commit -m "Commit #{commitCount}"
         git.commit()
@@ -149,12 +150,12 @@ public class VersionControlService {
     /**
      * Checkout to a given commit hash in a user's code repository
      *
-     * @param username   Username of the user
+     * @param userId     Username of the user
      * @param commitHash Commit Hash to checkout to
      */
     @SneakyThrows
-    public void checkout(String username, String commitHash) {
-        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+    public void checkout(Integer userId, String commitHash) {
+        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
 
         // If already checked out, need to reset head to master
         git.checkout().setName("master").call();
@@ -166,11 +167,11 @@ public class VersionControlService {
     /**
      * Reset HEAD to master if HEAD is detached
      *
-     * @param username Username of the user
+     * @param userId Username of the user
      */
     @SneakyThrows
-    public void resetHead(String username) {
-        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
+    public void resetHead(Integer userId) {
+        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
 
         // git checkout master
         git.checkout().setName("master").call();
@@ -178,24 +179,28 @@ public class VersionControlService {
     }
 
     /**
-     * Get code of given username
+     * Get code of given userId
      *
-     * @param username Username of user
+     * @param userId Username of user
      * @return Contents of file
      */
-    public String getCode(String username) {
-        String codeFileUri = getCodeFileUri(username);
+    public String getCode(Integer userId) {
+        String codeFileUri = getCodeFileUri(userId);
         return FileHandler.getFileContents(codeFileUri);
     }
 
     /**
-     * Set code of given username
+     * Set code of given userId
      *
-     * @param username Username of user
-     * @param code     Code to be inside the code file
+     * @param userId UserId of user
+     * @param code   Code to be inside the code file
      */
-    public void setCode(String username, String code) {
-        String codeFileUri = getCodeFileUri(username);
+    public void setCode(Integer userId, String code) {
+
+        //Since code changes the dlls become obsolete
+        DllFile.deleteDllDirectory(userId);
+
+        String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
     }
 }

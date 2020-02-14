@@ -12,4 +12,6 @@ public interface MatchRepository extends MongoRepository<Match, Integer> {
     List<Match> findAllByPlayerId1OrPlayerId2(Integer userId1, Integer userId2);
 
     Match findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(Integer userId, MatchMode matchmode);
+
+    Match findFirstByOrderByIdDesc();
 }

@@ -14,7 +14,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotEmpty;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -34,6 +35,28 @@ public class MatchService {
 
     @Autowired
     private MatchRepository matchRepository;
+
+    public Match createMatch(Integer playerId1, Integer playerId2, MatchMode matchMode) {
+        Integer matchId = getMaxMatchId() + 1;
+
+        Match match = Match.builder()
+                .id(matchId)
+                .playerId1(playerId1)
+                .playerId2(playerId2)
+                .score1(0)
+                .score2(0)
+                .matchMode(matchMode)
+                .build();
+
+        matchRepository.save(match);
+        return match;
+    }
+
+    private Integer getMaxMatchId() {
+        Match match = matchRepository.findFirstByOrderByIdDesc();
+        if (match == null) return 0;
+        return match.getId();
+    }
 
     /**
      * Return the match statistics of a user
@@ -104,7 +127,7 @@ public class MatchService {
             }
         }
 
-        Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
+        LocalDateTime lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
 
         return UserMatchStatsResponse.builder()
                 .userId(userId)
@@ -129,11 +152,10 @@ public class MatchService {
 
         Integer userId = userRepository.findByUsername(username).getUserId();
         Float minWaitTime = Float.parseFloat(constantRepository.findByKey("MATCH_WAIT_TIME").getValue());
-        Date lastMatchTime = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
-        Date currentTime = new Date();
+        LocalDateTime lastMatchTime = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
 
         // Seconds passed since last initiated match
-        Long timePassedSeconds = (currentTime.getTime() - lastMatchTime.getTime()) / 1000;
+        Long timePassedSeconds = LocalDateTime.now().until(lastMatchTime, ChronoUnit.SECONDS);
         if (timePassedSeconds > minWaitTime)
             return (long) 0;
         else

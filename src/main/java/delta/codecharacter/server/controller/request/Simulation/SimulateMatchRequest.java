@@ -1,6 +1,5 @@
 package delta.codecharacter.server.controller.request.Simulation;
 
-import delta.codecharacter.server.util.MatchMode;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,7 +15,7 @@ public class SimulateMatchRequest {
     String playerId2;
 
     @NotEmpty(message = "Match Mode is required")
-    MatchMode matchMode;
+    String matchMode;
 
     Integer aiId;
 

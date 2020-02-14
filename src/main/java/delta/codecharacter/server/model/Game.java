@@ -36,11 +36,13 @@ public class Game {
 
     @Field("points_1")
     @NotNull
-    private Integer points1;
+    @Builder.Default
+    private Integer points1 = 0;
 
     @Field("points_2")
     @NotNull
-    private Integer points2;
+    @Builder.Default
+    private Integer points2 = 0;
 
     @Field("map_id")
     @NotNull

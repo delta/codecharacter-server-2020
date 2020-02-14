@@ -4,7 +4,7 @@ import delta.codecharacter.server.util.UserMatchStatData;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -14,7 +14,7 @@ public class UserMatchStatsResponse {
 
     private Integer numMatches;
 
-    private Date lastMatchAt;
+    private LocalDateTime lastMatchAt;
 
     // Matches initiated by user
     private UserMatchStatData initiated;
