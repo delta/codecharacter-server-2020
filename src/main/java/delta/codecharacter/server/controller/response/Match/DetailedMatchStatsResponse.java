@@ -1,6 +1,6 @@
-package delta.codecharacter.server.controller.response;
+package delta.codecharacter.server.controller.response.Match;
 
-import delta.codecharacter.server.util.UserMatchStatData;
+import delta.codecharacter.server.util.MatchStats;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Data
 @Builder
-public class UserMatchStatsResponse {
+public class DetailedMatchStatsResponse {
 
     private Integer userId;
 
@@ -17,11 +17,11 @@ public class UserMatchStatsResponse {
     private Date lastMatchAt;
 
     // Matches initiated by user
-    private UserMatchStatData initiated;
+    private MatchStats initiated;
 
     // Matches faced by user
-    private UserMatchStatData faced;
+    private MatchStats faced;
 
     // Matches played as auto
-    private UserMatchStatData auto;
+    private MatchStats auto;
 }

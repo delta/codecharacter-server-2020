@@ -3,7 +3,7 @@ package delta.codecharacter.server.controller.api;
 import delta.codecharacter.server.controller.request.User.*;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
-import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
+import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.MatchService;
@@ -98,7 +98,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/match-stats/{username}")
-    public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable @NotEmpty String username) {
+    public ResponseEntity<DetailedMatchStatsResponse> getUserMatchStats(@PathVariable @NotEmpty String username) {
         if (!userService.isUsernamePresent(username))
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(matchService.getUserMatchStats(username), HttpStatus.OK);

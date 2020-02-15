@@ -1,18 +1,17 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.api.UserController;
-import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
+import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.UserMatchStatData;
+import delta.codecharacter.server.util.MatchStats;
 import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotEmpty;
@@ -26,9 +25,6 @@ public class MatchService {
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
 
     @Autowired
-    private MongoTemplate mongoTemplate;
-
-    @Autowired
     private ConstantRepository constantRepository;
 
     @Autowired
@@ -36,9 +32,6 @@ public class MatchService {
 
     @Autowired
     private MatchRepository matchRepository;
-
-    @Autowired
-    private UserService userService;
 
     /**
      * Create a new match for the given players and matchMode
@@ -81,7 +74,7 @@ public class MatchService {
      * @return match statistics of the user
      */
     @SneakyThrows
-    public UserMatchStatsResponse getUserMatchStats(String username) {
+    public DetailedMatchStatsResponse getDetailedMatchStatsByUsername(String username) {
         User user = userRepository.findByUsername(username);
         Integer userId = user.getUserId();
 
@@ -90,9 +83,9 @@ public class MatchService {
         matches.addAll(matchRepository.findAllByPlayerId2AndMatchMode(userId, MatchMode.AUTO));
         matches.addAll(matchRepository.findAllByPlayerId2AndMatchMode(userId, MatchMode.MANUAL));
 
-        UserMatchStatData initiated = new UserMatchStatData();
-        UserMatchStatData faced = new UserMatchStatData();
-        UserMatchStatData auto = new UserMatchStatData();
+        MatchStats initiated = new MatchStats();
+        MatchStats faced = new MatchStats();
+        MatchStats auto = new MatchStats();
         Integer totalMatches = matches.size();
 
         for (var match : matches) {
@@ -147,7 +140,7 @@ public class MatchService {
 
         Date lastMatchAt = getLastInitiatedManualMatchTime(userId);
 
-        return UserMatchStatsResponse.builder()
+        return DetailedMatchStatsResponse.builder()
                 .userId(userId)
                 .numMatches(totalMatches)
                 .initiated(initiated)
@@ -158,17 +151,58 @@ public class MatchService {
     }
 
     /**
+     * Return the match statistics of a user
+     *
+     * @param username Username of the given user
+     * @return match statistics of the user
+     */
+    @SneakyThrows
+    public MatchStats getMatchStatsByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        Integer userId = user.getUserId();
+
+        List<Match> matches = matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.AUTO);
+        matches.addAll(matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.MANUAL));
+        matches.addAll(matchRepository.findAllByPlayerId2AndMatchMode(userId, MatchMode.AUTO));
+        matches.addAll(matchRepository.findAllByPlayerId2AndMatchMode(userId, MatchMode.MANUAL));
+
+        var matchStats = new MatchStats();
+
+        for (var match : matches) {
+            switch (match.getVerdict()) {
+                case PLAYER_1:
+                    if (match.getPlayerId1().equals(userId))
+                        matchStats.wins++;
+                    else
+                        matchStats.losses++;
+                    break;
+                case PLAYER_2:
+                    if (match.getPlayerId2().equals(userId))
+                        matchStats.wins++;
+                    else
+                        matchStats.losses++;
+                    break;
+                case TIE:
+                    matchStats.ties++;
+                    break;
+            }
+        }
+
+        return matchStats;
+    }
+
+    /**
      * Return the time of last match initiated by a user against another user
      *
      * @param userId - User id of the user
-     * @return if user played a Manual match, return time of last manual match played by user
-     * else return time of user account creation
+     * @return time of last manual match played by user
+     * NOTE: return time of user account creation if user has not played any manual match
      */
     @SneakyThrows
     public Date getLastInitiatedManualMatchTime(Integer userId) {
         Match match = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL);
         if (match == null) {
-            return null;
+            return userRepository.findByUserId(userId).getCreatedAt();
         }
         return match.getCreatedAt();
     }
@@ -183,7 +217,6 @@ public class MatchService {
      */
     public Long getLastInitiatedMatchTime(Integer userId) {
         Match match = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO);
-        LOG.info("userid: " + userId + " match: " + match);
         if (match == null) {
             return (long) 0;
         }
