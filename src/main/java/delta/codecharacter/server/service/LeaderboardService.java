@@ -53,6 +53,16 @@ public class LeaderboardService {
     }
 
     /**
+     * Get rank of a user
+     *
+     * @param rating rating of user
+     * @return rank of user
+     */
+    Integer getRank(Integer rating){
+        return leaderboardRepository.countByRatingGreaterThan(rating);
+    }
+
+    /**
      * Get all users with rank of given pageSize
      *
      * @param pageNumber page number
@@ -73,7 +83,7 @@ public class LeaderboardService {
         List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
-            leaderboardData.setRank(leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()) + 1);
+            leaderboardData.setRank(getRank(leaderboardData.getRating()) + 1);
         }
         return leaderboard;
     }
@@ -102,7 +112,7 @@ public class LeaderboardService {
 
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
-            leaderboardData.setRank(leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()) + 1);
+            leaderboardData.setRank(getRank(leaderboardData.getRating()) + 1);
         }
         return leaderboard;
     }
@@ -130,7 +140,7 @@ public class LeaderboardService {
         List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
-            leaderboardData.setRank(leaderboardRepository.countByRatingGreaterThan(leaderboardData.getRating()) + 1);
+            leaderboardData.setRank(getRank(leaderboardData.getRating()) + 1);
         }
         return leaderboard;
     }
