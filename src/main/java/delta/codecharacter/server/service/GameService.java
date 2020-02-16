@@ -11,6 +11,13 @@ public class GameService {
     @Autowired
     private GameRepository gameRepository;
 
+    /**
+     * Create a new game for the given matchId
+     *
+     * @param matchId MatchId to which the game belongs to
+     * @param mapId MapId of the map for the game
+     * @return Details of the Game created
+     */
     public Game createGame(Integer matchId, Integer mapId) {
         Integer gameId = getMaxGameId() + 1;
         Game game = Game.builder()
@@ -24,6 +31,11 @@ public class GameService {
         return game;
     }
 
+    /**
+     * Get the current maximum gameId
+     *
+     * @return Maximum gameId
+     */
     public Integer getMaxGameId() {
         Game game = gameRepository.findFirstByOrderByIdDesc();
         if (game == null) return 0;

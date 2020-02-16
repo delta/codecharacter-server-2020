@@ -7,16 +7,14 @@ import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequ
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
-import delta.codecharacter.server.util.DllFile;
-import delta.codecharacter.server.util.MapFile;
+import delta.codecharacter.server.util.DllUtil;
+import delta.codecharacter.server.util.MapUtil;
 import delta.codecharacter.server.util.RabbitSender;
 import delta.codecharacter.server.util.enums.MatchMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 @Service
@@ -26,7 +24,7 @@ public class SimulationService {
 
     Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
-    @Value("${compilebox.secret-key")
+    @Value("${compilebox.secret-key}")
     private String secretKey;
 
     @Autowired
@@ -41,13 +39,18 @@ public class SimulationService {
     @Autowired
     private ConstantService constantService;
 
-    public void simulateMatch(SimulateMatchRequest simulateMatchRequest) throws IOException, TimeoutException {
+    /**
+     * Send an execute match request to compile-box
+     *
+     * @param simulateMatchRequest Details of the match to be simulated
+     */
+    public void simulateMatch(SimulateMatchRequest simulateMatchRequest) {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
 
-        String dll1 = DllFile.getDll1(playerId1);
-        String dll2 = DllFile.getDll2(playerId2);
+        String dll1 = DllUtil.getDll1(playerId1);
+        String dll2 = DllUtil.getDll2(playerId2);
 
         String player1Code = null;
         String player2Code = null;
@@ -71,7 +74,7 @@ public class SimulationService {
                 ExecuteGame[] executeGames = new ExecuteGame[1];
                 executeGames[0] = ExecuteGame.builder()
                         .gameId(newGame.getId())
-                        .map(MapFile.getMap(selfMatchMapId))
+                        .map(MapUtil.getMap(selfMatchMapId))
                         .build();
 
                 executeMatchRequest.setMatchId(match.getId());
@@ -98,7 +101,7 @@ public class SimulationService {
                 break;
             }
             default: {
-                throw new IllegalStateException("Unexpected value: " + simulateMatchRequest.getMatchMode());
+                throw new IllegalStateException("Unexpected MatchMode value: " + simulateMatchRequest.getMatchMode());
             }
         }
     }

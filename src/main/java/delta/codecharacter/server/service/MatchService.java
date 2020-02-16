@@ -36,6 +36,14 @@ public class MatchService {
     @Autowired
     private MatchRepository matchRepository;
 
+    /**
+     * Create a new match for the given players and matchMode
+     *
+     * @param playerId1 UserId of the player initiating the match
+     * @param playerId2 UserId of the player against whom match was initiated
+     * @param matchMode Mode of the match
+     * @return Details of the Match created
+     */
     public Match createMatch(Integer playerId1, Integer playerId2, MatchMode matchMode) {
         Integer matchId = getMaxMatchId() + 1;
 
@@ -52,6 +60,11 @@ public class MatchService {
         return match;
     }
 
+    /**
+     * Get the current maximum matchId
+     *
+     * @return Maximum matchId
+     */
     private Integer getMaxMatchId() {
         Match match = matchRepository.findFirstByOrderByIdDesc();
         if (match == null) return 0;

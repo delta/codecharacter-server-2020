@@ -5,6 +5,7 @@ import delta.codecharacter.server.util.UserAuthUtil.ClientResources;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthProcessingFilter;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationFailureHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -36,13 +37,14 @@ import java.util.logging.Logger;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final Logger LOG = Logger.getLogger(WebSecurityConfig.class.getName());
-    String[] ignoringAntMatchers = {"/", "/login/**", "/error/**", "/logout", "/user", "/user/activate", "/user/forgot-password", "/user/password", "/simulate/**"};
+    String[] ignoringAntMatchers = {"/", "/login/**", "/error/**", "/logout", "/user", "/user/activate", "/user/forgot-password", "/user/password"};
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Qualifier("oauth2ClientContext")
     @Autowired
-    private OAuth2ClientContext oauth2ClientContext;
+    private OAuth2ClientContext oAuth2ClientContext;
 
     @Autowired
     private UserService userService;
@@ -90,7 +92,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     //Map the respective filter with its data
     private Filter createSsoFilter(ClientResources client, String path) {
         var customAuthProcessingFilter = new CustomAuthProcessingFilter(path, userService);
-        var oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
+        var oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oAuth2ClientContext);
         customAuthProcessingFilter.setRestTemplate(oAuth2RestTemplate);
         var tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
                 client.getClient().getClientId());

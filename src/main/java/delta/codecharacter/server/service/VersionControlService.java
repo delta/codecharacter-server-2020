@@ -1,6 +1,6 @@
 package delta.codecharacter.server.service;
 
-import delta.codecharacter.server.util.DllFile;
+import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.FileHandler;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
@@ -24,7 +24,7 @@ public class VersionControlService {
     /**
      * Return the absolute path to the codes directory of given userId
      *
-     * @param userId - Username of whose directory is to be accessed
+     * @param userId UserId of whose directory is to be accessed
      * @return Path to codes directory
      */
     private String getCodeRepositoryUri(Integer userId) {
@@ -34,7 +34,7 @@ public class VersionControlService {
     /**
      * Return the absolute path to the player code file of given userId
      *
-     * @param userId - Username of whose code is to be accessed
+     * @param userId UserId of whose code is to be accessed
      * @return Path to player code file
      */
     private String getCodeFileUri(Integer userId) {
@@ -44,7 +44,7 @@ public class VersionControlService {
     /**
      * Create a new code repository with git initialized for given userId
      *
-     * @param userId Username of the user
+     * @param userId UserId of the user
      */
     @SneakyThrows
     public void createCodeRepository(Integer userId) {
@@ -81,7 +81,7 @@ public class VersionControlService {
     /**
      * Add all files to stage
      *
-     * @param userId Username of user
+     * @param userId UserId of user
      */
     @SneakyThrows
     private void add(Integer userId) {
@@ -94,7 +94,7 @@ public class VersionControlService {
     /**
      * Get git log of user's code repository
      *
-     * @param userId Username of user
+     * @param userId UserId of user
      * @return Iterable of commits
      */
     @SneakyThrows
@@ -113,7 +113,7 @@ public class VersionControlService {
     /**
      * Get number of commits in user's code repository
      *
-     * @param userId Username of user
+     * @param userId UserId of user
      * @return long Number of commits
      */
     @SneakyThrows
@@ -132,7 +132,7 @@ public class VersionControlService {
     /**
      * Commit the user's code repository
      *
-     * @param userId Username of user
+     * @param userId UserId of user
      */
     @SneakyThrows
     public void commit(Integer userId) {
@@ -150,7 +150,7 @@ public class VersionControlService {
     /**
      * Checkout to a given commit hash in a user's code repository
      *
-     * @param userId     Username of the user
+     * @param userId     UserId of the user
      * @param commitHash Commit Hash to checkout to
      */
     @SneakyThrows
@@ -167,7 +167,7 @@ public class VersionControlService {
     /**
      * Reset HEAD to master if HEAD is detached
      *
-     * @param userId Username of the user
+     * @param userId UserId of the user
      */
     @SneakyThrows
     public void resetHead(Integer userId) {
@@ -181,7 +181,7 @@ public class VersionControlService {
     /**
      * Get code of given userId
      *
-     * @param userId Username of user
+     * @param userId UserId of user
      * @return Contents of file
      */
     public String getCode(Integer userId) {
@@ -198,7 +198,7 @@ public class VersionControlService {
     public void setCode(Integer userId, String code) {
 
         //Since code changes the dlls become obsolete
-        DllFile.deleteDllDirectory(userId);
+        DllUtil.deleteDllDirectory(userId);
 
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
