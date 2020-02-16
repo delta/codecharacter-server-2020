@@ -34,6 +34,9 @@ public class VersionControlTest {
 
     private User user;
 
+    /**
+     * Initializes an user and creates a repository with the username.
+     */
     @BeforeEach
     public void init() {
         Integer userId = getMaxUserId() + 1;
@@ -50,6 +53,9 @@ public class VersionControlTest {
         versionControlService.createCodeRepository(user.getUserId(), user.getUsername());
     }
 
+    /**
+     * Check if code is set correctly and getCode returns the set value.
+     */
     @Test
     public void checkSetCode() {
         String code = "<code>";
@@ -57,12 +63,18 @@ public class VersionControlTest {
         assertEquals(versionControlService.getCode(user.getUsername()), code);
     }
 
+    /**
+     * Check if git commit works.
+     */
     @Test
     public void checkCommit() {
         String commitHash = versionControlService.commit(user.getUsername());
         assertNotNull(commitHash);
     }
 
+    /**
+     * Check if git log is not null
+     */
     @Test
     public void checkLog() {
         Iterable<RevCommit> log = versionControlService.log(user.getUsername());
