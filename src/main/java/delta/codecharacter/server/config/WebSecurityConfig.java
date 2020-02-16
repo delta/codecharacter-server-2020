@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final Logger LOG = Logger.getLogger(WebSecurityConfig.class.getName());
-    String[] ignoringAntMatchers = {"/", "/login/**", "/error/**", "/logout", "/user", "/user/activate", "/user/forgot-password", "/user/password", "/gs-guide-websocket"};
+    String[] ignoringAntMatchers = {"/", "/login/**", "/error/**", "/logout", "/user", "/user/activate", "/user/forgot-password", "/user/password"};
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -58,12 +58,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     //Prevent unauthenticated access and also exclude specified end-point
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        http.antMatcher("/**").authorizeRequests().antMatchers(ignoringAntMatchers).permitAll().anyRequest().authenticated().and()
-//                .exceptionHandling().and()
-//                .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).and()
-//                .logout().logoutSuccessUrl("/").and()
-//                .csrf().ignoringAntMatchers(ignoringAntMatchers).csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
-//                .addFilterBefore(ssoFilters(), BasicAuthenticationFilter.class);
+        http.antMatcher("/**").authorizeRequests().antMatchers(ignoringAntMatchers).permitAll().anyRequest().authenticated().and()
+                .exceptionHandling().and()
+                .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).and()
+                .logout().logoutSuccessUrl("/").and()
+                .csrf().ignoringAntMatchers(ignoringAntMatchers).csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
+                .addFilterBefore(ssoFilters(), BasicAuthenticationFilter.class);
     }
 
     //Fetch data present in application.properties
