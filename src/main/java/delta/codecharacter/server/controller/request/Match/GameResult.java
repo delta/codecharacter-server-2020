@@ -1,6 +1,6 @@
 package delta.codecharacter.server.controller.request.Match;
 
-import delta.codecharacter.server.util.Verdict;
+import delta.codecharacter.server.util.enums.Verdict;
 import lombok.Builder;
 import lombok.Data;
 

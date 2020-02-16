@@ -1,16 +1,17 @@
 package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.Match.UpdateMatchRequest;
+import delta.codecharacter.server.service.ConstantService;
 import delta.codecharacter.server.service.MatchService;
 import delta.codecharacter.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/match")
@@ -22,9 +23,15 @@ public class MatchController {
     @Autowired
     UserService userService;
 
-    @PostMapping("/update")
-    public ResponseEntity<String> updateMatch(@RequestBody UpdateMatchRequest updateMatchRequest, Authentication authentication) {
-        userService.getUserByUsername(authentication.getName());
+    @Autowired
+    ConstantService constantService;
+
+    @Value("$compilebox.secret-key")
+    private String key;
+
+    @PutMapping("/")
+    public ResponseEntity<String> updateMatch(@RequestBody @Valid UpdateMatchRequest updateMatchRequest, Authentication authentication) {
+        // TODO: Check if the key sent by compilebox matches with the server key.
         matchService.updateMatch(updateMatchRequest);
         return new ResponseEntity<>("Updated successfully", HttpStatus.OK);
     }
