@@ -9,16 +9,20 @@ import java.util.logging.Logger;
 
 @Service
 public class ConstantService {
-    private final Logger LOG = Logger.getLogger(ConstantService.class.getName());
+    private Logger LOG = Logger.getLogger(ConstantService.class.getName());
 
     @Autowired
     private ConstantRepository constantRepository;
 
-    public boolean isKeyMatches(String key, String value) {
+    /**
+     * Fetch the value present in Constant table
+     *
+     * @param key Key corresponding to the value
+     * @return Value for the given key
+     */
+    public String getConstantValueByKey(String key) {
         Constant constant = constantRepository.findByKey(key);
-        if (constant == null) {
-            return false;
-        }
-        return constant.getValue().equals(value);
+        if (constant == null) return null;
+        return constant.getValue();
     }
 }
