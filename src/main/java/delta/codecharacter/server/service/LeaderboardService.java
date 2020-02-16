@@ -64,7 +64,7 @@ public class LeaderboardService {
         Aggregation aggregation = newAggregation(
                 lookup("user", "user_id", "_id", "join"),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
-                skip((long)pageable.getPageNumber() * pageable.getPageSize()),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
         );
 
@@ -85,13 +85,13 @@ public class LeaderboardService {
      * @param pageSize   page size
      * @return return users with regex-matching username of given pageSize
      */
-    public List<LeaderboardResponse> searchLeaderboardByUsername(String username, Integer pageNumber, Integer pageSize) {
+    public List<LeaderboardResponse> searchLeaderboardByUsernamePaginated(String username, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
                 lookup("user", "user_id", "_id", "join"),
                 match(Criteria.where("join.username").regex(username)),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
-                skip((long)pageable.getPageNumber() * pageable.getPageSize()),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
         );
 
@@ -106,6 +106,28 @@ public class LeaderboardService {
     }
 
     /**
+     * Get details of users playing in given division
+     *
+     * @param division   desired division
+     * @return list of all users playing in the given division
+     */
+    public List<LeaderboardResponse> getLeaderboardDataByDivision(Division division) {
+        Aggregation aggregation = newAggregation(
+                match(Criteria.where("division").is(division)),
+                lookup("user", "user_id", "_id", "join"),
+                sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending()))
+        );
+
+        AggregationResults<LeaderboardResponse> groupResults = mongoTemplate.aggregate(
+                aggregation, Leaderboard.class, LeaderboardResponse.class);
+        List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
+        for (var leaderboardData : leaderboard) {
+            leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
+        }
+        return leaderboard;
+    }
+
+    /**
      * Get details of users playing in given division of given pageSize
      *
      * @param division   desired division
@@ -113,13 +135,13 @@ public class LeaderboardService {
      * @param pageSize   page size
      * @return list of users playing in the given division of given pageSize
      */
-    public List<LeaderboardResponse> getLeaderboardDataByDivision(Division division, Integer pageNumber, Integer pageSize) {
+    public List<LeaderboardResponse> getLeaderboardDataByDivisionPaginated(Division division, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
                 match(Criteria.where("division").is(division)),
                 lookup("user", "user_id", "_id", "join"),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
-                skip((long)pageable.getPageNumber() * pageable.getPageSize()),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
         );
 
