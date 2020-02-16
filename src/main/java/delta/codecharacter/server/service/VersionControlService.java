@@ -10,9 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.logging.Logger;
 
 @Service
 public class VersionControlService {
+    private static final Logger LOG = Logger.getLogger(VersionControlService.class.getName());
 
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
@@ -27,7 +30,7 @@ public class VersionControlService {
      * @return Path to codes directory
      */
     private String getCodeRepositoryUri(String username) {
-        return System.getProperty("user.dir") + codeStoragePath + File.separator + username;
+        return System.getProperty("user.dir") + File.separator + codeStoragePath + File.separator + username;
     }
 
     /**
@@ -66,7 +69,7 @@ public class VersionControlService {
         }
 
         // Create code file, add and commit
-        if (!FileHandler.createFile(getCodeFileUri(username))) {
+        if (!FileHandler.checkFileExists(getCodeFileUri(username)) && !FileHandler.createFile(getCodeFileUri(username))) {
             git.close();
             throw new Exception("Code file cannot be created");
         }
@@ -102,6 +105,8 @@ public class VersionControlService {
         Repository repository = git.getRepository();
         ObjectId HEAD = repository.resolve("refs/heads/master");
 
+        if (HEAD == null) return new ArrayList<>();
+
         // git log on master
         Iterable<RevCommit> log = git.log().add(HEAD).call();
         git.close();
@@ -134,16 +139,18 @@ public class VersionControlService {
      * @param username Username of user
      */
     @SneakyThrows
-    public void commit(String username) {
+    public String commit(String username) {
+        add(username);
         var commitCount = getCommitCount(username);
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(username)));
 
         // git commit -m "Commit #{commitCount}"
-        git.commit()
+        var revCommit = git.commit()
                 .setAuthor("Codecharacter", "codecharacter@pragyan.org")
                 .setMessage("Commit #" + commitCount)
                 .call();
         git.close();
+        return revCommit.getName();
     }
 
     /**

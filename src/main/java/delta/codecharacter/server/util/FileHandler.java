@@ -84,7 +84,7 @@ public class FileHandler {
      */
     @SneakyThrows
     public static String getFileContents(String fileUri) {
-        if (!FileHandler.checkFileExists(fileUri) || !FileHandler.isDirectory(fileUri)) {
+        if (!FileHandler.checkFileExists(fileUri)) {
             throw new Exception("File does not exist");
         }
 
@@ -100,7 +100,7 @@ public class FileHandler {
      */
     @SneakyThrows
     public static void writeFileContents(String fileUri, String content) {
-        if (!FileHandler.checkFileExists(fileUri) || !FileHandler.isDirectory(fileUri)) {
+        if (!FileHandler.checkFileExists(fileUri)) {
             throw new Exception("File does not exist");
         }
 
