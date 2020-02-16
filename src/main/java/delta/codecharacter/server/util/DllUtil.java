@@ -9,7 +9,7 @@ import java.nio.file.Path;
 
 public class DllUtil {
 
-    @Value("storage/dlls")
+    @Value("{storage.playerdll.dir}")
     private static String dllStoragePath;
 
     @Value("dll1")

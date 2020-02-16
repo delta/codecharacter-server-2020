@@ -186,6 +186,7 @@ public class VersionControlService {
      */
     public String getCode(Integer userId) {
         String codeFileUri = getCodeFileUri(userId);
+        if (!FileHandler.checkFileExists(codeFileUri)) return null;
         return FileHandler.getFileContents(codeFileUri);
     }
 

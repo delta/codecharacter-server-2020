@@ -1,6 +1,6 @@
 package delta.codecharacter.server.controller.response;
 
-import delta.codecharacter.server.util.Type;
+import delta.codecharacter.server.util.enums.Type;
 import lombok.Builder;
 import lombok.Data;
 

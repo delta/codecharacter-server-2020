@@ -22,11 +22,11 @@ public class SimulationController {
     private SimulationService simulationService;
 
     @MessageMapping("/matchRequest")
+    @SendTo("/socket-response/simulation/{userId}")
     public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest) {
         simulationService.simulateMatch(simulateMatchRequest);
     }
 
-    @SendTo("/simulation/{userId}")
     public String sendSocketMessage(@DestinationVariable @NotEmpty Integer userId, @NotEmpty String message) {
         return message;
     }

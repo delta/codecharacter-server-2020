@@ -13,7 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         //Destination prefix to carry the messages back to the client.
-        config.enableSimpleBroker("/socket-response");
+        config.enableSimpleBroker("/socket");
         //Prefix for messages from client bound to methods annotated with @MessageMapping
         config.setApplicationDestinationPrefixes("/socket");
     }
@@ -21,7 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         //End-Point for the socket to connect.
-        registry.addEndpoint("/codechar").withSockJS();
+        registry.addEndpoint("/socket").withSockJS();
     }
 
 }

@@ -27,6 +27,12 @@ public class SimulationService {
     @Value("${compilebox.secret-key}")
     private String secretKey;
 
+    @Value("${spring.rabbitmq.host}")
+    private String host;
+
+    @Value("${spring.rabbitmq.queue}")
+    private String queue;
+
     @Autowired
     private VersionControlService versionControlService;
 
@@ -81,7 +87,7 @@ public class SimulationService {
                 executeMatchRequest.setGames(executeGames);
                 executeMatchRequest.setSecretKey(secretKey);
 
-                RabbitSender.sendMessage(gson.toJson(executeMatchRequest));
+                RabbitSender.sendMessage(gson.toJson(executeMatchRequest), host, queue);
                 break;
             }
             case AI: {
