@@ -2,7 +2,6 @@ package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.model.Announcement;
 import delta.codecharacter.server.repository.AnnouncementRepository;
-import delta.codecharacter.server.repository.UserRepository;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,9 +19,6 @@ public class AnnouncementService {
 
     @Autowired
     AnnouncementRepository announcementRepository;
-
-    @Autowired
-    UserRepository userRepository;
 
     @SneakyThrows
     public void createAnnouncement(String announcementMessage, Integer userId) {

@@ -44,15 +44,15 @@ public class AnnouncementController {
 
     @GetMapping(value = "")
     public ResponseEntity<List<Announcement>> getAllAnnouncements(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
-                                                  @RequestParam(value = "size", defaultValue = "10", required = false) int size,
-                                                  Authentication authentication) {
+                                                                  @RequestParam(value = "size", defaultValue = "10", required = false) int size,
+                                                                  Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         List<Announcement> announcements = announcementService.getAllAnnouncements(page, size).getContent();
         return new ResponseEntity<>(announcements, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{announcementId}/")
-    public ResponseEntity<Announcement> findAnnouncementById(@PathVariable("announcementId") int announcementId, Authentication authentication) {
+    public ResponseEntity<Announcement> findAnnouncementById(@PathVariable int announcementId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         Announcement announcement = announcementService.findAnnouncementById(announcementId);
         if (announcement == null) {
