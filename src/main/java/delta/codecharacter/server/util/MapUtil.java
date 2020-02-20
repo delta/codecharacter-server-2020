@@ -15,7 +15,7 @@ public class MapUtil {
      * @return Path to codes directory
      */
     public static String getMapRepositoryUri() {
-        return System.getProperty("user.dir") + mapStoragePath;
+        return System.getProperty("user.dir") + File.separator + mapStoragePath;
     }
 
     /**
