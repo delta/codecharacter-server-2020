@@ -15,7 +15,7 @@ public class GameService {
      * Create a new game for the given matchId
      *
      * @param matchId MatchId to which the game belongs to
-     * @param mapId MapId of the map for the game
+     * @param mapId   MapId of the map for the game
      * @return Details of the Game created
      */
     public Game createGame(Integer matchId, Integer mapId) {

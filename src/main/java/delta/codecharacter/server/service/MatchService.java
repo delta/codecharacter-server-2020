@@ -50,8 +50,6 @@ public class MatchService {
                 .id(matchId)
                 .playerId1(playerId1)
                 .playerId2(playerId2)
-                .score1(0)
-                .score2(0)
                 .matchMode(matchMode)
                 .build();
 

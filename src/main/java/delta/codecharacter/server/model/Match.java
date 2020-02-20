@@ -3,7 +3,8 @@ package delta.codecharacter.server.model;
 import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;
 import delta.codecharacter.server.util.enums.Verdict;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -41,12 +42,12 @@ public class Match {
     private Status status = Status.IDLE;
 
     @Field("score_1")
-    @NotNull
-    private Integer score1;
+    @Builder.Default
+    private Integer score1 = 0;
 
     @Field("score_2")
-    @NotNull
-    private Integer score2;
+    @Builder.Default
+    private Integer score2 = 0;
 
     @Field("match_mode")
     @NotNull
