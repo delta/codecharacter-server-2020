@@ -3,10 +3,8 @@ package delta.codecharacter.server.util;
 import delta.codecharacter.server.util.enums.DllId;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
-import java.nio.file.Path;
 
 public class DllUtil {
 
@@ -59,8 +57,11 @@ public class DllUtil {
      */
     public static String getDll(Integer userId, DllId dllId) {
         String dllFileUri = getDllFileUri(userId, dllId);
-        if (!FileHandler.checkFileExists(dllFileUri)) return null;
-        return FileHandler.getFileContents(dllFileUri);
+        try {
+            return FileHandler.getFileContents(dllFileUri);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
@@ -76,17 +77,12 @@ public class DllUtil {
     }
 
     /**
-     * Delete the dll Directory
+     * Delete the dll file for the given userId and dllId
      *
      * @param userId UserId of user whose dll directory is to be deleted
+     * @param dllId  DllId of the file to be deleted
      */
-    @SneakyThrows
-    public static void deleteDllDirectory(Integer userId) {
-        if (!FileHandler.checkFileExists(getDllRepositoryUri(userId))) return;
-        Path path = Path.of(getDllRepositoryUri(userId));
-        boolean deleted = FileSystemUtils.deleteRecursively(path);
-        if (!deleted) {
-            throw new Exception("Directory cannot be deleted");
-        }
+    public static void deleteDllFile(Integer userId, DllId dllId) {
+        FileHandler.deleteFile(getDllFileUri(userId, dllId));
     }
 }

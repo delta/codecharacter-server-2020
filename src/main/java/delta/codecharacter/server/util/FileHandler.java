@@ -53,6 +53,11 @@ public class FileHandler {
         return new File(directoryUri);
     }
 
+    public static boolean deleteFile(String fileUri) {
+        File file = new File(fileUri);
+        return file.delete();
+    }
+
     /**
      * Check if a file/directory URI exists
      *

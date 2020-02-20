@@ -36,7 +36,10 @@ public class MapUtil {
      */
     public static String getMap(Integer mapId) {
         String mapFileUri = getMapFileUri(mapId);
-        if (!FileHandler.checkFileExists(getMapRepositoryUri())) return null;
-        return FileHandler.getFileContents(mapFileUri);
+        try {
+            return FileHandler.getFileContents(mapFileUri);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
