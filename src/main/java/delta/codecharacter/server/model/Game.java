@@ -2,7 +2,8 @@ package delta.codecharacter.server.model;
 
 import delta.codecharacter.server.util.enums.Status;
 import delta.codecharacter.server.util.enums.Verdict;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -35,12 +36,12 @@ public class Game {
     private Integer interestingness = 0;
 
     @Field("points_1")
-    @NotNull
-    private Integer points1;
+    @Builder.Default
+    private Integer points1 = 0;
 
     @Field("points_2")
-    @NotNull
-    private Integer points2;
+    @Builder.Default
+    private Integer points2 = 0;
 
     @Field("map_id")
     @NotNull

@@ -6,8 +6,8 @@ import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.UserMatchStatData;
+import delta.codecharacter.server.util.enums.MatchMode;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -34,6 +34,39 @@ public class MatchService {
 
     @Autowired
     private MatchRepository matchRepository;
+
+    /**
+     * Create a new match for the given players and matchMode
+     *
+     * @param playerId1 UserId of the player initiating the match
+     * @param playerId2 UserId of the player against whom match was initiated
+     * @param matchMode Mode of the match
+     * @return Details of the Match created
+     */
+    public Match createMatch(Integer playerId1, Integer playerId2, MatchMode matchMode) {
+        Integer matchId = getMaxMatchId() + 1;
+
+        Match match = Match.builder()
+                .id(matchId)
+                .playerId1(playerId1)
+                .playerId2(playerId2)
+                .matchMode(matchMode)
+                .build();
+
+        matchRepository.save(match);
+        return match;
+    }
+
+    /**
+     * Get the current maximum matchId
+     *
+     * @return Maximum matchId
+     */
+    private Integer getMaxMatchId() {
+        Match match = matchRepository.findFirstByOrderByIdDesc();
+        if (match == null) return 0;
+        return match.getId();
+    }
 
     /**
      * Return the match statistics of a user
