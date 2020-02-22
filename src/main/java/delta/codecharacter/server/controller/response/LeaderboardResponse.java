@@ -17,4 +17,6 @@ public class LeaderboardResponse {
     private Integer rating;
 
     private Division division;
+
+    private Integer rank;
 }
