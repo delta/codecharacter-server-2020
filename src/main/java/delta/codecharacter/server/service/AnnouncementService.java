@@ -21,10 +21,11 @@ public class AnnouncementService {
     AnnouncementRepository announcementRepository;
 
     /**
-     * Create an announcement with the given message and return it.
+     * Create an announcement with the given announcementMessage
+     *
      * @param announcementMessage Message of announcement
-     * @param adminUserId User ID of the admin user
-     * @return Returns created announcement
+     * @param adminUserId UserId of the admin user
+     * @return Details of the created announcement
      */
     @SneakyThrows
     public Announcement createAnnouncement(String announcementMessage, Integer adminUserId) {
@@ -39,8 +40,10 @@ public class AnnouncementService {
     }
 
     /**
-     * @param announcementId ID of Announcement
-     * @return Announcement object
+     * Find announcement by the given announcementId
+     *
+     * @param announcementId AnnouncementId
+     * @return Details of the announcement
      */
     @SneakyThrows
     public Announcement findAnnouncementById(Integer announcementId) {
@@ -48,20 +51,23 @@ public class AnnouncementService {
     }
 
     /**
+     * Return all announcements
      *
-     * @param pageNumber Starting page number in pagination
+     * @param pageNumber Page number
      * @param size Size of results
-     * @return Paginated announcements
+     * @return Page of all announcements
      */
     @SneakyThrows
     public Page<Announcement> getAllAnnouncementsPaginated(@NotNull @Positive int pageNumber,
-                                                  @NotNull @Positive int size) {
+                                                           @NotNull @Positive int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return announcementRepository.findAll(pageable);
     }
 
     /**
-     * @return Maximum announcement ID
+     * Get maximum announcementId
+     * 
+     * @return Maximum announcementId
      */
     private Integer getMaxAnnouncementId() {
         Announcement announcement = announcementRepository.findFirstByOrderByIdDesc();
