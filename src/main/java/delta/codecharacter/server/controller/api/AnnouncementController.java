@@ -31,6 +31,7 @@ public class AnnouncementController {
     @SneakyThrows
     public ResponseEntity<String> createAnnouncement(@RequestBody String announcementMessage, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
+        if (user == null) return new ResponseEntity<>("User not found!", HttpStatus.UNAUTHORIZED);
         if (!userService.getIsAdminUserByUsername(user.getUsername())) {
             return new ResponseEntity<>("Unauthorized!", HttpStatus.UNAUTHORIZED);
         }
@@ -43,6 +44,7 @@ public class AnnouncementController {
                                                                   @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                   Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
+        if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         List<Announcement> announcements = announcementService.getAllAnnouncementsPaginated(page, size).getContent();
         return new ResponseEntity<>(announcements, HttpStatus.OK);
     }
@@ -50,6 +52,7 @@ public class AnnouncementController {
     @GetMapping(value = "/{announcementId}/")
     public ResponseEntity<Announcement> findAnnouncementById(@PathVariable int announcementId, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
+        if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         Announcement announcement = announcementService.findAnnouncementById(announcementId);
         if (announcement == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);

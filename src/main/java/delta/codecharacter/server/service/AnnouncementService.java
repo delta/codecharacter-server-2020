@@ -20,22 +20,39 @@ public class AnnouncementService {
     @Autowired
     AnnouncementRepository announcementRepository;
 
+    /**
+     * Create an announcement with the given message and return it.
+     * @param announcementMessage Message of announcement
+     * @param adminUserId User ID of the admin user
+     * @return Returns created announcement
+     */
     @SneakyThrows
-    public void createAnnouncement(String announcementMessage, Integer userId) {
+    public Announcement createAnnouncement(String announcementMessage, Integer adminUserId) {
         Integer announcementId = getMaxAnnouncementId() + 1;
         Announcement announcement = Announcement.builder()
                 .id(announcementId)
-                .adminUserId(userId)
+                .adminUserId(adminUserId)
                 .message(announcementMessage)
                 .build();
         announcementRepository.save(announcement);
+        return announcement;
     }
 
+    /**
+     * @param announcementId ID of Announcement
+     * @return Announcement object
+     */
     @SneakyThrows
     public Announcement findAnnouncementById(Integer announcementId) {
         return announcementRepository.findFirstById(announcementId);
     }
 
+    /**
+     *
+     * @param pageNumber Starting page number in pagination
+     * @param size Size of results
+     * @return Paginated announcements
+     */
     @SneakyThrows
     public Page<Announcement> getAllAnnouncementsPaginated(@NotNull @Positive int pageNumber,
                                                   @NotNull @Positive int size) {
@@ -43,6 +60,9 @@ public class AnnouncementService {
         return announcementRepository.findAll(pageable);
     }
 
+    /**
+     * @return Maximum announcement ID
+     */
     private Integer getMaxAnnouncementId() {
         Announcement announcement = announcementRepository.findFirstByOrderByIdDesc();
         if (announcement == null) {

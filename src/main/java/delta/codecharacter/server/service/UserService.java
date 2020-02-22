@@ -307,15 +307,19 @@ public class UserService implements UserDetailsService {
         return user != null;
     }
 
+    /**
+     * @param username Username of user
+     * @return
+     */
     @SneakyThrows
     public User getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new Exception("User not found");
-        }
-        return user;
+        return userRepository.findByUsername(username);
     }
 
+    /**
+     * @param username Username of user to be checked for admin
+     * @return
+     */
     @SneakyThrows
     public User getUserByEmail(String email) {
         User user = userRepository.findByEmail(email);
