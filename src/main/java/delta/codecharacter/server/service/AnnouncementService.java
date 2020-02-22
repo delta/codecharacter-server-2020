@@ -37,7 +37,7 @@ public class AnnouncementService {
     }
 
     @SneakyThrows
-    public Page<Announcement> getAllAnnouncements(@NotNull @Positive int pageNumber,
+    public Page<Announcement> getAllAnnouncementsPaginated(@NotNull @Positive int pageNumber,
                                                   @NotNull @Positive int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return announcementRepository.findAll(pageable);

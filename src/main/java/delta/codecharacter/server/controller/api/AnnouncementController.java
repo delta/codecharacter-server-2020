@@ -3,7 +3,6 @@ package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.model.Announcement;
 import delta.codecharacter.server.model.User;
-import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.service.AnnouncementService;
 import delta.codecharacter.server.service.UserService;
 import lombok.SneakyThrows;
@@ -23,9 +22,6 @@ public class AnnouncementController {
     private final Logger LOG = Logger.getLogger(AnnouncementController.class.getName());
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private AnnouncementService announcementService;
 
     @Autowired
@@ -36,18 +32,18 @@ public class AnnouncementController {
     public ResponseEntity<String> createAnnouncement(@RequestBody String announcementMessage, Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         if (!userService.getIsAdminUserByUsername(user.getUsername())) {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Unauthorized!", HttpStatus.UNAUTHORIZED);
         }
         announcementService.createAnnouncement(announcementMessage, user.getUserId());
         return new ResponseEntity<>("Announcement created Successfully", HttpStatus.CREATED);
     }
 
-    @GetMapping(value = "")
-    public ResponseEntity<List<Announcement>> getAllAnnouncements(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
+    @GetMapping(value = "/")
+    public ResponseEntity<List<Announcement>> getAllAnnouncementsPaginated(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                   @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                   Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
-        List<Announcement> announcements = announcementService.getAllAnnouncements(page, size).getContent();
+        List<Announcement> announcements = announcementService.getAllAnnouncementsPaginated(page, size).getContent();
         return new ResponseEntity<>(announcements, HttpStatus.OK);
     }
 
