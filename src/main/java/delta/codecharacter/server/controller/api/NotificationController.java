@@ -120,7 +120,7 @@ public class NotificationController {
                                                                                  Authentication authentication) {
         User user = userService.getUserByUsername(authentication.getName());
         PageUtils.validatePaginationParams(page, size);
-        Page<Notification> notificationPage = notificationService.getAllNotificationsByTypeAndUserId(type, user.getUserId(), page, size);
+        Page<Notification> notificationPage = notificationService.getAllNotificationsByTypeAndUserIdPaginated(type, user.getUserId(), page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
     }
 }

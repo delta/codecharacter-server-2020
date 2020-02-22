@@ -30,6 +30,10 @@ public class NotificationService {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * @param createNotificationRequest Notification request with the required details
+     * @return Created notification
+     */
     @SneakyThrows
     public Notification createNotification(@NotNull CreateNotificationRequest createNotificationRequest) {
         Integer notificationId = getMaxNotificationId() + 1;
@@ -46,6 +50,10 @@ public class NotificationService {
         return notification;
     }
 
+    /**
+     * Set isRead of notification to true
+     * @param notificationId ID of notification
+     */
     @SneakyThrows
     public void setIsReadNotificationById(@NotNull Integer notificationId) {
         Notification notification = notificationRepository.findFirstById(notificationId);
@@ -53,14 +61,26 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    /**
+     * Deletes notification by ID
+     * @param notificationId ID of notification
+     */
     @SneakyThrows
     public void deleteNotificationById(@NotNull Integer notificationId) {
         Notification notification = notificationRepository.findFirstById(notificationId);
         notificationRepository.delete(notification);
     }
 
+    /**
+     * 
+     * @param type Type of notification
+     * @param userId ID of the current user
+     * @param pageNumber Starting page number in the paginated response
+     * @param size Size of the response list Size of notifications list
+     * @return Page of notifications
+     */
     @SneakyThrows
-    public Page<Notification> getAllNotificationsByTypeAndUserId(@NotNull Type type,
+    public Page<Notification> getAllNotificationsByTypeAndUserIdPaginated(@NotNull Type type,
                                                                  @NotNull Integer userId,
                                                                  @NotNull int pageNumber,
                                                                  @NotNull int size) {
@@ -68,12 +88,24 @@ public class NotificationService {
         return notificationRepository.findAllByTypeAndUserId(type, userId, pageable);
     }
 
+    /**
+     * 
+     * @param type Type of notification
+     * @param userId ID of the current user
+     */
     @SneakyThrows
     public void deleteNotificationsByTypeAndUserId(@NotNull Type type, @NotNull Integer userId) {
         List<Notification> notifications = notificationRepository.findAllByTypeAndUserId(type, userId);
         notificationRepository.deleteAll(notifications);
     }
 
+    /**
+     * 
+     * @param userId ID of the current user
+     * @param pageNumber Starting page number in the paginated response
+     * @param size Size of the response list
+     * @return Paginated response of all notifications by user ID
+     */
     @SneakyThrows
     public Page<Notification> getAllNotificationsByUserId(@NotNull Integer userId,
                                                         @NotNull @Positive int pageNumber,
@@ -82,6 +114,13 @@ public class NotificationService {
         return notificationRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
     }
 
+    /**
+     * 
+     * @param userId ID of the current user
+     * @param pageNumber Starting page number in the paginated response
+     * @param size Size of the response list
+     * @return Paginated response of all unread notifications by user ID
+     */
     @SneakyThrows
     public Page<Notification> getAllUnreadNotificationsByUserId(@NotNull Integer userId,
                                                                 @NotNull @Positive int pageNumber,
@@ -90,13 +129,19 @@ public class NotificationService {
         return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(userId, pageable);
     }
 
+    /**
+     * 
+     * @param userId ID of the current user
+     * @param notificationId ID of notification
+     * @return Check if a user has access to a particular notification
+     */
     @SneakyThrows
     public boolean checkNotificationAccess(@NotNull Integer userId, @NotNull Integer notificationId) {
         Notification notification = notificationRepository.findFirstById(notificationId);
         User user = userRepository.findByUserId(userId);
         return notification.getUserId().equals(userId) || user.getIsAdmin();
     }
-
+    
     private Integer getMaxNotificationId() {
         Notification notification = notificationRepository.findFirstByOrderByIdDesc();
         if (notification == null) {
@@ -105,6 +150,11 @@ public class NotificationService {
         return notification.getId();
     }
 
+    /**
+     * 
+     * @param notificationId ID of notification
+     * @return Notification of the passed ID, null if it doesn't exist
+     */
     @SneakyThrows
     public Notification findNotificationById(Integer notificationId) {
         return notificationRepository.findFirstById(notificationId);
