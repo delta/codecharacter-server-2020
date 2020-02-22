@@ -1,6 +1,8 @@
 package delta.codecharacter.server.service;
 
+import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.util.enums.Division;
+import delta.codecharacter.server.util.enums.MatchMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -26,6 +28,9 @@ public class AutoMatchUpService {
 
     @Autowired
     private ConstantService constantService;
+
+    @Autowired
+    private SimulationService simulationService;
 
     /**
      * Calculate number of seconds since midnight on GMT+5:30
@@ -53,7 +58,12 @@ public class AutoMatchUpService {
                 var player2UserId = div1Players.get(player2Index).getUserId();
                 LOG.info("Match between " + player1UserId + " - " + player2UserId);
 
-                // TODO: Execute match between player1 and player2
+                SimulateMatchRequest simulateMatchRequest = SimulateMatchRequest.builder()
+                        .playerId1(player1UserId.toString())
+                        .playerId2(player2UserId.toString())
+                        .matchMode(MatchMode.MANUAL.toString())
+                        .build();
+                simulationService.simulateMatch(simulateMatchRequest);
             }
         }
     }
