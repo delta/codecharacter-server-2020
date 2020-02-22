@@ -6,6 +6,7 @@ import delta.codecharacter.server.model.Leaderboard;
 import delta.codecharacter.server.repository.LeaderboardRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.enums.Division;
+import delta.codecharacter.server.util.enums.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -130,6 +131,34 @@ public class LeaderboardService {
         Aggregation aggregation = newAggregation(
                 match(Criteria.where("division").is(division)),
                 lookup("user", "user_id", "_id", "join"),
+                sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
+                limit(pageable.getPageSize())
+        );
+
+        AggregationResults<LeaderboardResponse> groupResults = mongoTemplate.aggregate(
+                aggregation, Leaderboard.class, LeaderboardResponse.class);
+        List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
+        for (var leaderboardData : leaderboard) {
+            leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
+            leaderboardData.setRank(getRank(leaderboardData.getRating()));
+        }
+        return leaderboard;
+    }
+
+    /**
+     * Get details of users of given userType
+     *
+     * @param userType   desired division
+     * @param pageNumber page number
+     * @param pageSize   page size
+     * @return list of users of given userType
+     */
+    public List<LeaderboardResponse> getLeaderboardDataByUserType(UserType userType, Integer pageNumber, Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Aggregation aggregation = newAggregation(
+                lookup("user", "user_id", "_id", "join"),
+                match(Criteria.where("join.user_type").is(userType)),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
                 skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
