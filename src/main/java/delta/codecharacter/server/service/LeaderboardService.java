@@ -112,7 +112,7 @@ public class LeaderboardService {
 
         for (var leaderboardData : leaderboard) {
             leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
-            leaderboardData.setRank(getRank(leaderboardData.getRating()) + 1);
+            leaderboardData.setRank(getRank(leaderboardData.getRating()));
         }
         return leaderboard;
     }
