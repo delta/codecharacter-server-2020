@@ -22,6 +22,6 @@ public class SimulationController {
     @MessageMapping("/matchRequest")
     @SendTo("/socket/simulation/{userId}")
     public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest) {
-                simulationService.simulateMatch(simulateMatchRequest);
-            }
-        }
+        simulationService.simulateMatch(simulateMatchRequest);
+    }
+}

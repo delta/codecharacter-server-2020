@@ -27,12 +27,6 @@ public class SimulationService {
     @Value("${compilebox.secret-key}")
     private String secretKey;
 
-    @Value("${spring.rabbitmq.host}")
-    private String host;
-
-    @Value("${spring.rabbitmq.queue}")
-    private String queue;
-
     @Autowired
     private VersionControlService versionControlService;
 
@@ -94,19 +88,19 @@ public class SimulationService {
                 break;
             }
             case AI: {
-
+                //TODO: Handle Simulate AI match
                 break;
             }
             case PREV_COMMIT: {
-
+                //TODO: Handle Simulate PREV_COMMIT match
                 break;
             }
             case MANUAL: {
-
+                //TODO: Handle Simulate MANUAL match
                 break;
             }
             case AUTO: {
-
+                //TODO: Handle Simulate AUTO match
                 break;
             }
             default: {
