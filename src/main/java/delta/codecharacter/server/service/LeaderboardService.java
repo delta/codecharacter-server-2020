@@ -121,7 +121,7 @@ public class LeaderboardService {
     /**
      * Get details of users playing in given division
      *
-     * @param division   desired division
+     * @param division desired division
      * @return list of all users playing in the given division
      */
     public List<LeaderboardResponse> getLeaderboardDataByDivision(Division division) {
@@ -171,7 +171,7 @@ public class LeaderboardService {
     /**
      * Get details of users of given userType
      *
-     * @param userType   desired division
+     * @param userType   desired userType
      * @param pageNumber page number
      * @param pageSize   page size
      * @return list of users of given userType

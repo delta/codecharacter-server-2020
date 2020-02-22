@@ -39,13 +39,13 @@ public class LeaderboardController {
     }
 
     @GetMapping("/division/{division}/{PageNo}/{PageSize}")
-    public ResponseEntity<List<LeaderboardResponse>> getLeaderboardDataByDivision(@PathVariable Division division, @PathVariable @NotEmpty Integer PageNo, @PathVariable @NotEmpty Integer PageSize) {
+    public ResponseEntity<List<LeaderboardResponse>> getLeaderboardDataByDivision(@PathVariable @NotEmpty Division division, @PathVariable @NotEmpty Integer PageNo, @PathVariable @NotEmpty Integer PageSize) {
         PageUtils.validatePaginationParams(PageNo, PageSize);
         return new ResponseEntity<List<LeaderboardResponse>>(leaderboardService.getLeaderboardDataByDivisionPaginated(division, PageNo, PageSize), HttpStatus.OK);
     }
 
     @GetMapping("/userType/{userType}/{PageNo}/{PageSize}")
-    public ResponseEntity<List<LeaderboardResponse>> getLeaderboardDataByUserType(@PathVariable UserType userType, @PathVariable @NotEmpty Integer PageNo, @PathVariable @NotEmpty Integer PageSize) {
+    public ResponseEntity<List<LeaderboardResponse>> getLeaderboardDataByUserType(@PathVariable @NotEmpty UserType userType, @PathVariable @NotEmpty Integer PageNo, @PathVariable @NotEmpty Integer PageSize) {
         PageUtils.validatePaginationParams(PageNo, PageSize);
         return new ResponseEntity<List<LeaderboardResponse>>(leaderboardService.getLeaderboardDataByUserType(userType, PageNo, PageSize), HttpStatus.OK);
     }
