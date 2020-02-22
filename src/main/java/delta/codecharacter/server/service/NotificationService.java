@@ -107,7 +107,7 @@ public class NotificationService {
      * @return Paginated response of all notifications by user ID
      */
     @SneakyThrows
-    public Page<Notification> getAllNotificationsByUserId(@NotNull Integer userId,
+    public Page<Notification> getAllNotificationsByUserIdPaginated(@NotNull Integer userId,
                                                         @NotNull @Positive int pageNumber,
                                                         @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
@@ -122,7 +122,7 @@ public class NotificationService {
      * @return Paginated response of all unread notifications by user ID
      */
     @SneakyThrows
-    public Page<Notification> getAllUnreadNotificationsByUserId(@NotNull Integer userId,
+    public Page<Notification> getAllUnreadNotificationsByUserIdPaginated(@NotNull Integer userId,
                                                                 @NotNull @Positive int pageNumber,
                                                                 @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
