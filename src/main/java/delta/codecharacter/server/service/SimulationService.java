@@ -121,7 +121,22 @@ public class SimulationService {
                 break;
             }
             case AUTO: {
-                //TODO: Handle Simulate AUTO match
+                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.AUTO);
+
+                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[5];
+                for (int i = 0; i < 5; i++) {
+                    Game newGame = gameService.createGame(match.getId(), i + 1);
+                    executeGames[i] = ExecuteGameDetails.builder()
+                            .gameId(newGame.getId())
+                            .map(MapUtil.getMap(i + 1))
+                            .build();
+                }
+
+                executeMatchRequest.setMatchId(match.getId());
+                executeMatchRequest.setGames(executeGames);
+                executeMatchRequest.setSecretKey(secretKey);
+
+                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             default: {
