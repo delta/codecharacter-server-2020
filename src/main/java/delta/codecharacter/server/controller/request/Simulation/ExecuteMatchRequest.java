@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 @Builder
 public class ExecuteMatchRequest {
-    String secretKey;
-
     Integer matchId;
+
+    String secretKey;
 
     String dll1;
 

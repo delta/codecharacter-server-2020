@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ExecuteGameDetails {
-    String map;
-
     Integer gameId;
+
+    String map;
 }
