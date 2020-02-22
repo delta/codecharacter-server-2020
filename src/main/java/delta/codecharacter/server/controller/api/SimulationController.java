@@ -19,9 +19,9 @@ public class SimulationController {
     @Autowired
     private SimulationService simulationService;
 
-    @MessageMapping("/match")
-    public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest, Authentication authentication) {
-        simulationService.simulateMatch(simulateMatchRequest, authentication.getName());
+    @MessageMapping("/matchRequest")
+    @SendTo("/socket/simulation/{userId}")
+    public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest) {
+        simulationService.simulateMatch(simulateMatchRequest);
     }
-
 }
