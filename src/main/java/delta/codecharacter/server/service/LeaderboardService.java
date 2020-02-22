@@ -119,6 +119,28 @@ public class LeaderboardService {
     }
 
     /**
+     * Get details of users playing in given division
+     *
+     * @param division   desired division
+     * @return list of all users playing in the given division
+     */
+    public List<LeaderboardResponse> getLeaderboardDataByDivision(Division division) {
+        Aggregation aggregation = newAggregation(
+                match(Criteria.where("division").is(division)),
+                lookup("user", "user_id", "_id", "join"),
+                sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending()))
+        );
+
+        AggregationResults<LeaderboardResponse> groupResults = mongoTemplate.aggregate(
+                aggregation, Leaderboard.class, LeaderboardResponse.class);
+        List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
+        for (var leaderboardData : leaderboard) {
+            leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
+        }
+        return leaderboard;
+    }
+
+    /**
      * Get details of users playing in given division of given pageSize
      *
      * @param division   desired division
