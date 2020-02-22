@@ -6,8 +6,10 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,6 +29,7 @@ public class AutoMatchUpService {
 
     /**
      * Calculate number of seconds since midnight on GMT+5:30
+     *
      * @return Number of seconds
      */
     private Long getSecondsSinceMidnight() {
@@ -58,6 +61,7 @@ public class AutoMatchUpService {
     /**
      * Get number of seconds before next scheduled match up
      * NOTE: Match ups are executed every frequency seconds since midnight (including)
+     *
      * @param frequency Frequency between two match ups
      * @return Wait time in seconds
      */
@@ -73,7 +77,7 @@ public class AutoMatchUpService {
         LOG.info("Starting auto match-up service...");
 
         // Match up is executed every frequency seconds from midnight
-        var autoMatchUpFrequencySeconds=Long.parseLong(constantService.getConstantValueByKey("AUTO_MATCH_UP_FREQUENCY_SECONDS"));
+        var autoMatchUpFrequencySeconds = Long.parseLong(constantService.getConstantValueByKey("AUTO_MATCH_UP_FREQUENCY_SECONDS"));
 
         // Wait to synchronize the scheduler with match frequency
         try {
