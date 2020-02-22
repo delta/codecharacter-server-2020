@@ -22,6 +22,9 @@ public class AutoMatchUpService {
     @Autowired
     private LeaderboardService leaderboardService;
 
+    @Autowired
+    private ConstantService constantService;
+
     /**
      * Calculate number of seconds since midnight on GMT+5:30
      * @return Number of seconds
@@ -69,9 +72,8 @@ public class AutoMatchUpService {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         LOG.info("Starting auto match-up service...");
 
-        // TODO: Fetch from constants
         // Match up is executed every frequency seconds from midnight
-        var autoMatchUpFrequencySeconds = 60L;
+        var autoMatchUpFrequencySeconds=Long.parseLong(constantService.getConstantValueByKey("AUTO_MATCH_UP_FREQUENCY_SECONDS"));
 
         // Wait to synchronize the scheduler with match frequency
         try {
