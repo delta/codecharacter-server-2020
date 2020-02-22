@@ -13,6 +13,7 @@ import delta.codecharacter.server.util.enums.DllId;
 import delta.codecharacter.server.util.enums.MatchMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.logging.Logger;
@@ -37,17 +38,18 @@ public class SimulationService {
     private GameService gameService;
 
     @Autowired
-    private ConstantService constantService;
+    private RabbitMqService rabbitMqService;
 
     @Autowired
-    private RabbitMqService rabbitMqService;
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     /**
      * Send an execute match request to compile-box
      *
      * @param simulateMatchRequest Details of the match to be simulated
+     * @param username             Username of the User initiating the match
      */
-    public void simulateMatch(SimulateMatchRequest simulateMatchRequest) {
+    public void simulateMatch(SimulateMatchRequest simulateMatchRequest, String username) {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
@@ -71,7 +73,11 @@ public class SimulationService {
             case SELF: {
                 Match match = matchService.createMatch(playerId1, playerId2, MatchMode.SELF);
 
-                Integer selfMatchMapId = Integer.valueOf(constantService.getConstantValueByKey("SELF_MATCH_MAP_ID"));
+                Integer selfMatchMapId = simulateMatchRequest.getMapId();
+                if (selfMatchMapId == null) {
+                    simpMessagingTemplate.convertAndSendToUser(username, "/simulation/match-response", "MapId cannot be null");
+                }
+
                 Game newGame = gameService.createGame(match.getId(), selfMatchMapId);
 
                 ExecuteGameDetails[] executeGames = new ExecuteGameDetails[1];

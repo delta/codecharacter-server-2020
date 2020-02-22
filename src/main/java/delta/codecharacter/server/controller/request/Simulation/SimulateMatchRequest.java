@@ -19,5 +19,7 @@ public class SimulateMatchRequest {
 
     Integer aiId;
 
-    Integer codeVersionId;
+    String commitHash;
+
+    Integer mapId;
 }

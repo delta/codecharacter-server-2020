@@ -13,9 +13,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Destination prefix to carry the messages back to the client.
-        config.enableSimpleBroker("/socket");
+        config.enableSimpleBroker("/simulation");
+
         // Prefix for messages from client bound to methods annotated with @MessageMapping
-        config.setApplicationDestinationPrefixes("/socket");
+        config.setApplicationDestinationPrefixes("/simulate");
+
+        // Destination prefix to carry user specific messages back to the client
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override

@@ -4,7 +4,7 @@ import delta.codecharacter.server.controller.request.Simulation.SimulateMatchReq
 import delta.codecharacter.server.service.SimulationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -19,9 +19,9 @@ public class SimulationController {
     @Autowired
     private SimulationService simulationService;
 
-    @MessageMapping("/matchRequest")
-    @SendTo("/socket/simulation/{userId}")
-    public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest) {
-        simulationService.simulateMatch(simulateMatchRequest);
+    @MessageMapping("/match")
+    public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest, Authentication authentication) {
+        simulationService.simulateMatch(simulateMatchRequest, authentication.getName());
     }
+
 }

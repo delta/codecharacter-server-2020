@@ -41,5 +41,6 @@ public class RabbitMqService {
         //Number of messages that can be processed at a time
         channel.basicQos(1);
         channel.queueDeclare(queue, true, false, false, null);
+        LOG.info("RabbitMq Ready!");
     }
 }
