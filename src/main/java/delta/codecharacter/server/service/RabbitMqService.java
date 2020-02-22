@@ -12,17 +12,16 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
-
 @Service
 public class RabbitMqService {
     Logger LOG = Logger.getLogger(RabbitMqService.class.getName());
 
     private Channel channel;
 
-    @Value("spring.rabbitmq.host")
+    @Value("${spring.rabbitmq.host}")
     private String host;
 
-    @Value("spring.rabbitmq.queue")
+    @Value("${spring.rabbitmq.queue}")
     private String queue;
 
     @SneakyThrows
