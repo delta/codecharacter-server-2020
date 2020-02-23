@@ -24,7 +24,7 @@ public class AiDllUtil {
     /**
      * Return the absolute path to the player dll file of given userId
      *
-     * @param userId  UserId of user whose dll is to be accesseddllStoragePath
+     * @param userId  UserId of user whose dll is to be accessed dllStoragePath
      * @param aiDllId DllId of the dll needed
      * @return Path to required dll file
      */

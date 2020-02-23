@@ -135,7 +135,22 @@ public class SimulationService {
                 break;
             }
             case PREV_COMMIT: {
-                //TODO: Handle Simulate PREV_COMMIT match
+                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.PREV_COMMIT);
+                Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
+
+                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[1];
+                executeGames[0] = ExecuteGameDetails.builder()
+                        .gameId(newGame.getId())
+                        .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
+                        .build();
+
+                executeMatchRequest.setCode2(versionControlService.getCodeByCommitHash(playerId2, simulateMatchRequest.getCommitHash()));
+
+                executeMatchRequest.setMatchId(match.getId());
+                executeMatchRequest.setGames(executeGames);
+                executeMatchRequest.setSecretKey(secretKey);
+
+                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             case AUTO: {
