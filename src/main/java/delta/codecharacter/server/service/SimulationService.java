@@ -73,17 +73,17 @@ public class SimulationService {
             case SELF: {
                 Match match = matchService.createMatch(playerId1, playerId2, MatchMode.SELF);
 
-                Integer selfMatchMapId = simulateMatchRequest.getMapId();
-                if (selfMatchMapId == null) {
+                Integer mapId = simulateMatchRequest.getMapId();
+                if (mapId == null) {
                     simpMessagingTemplate.convertAndSendToUser(username, "/simulation/match-response", "MapId cannot be null");
                 }
 
-                Game newGame = gameService.createGame(match.getId(), selfMatchMapId);
+                Game newGame = gameService.createGame(match.getId(), mapId);
 
                 ExecuteGameDetails[] executeGames = new ExecuteGameDetails[1];
                 executeGames[0] = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
-                        .map(MapUtil.getMap(selfMatchMapId))
+                        .map(MapUtil.getMap(mapId))
                         .build();
 
                 executeMatchRequest.setMatchId(match.getId());

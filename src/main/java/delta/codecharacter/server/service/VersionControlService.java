@@ -188,7 +188,6 @@ public class VersionControlService {
             RevCommit commit = revWalk.parseCommit(repository.resolve(commitHash));
             // Using commit's tree find the path
             RevTree tree = commit.getTree();
-            System.out.println("Having tree: " + tree);
 
             // Try to find a specific file
             try (TreeWalk treeWalk = new TreeWalk(repository)) {
