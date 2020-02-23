@@ -308,8 +308,10 @@ public class UserService implements UserDetailsService {
     }
 
     /**
+     * Get user by username
+     *
      * @param username Username of user
-     * @return
+     * @return Details of the user
      */
     @SneakyThrows
     public User getUserByUsername(String username) {
@@ -317,8 +319,10 @@ public class UserService implements UserDetailsService {
     }
 
     /**
+     * Check if a user is admin
+     *
      * @param username Username of user to be checked for admin
-     * @return
+     * @return True if the user is admin, False otherwise
      */
     @SneakyThrows
     public User getUserByEmail(String email) {

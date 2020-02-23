@@ -51,7 +51,7 @@ public class AnnouncementService {
     }
 
     /**
-     * Return all announcements
+     * Return all announcements paginated
      *
      * @param pageNumber Page number
      * @param size Size of results
