@@ -6,8 +6,13 @@ import delta.codecharacter.server.util.enums.DllId;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -163,6 +168,47 @@ public class VersionControlService {
         // git checkout {commitHash}
         git.checkout().setName(commitHash).call();
         git.close();
+    }
+
+    /**
+     * Get code present in the commit of given commit-hash
+     *
+     * @param userId     UserId of the user
+     * @param commitHash Commit Hash to checkout to
+     */
+    @SneakyThrows
+    public String getCodeByCommitHash(Integer userId, String commitHash) {
+        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
+        Repository repository = git.getRepository();
+
+        String code;
+
+        // A RevWalk allows to walk over commits based on some filtering that is defined
+        try (RevWalk revWalk = new RevWalk(repository)) {
+            RevCommit commit = revWalk.parseCommit(repository.resolve(commitHash));
+            // Using commit's tree find the path
+            RevTree tree = commit.getTree();
+            System.out.println("Having tree: " + tree);
+
+            // Try to find a specific file
+            try (TreeWalk treeWalk = new TreeWalk(repository)) {
+                treeWalk.addTree(tree);
+                treeWalk.setRecursive(true);
+                treeWalk.setFilter(PathFilter.create(codeFileName));
+                if (!treeWalk.next()) {
+                    throw new IllegalStateException("Did not find expected file " + codeFileName);
+                }
+
+                ObjectId objectId = treeWalk.getObjectId(0);
+                ObjectLoader loader = repository.open(objectId);
+
+                code = new String(loader.getBytes());
+            }
+
+            revWalk.dispose();
+        }
+        git.close();
+        return code;
     }
 
     /**
