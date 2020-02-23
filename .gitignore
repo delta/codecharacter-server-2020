@@ -17,3 +17,9 @@ build.properties
 
 ### Storage ###
 storage
+
+### Static Files ###
+src/main/resources/static/*
+
+### app.prop ###
+src/main/resources/application.properties
