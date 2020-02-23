@@ -7,8 +7,10 @@ import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequ
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.util.AiDllUtil;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MapUtil;
+import delta.codecharacter.server.util.enums.AiDllId;
 import delta.codecharacter.server.util.enums.DllId;
 import delta.codecharacter.server.util.enums.MatchMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +96,23 @@ public class SimulationService {
                 break;
             }
             case AI: {
-                //TODO: Handle Simulate AI match
+                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.AI);
+                Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
+
+                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[1];
+                executeGames[0] = ExecuteGameDetails.builder()
+                        .gameId(newGame.getId())
+                        .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
+                        .build();
+
+                executeMatchRequest.setDll1(AiDllUtil.getAiDll(playerId1, AiDllId.AI_DLL_1));
+                executeMatchRequest.setDll2(AiDllUtil.getAiDll(playerId2, AiDllId.AI_DLL_2));
+
+                executeMatchRequest.setMatchId(match.getId());
+                executeMatchRequest.setGames(executeGames);
+                executeMatchRequest.setSecretKey(secretKey);
+
+                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             case MANUAL: {

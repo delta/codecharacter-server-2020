@@ -1,6 +1,7 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
+import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.enums.Division;
 import delta.codecharacter.server.util.enums.MatchMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class AutoMatchUpService {
 
     @Autowired
     private SimulationService simulationService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Calculate number of seconds since midnight on GMT+5:30
@@ -63,7 +67,7 @@ public class AutoMatchUpService {
                         .playerId2(player2UserId.toString())
                         .matchMode(MatchMode.AUTO.toString())
                         .build();
-                simulationService.simulateMatch(simulateMatchRequest);
+                simulationService.simulateMatch(simulateMatchRequest, userRepository.findByUserId(player1UserId).getUsername());
             }
         }
     }
