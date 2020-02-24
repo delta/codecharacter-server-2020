@@ -58,10 +58,17 @@ public class SimulationService {
     public void simulateMatch(SimulateMatchRequest simulateMatchRequest, String username) {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
-        Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
-
         String dll1 = DllUtil.getDll(userDirectory, playerId1, DllId.DLL_1);
-        String dll2 = DllUtil.getDll(userDirectory, playerId2, DllId.DLL_2);
+
+        Integer playerId2;
+        String dll2;
+        if (simulateMatchRequest.getMatchMode().equals(MatchMode.AI)) {
+            playerId2 = simulateMatchRequest.getAiId();
+            dll2 = DllUtil.getDll(aiDirectory, playerId2, DllId.DLL_2);
+        } else {
+            playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
+            dll2 = DllUtil.getDll(userDirectory, playerId2, DllId.DLL_2);
+        }
 
         String player1Code = null;
         String player2Code = null;
@@ -108,8 +115,6 @@ public class SimulationService {
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
                         .build();
-
-                executeMatchRequest.setDll2(DllUtil.getDll(aiDirectory, simulateMatchRequest.getAiId(), DllId.DLL_2));
 
                 executeMatchRequest.setMatchId(match.getId());
                 executeMatchRequest.setGames(executeGames);
