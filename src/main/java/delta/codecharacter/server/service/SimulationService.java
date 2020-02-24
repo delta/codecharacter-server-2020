@@ -105,8 +105,7 @@ public class SimulationService {
                         .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
                         .build();
 
-                executeMatchRequest.setDll1(AiDllUtil.getAiDll(playerId1, AiDllId.AI_DLL_1));
-                executeMatchRequest.setDll2(AiDllUtil.getAiDll(playerId2, AiDllId.AI_DLL_2));
+                executeMatchRequest.setDll2(AiDllUtil.getAiDll(simulateMatchRequest.getAiId(), AiDllId.AI_DLL_2));
 
                 executeMatchRequest.setMatchId(match.getId());
                 executeMatchRequest.setGames(executeGames);
