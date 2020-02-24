@@ -1,5 +1,5 @@
 package delta.codecharacter.server.util.enums;
 
 public enum AiDllId {
-    AI_DLL_1, AI_DLL_2, AI_DLL_3
+    AI_1_DLL, AI_2_DLL, AI_3_DLL
 }

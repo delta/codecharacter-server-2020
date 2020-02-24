@@ -14,32 +14,28 @@ public class AiDllUtil {
     /**
      * Return the absolute path to the dll files directory of given userId
      *
-     * @param aiId AiId of the AI
      * @return Path to codes directory
      */
-    public static String getAiDllRepositoryUri(Integer aiId) {
-        return System.getProperty("user.dir") + File.separator + aiDllStoragePath + File.separator + aiId;
+    public static String getAiDllRepositoryUri() {
+        return System.getProperty("user.dir") + File.separator + aiDllStoragePath;
     }
 
     /**
      * Return the absolute path to the player dll file of given userId
      *
-     * @param aiId    AiId of the AI
      * @param aiDllId DllId of the dll needed
      * @return Path to required dll file
      */
-    private static String getAiDllFileUri(Integer aiId, AiDllId aiDllId) {
-        return getAiDllRepositoryUri(aiId) + File.separator + aiDllId;
+    private static String getAiDllFileUri(AiDllId aiDllId) {
+        return getAiDllRepositoryUri() + File.separator + aiDllId;
     }
 
     /**
      * Create a new dll repository for given userId
-     *
-     * @param aiId AiId of the AI
      */
     @SneakyThrows
-    public static void createAiDllRepository(Integer aiId) {
-        String aiDllRepositoryUri = getAiDllRepositoryUri(aiId);
+    public static void createAiDllRepository() {
+        String aiDllRepositoryUri = getAiDllRepositoryUri();
         if (!FileHandler.checkFileExists(aiDllRepositoryUri)) {
             boolean dirCreated = FileHandler.createDirectory(aiDllRepositoryUri);
             if (!dirCreated) {
@@ -51,12 +47,11 @@ public class AiDllUtil {
     /**
      * Get dll of given userId
      *
-     * @param aiId    AiId of the AI
      * @param aiDllId DllId of the dll needed
      * @return Contents of the required dll file
      */
-    public static String getAiDll(Integer aiId, AiDllId aiDllId) {
-        String aiDllFileUri = getAiDllFileUri(aiId, aiDllId);
+    public static String getAiDll(AiDllId aiDllId) {
+        String aiDllFileUri = getAiDllFileUri(aiDllId);
         try {
             return FileHandler.getFileContents(aiDllFileUri);
         } catch (Exception e) {
@@ -67,22 +62,20 @@ public class AiDllUtil {
     /**
      * Set contents of dll file of given userId
      *
-     * @param aiId    AiId of the AI
      * @param aiDllId DllId of the dll which is to be set
      * @param aiDll   Contents of dll to be written in the dll file
      */
-    public static void setAiDll(Integer aiId, AiDllId aiDllId, String aiDll) {
-        String aiDllFileUri = getAiDllFileUri(aiId, aiDllId);
+    public static void setAiDll(AiDllId aiDllId, String aiDll) {
+        String aiDllFileUri = getAiDllFileUri(aiDllId);
         FileHandler.writeFileContents(aiDllFileUri, aiDll);
     }
 
     /**
      * Delete the dll file for the given userId and dllId
      *
-     * @param aiId    AiId of the AI
      * @param aiDllId DllId of the file to be deleted
      */
-    public static void deleteAiDllFile(Integer aiId, AiDllId aiDllId) {
-        FileHandler.deleteFile(getAiDllFileUri(aiId, aiDllId));
+    public static void deleteAiDllFile(AiDllId aiDllId) {
+        FileHandler.deleteFile(getAiDllFileUri(aiDllId));
     }
 }

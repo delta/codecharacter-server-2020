@@ -7,10 +7,13 @@ import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequ
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.util.AiDllUtil;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MapUtil;
+import delta.codecharacter.server.util.enums.AiDllId;
 import delta.codecharacter.server.util.enums.DllId;
 import delta.codecharacter.server.util.enums.MatchMode;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,12 +30,6 @@ public class SimulationService {
 
     @Value("${compilebox.secret-key}")
     private String secretKey;
-
-    @Value("user.dir")
-    private String userDirectory;
-
-    @Value("ai.dir")
-    private String aiDirectory;
 
     @Autowired
     private VersionControlService versionControlService;
@@ -55,19 +52,31 @@ public class SimulationService {
      * @param simulateMatchRequest Details of the match to be simulated
      * @param username             Username of the User initiating the match
      */
+    @SneakyThrows
     public void simulateMatch(SimulateMatchRequest simulateMatchRequest, String username) {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
-        String dll1 = DllUtil.getDll(userDirectory, playerId1, DllId.DLL_1);
+        Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
 
-        Integer playerId2;
+        String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
+
         String dll2;
-        if (simulateMatchRequest.getMatchMode().equals(MatchMode.AI)) {
-            playerId2 = simulateMatchRequest.getAiId();
-            dll2 = DllUtil.getDll(aiDirectory, playerId2, DllId.DLL_2);
-        } else {
-            playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
-            dll2 = DllUtil.getDll(userDirectory, playerId2, DllId.DLL_2);
+        if (!simulateMatchRequest.getMatchMode().equals(MatchMode.AI))
+            dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
+        else {
+            switch (Integer.valueOf(simulateMatchRequest.getPlayerId2())) {
+                case 1:
+                    dll2 = AiDllUtil.getAiDll(AiDllId.AI_1_DLL);
+                    break;
+                case 2:
+                    dll2 = AiDllUtil.getAiDll(AiDllId.AI_2_DLL);
+                    break;
+                case 3:
+                    dll2 = AiDllUtil.getAiDll(AiDllId.AI_3_DLL);
+                    break;
+                default:
+                    throw new Exception("Invalid playerId2");
+            }
         }
 
         String player1Code = null;
@@ -82,9 +91,11 @@ public class SimulationService {
                 .code2(player2Code)
                 .build();
 
+        Match match;
+        ExecuteGameDetails[] executeGames;
         switch (MatchMode.valueOf(simulateMatchRequest.getMatchMode())) {
             case SELF: {
-                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.SELF);
+                match = matchService.createMatch(playerId1, playerId2, MatchMode.SELF);
 
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
@@ -93,40 +104,28 @@ public class SimulationService {
 
                 Game newGame = gameService.createGame(match.getId(), mapId);
 
-                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[1];
+                executeGames = new ExecuteGameDetails[1];
                 executeGames[0] = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(mapId))
                         .build();
-
-                executeMatchRequest.setMatchId(match.getId());
-                executeMatchRequest.setGames(executeGames);
-                executeMatchRequest.setSecretKey(secretKey);
-
-                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             case AI: {
-                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.AI);
+                match = matchService.createMatch(playerId1, playerId2, MatchMode.AI);
                 Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
 
-                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[1];
+                executeGames = new ExecuteGameDetails[1];
                 executeGames[0] = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
                         .build();
-
-                executeMatchRequest.setMatchId(match.getId());
-                executeMatchRequest.setGames(executeGames);
-                executeMatchRequest.setSecretKey(secretKey);
-
-                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             case MANUAL: {
-                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.MANUAL);
+                match = matchService.createMatch(playerId1, playerId2, MatchMode.MANUAL);
 
-                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[5];
+                executeGames = new ExecuteGameDetails[5];
                 for (int i = 0; i < 5; i++) {
                     Game newGame = gameService.createGame(match.getId(), i + 1);
                     executeGames[i] = ExecuteGameDetails.builder()
@@ -134,37 +133,25 @@ public class SimulationService {
                             .map(MapUtil.getMap(i + 1))
                             .build();
                 }
-
-                executeMatchRequest.setMatchId(match.getId());
-                executeMatchRequest.setGames(executeGames);
-                executeMatchRequest.setSecretKey(secretKey);
-
-                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             case PREV_COMMIT: {
-                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.PREV_COMMIT);
+                match = matchService.createMatch(playerId1, playerId2, MatchMode.PREV_COMMIT);
                 Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
 
-                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[1];
+                executeGames = new ExecuteGameDetails[1];
                 executeGames[0] = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
                         .build();
 
                 executeMatchRequest.setCode2(versionControlService.getCodeByCommitHash(playerId2, simulateMatchRequest.getCommitHash()));
-
-                executeMatchRequest.setMatchId(match.getId());
-                executeMatchRequest.setGames(executeGames);
-                executeMatchRequest.setSecretKey(secretKey);
-
-                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             case AUTO: {
-                Match match = matchService.createMatch(playerId1, playerId2, MatchMode.AUTO);
+                match = matchService.createMatch(playerId1, playerId2, MatchMode.AUTO);
 
-                ExecuteGameDetails[] executeGames = new ExecuteGameDetails[5];
+                executeGames = new ExecuteGameDetails[5];
                 for (int i = 0; i < 5; i++) {
                     Game newGame = gameService.createGame(match.getId(), i + 1);
                     executeGames[i] = ExecuteGameDetails.builder()
@@ -172,17 +159,16 @@ public class SimulationService {
                             .map(MapUtil.getMap(i + 1))
                             .build();
                 }
-
-                executeMatchRequest.setMatchId(match.getId());
-                executeMatchRequest.setGames(executeGames);
-                executeMatchRequest.setSecretKey(secretKey);
-
-                rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
                 break;
             }
             default: {
                 throw new IllegalStateException("Unexpected MatchMode value: " + simulateMatchRequest.getMatchMode());
             }
         }
+        executeMatchRequest.setMatchId(match.getId());
+        executeMatchRequest.setGames(executeGames);
+        executeMatchRequest.setSecretKey(secretKey);
+
+        rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
     }
 }

@@ -17,8 +17,6 @@ public class SimulateMatchRequest {
     @NotEmpty(message = "Match Mode is required")
     String matchMode;
 
-    Integer aiId;
-
     String commitHash;
 
     Integer mapId;
