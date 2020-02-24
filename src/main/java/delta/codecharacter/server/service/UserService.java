@@ -163,6 +163,9 @@ public class UserService implements UserDetailsService {
         if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
             if (!user.getIsActivated()) throw new Exception("User not activated");
             return new CustomUserDetails(user);
+        } else if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
+            if (!user.getIsActivated()) throw new Exception("User not activated");
+            return new CustomUserDetails(user);
         }
 
         //AuthType is not PRAGYAN and MANUAL
