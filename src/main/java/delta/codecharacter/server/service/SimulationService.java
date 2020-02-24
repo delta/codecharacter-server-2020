@@ -59,25 +59,7 @@ public class SimulationService {
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
 
         String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
-
-        String dll2;
-        if (!simulateMatchRequest.getMatchMode().equals(MatchMode.AI))
-            dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
-        else {
-            switch (Integer.valueOf(simulateMatchRequest.getPlayerId2())) {
-                case 1:
-                    dll2 = AiDllUtil.getAiDll(AiDllId.AI_1_DLL);
-                    break;
-                case 2:
-                    dll2 = AiDllUtil.getAiDll(AiDllId.AI_2_DLL);
-                    break;
-                case 3:
-                    dll2 = AiDllUtil.getAiDll(AiDllId.AI_3_DLL);
-                    break;
-                default:
-                    throw new Exception("Invalid playerId2");
-            }
-        }
+        String dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
 
         String player1Code = null;
         String player2Code = null;
@@ -120,6 +102,20 @@ public class SimulationService {
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
                         .build();
+
+                switch (Integer.valueOf(simulateMatchRequest.getPlayerId2())) {
+                    case 1:
+                        executeMatchRequest.setDll2(AiDllUtil.getAiDll(AiDllId.AI_1_DLL));
+                        break;
+                    case 2:
+                        executeMatchRequest.setDll2(AiDllUtil.getAiDll(AiDllId.AI_2_DLL));
+                        break;
+                    case 3:
+                        executeMatchRequest.setDll2(AiDllUtil.getAiDll(AiDllId.AI_3_DLL));
+                        break;
+                    default:
+                        throw new Exception("Unexpected AiId " + simulateMatchRequest.getPlayerId2());
+                }
                 break;
             }
             case MANUAL: {
