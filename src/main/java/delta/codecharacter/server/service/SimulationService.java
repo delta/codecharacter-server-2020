@@ -7,10 +7,8 @@ import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequ
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
-import delta.codecharacter.server.util.AiDllUtil;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MapUtil;
-import delta.codecharacter.server.util.enums.AiDllId;
 import delta.codecharacter.server.util.enums.DllId;
 import delta.codecharacter.server.util.enums.MatchMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +27,12 @@ public class SimulationService {
 
     @Value("${compilebox.secret-key}")
     private String secretKey;
+
+    @Value("user.dir")
+    private String userDirectory;
+
+    @Value("ai.dir")
+    private String aiDirectory;
 
     @Autowired
     private VersionControlService versionControlService;
@@ -56,8 +60,8 @@ public class SimulationService {
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
 
-        String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
-        String dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
+        String dll1 = DllUtil.getDll(userDirectory, playerId1, DllId.DLL_1);
+        String dll2 = DllUtil.getDll(userDirectory, playerId2, DllId.DLL_2);
 
         String player1Code = null;
         String player2Code = null;
@@ -105,7 +109,7 @@ public class SimulationService {
                         .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
                         .build();
 
-                executeMatchRequest.setDll2(AiDllUtil.getAiDll(simulateMatchRequest.getAiId(), AiDllId.AI_DLL_2));
+                executeMatchRequest.setDll2(DllUtil.getDll(aiDirectory, simulateMatchRequest.getAiId(), DllId.DLL_2));
 
                 executeMatchRequest.setMatchId(match.getId());
                 executeMatchRequest.setGames(executeGames);
