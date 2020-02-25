@@ -121,6 +121,7 @@ public class UserService implements UserDetailsService {
                 .username(user.getUsername())
                 .password(bCryptPasswordEncoder.encode(user.getPassword()))
                 .authMethod(AuthMethod.PRAGYAN)
+                .isActivated(true)
                 .college(user.getCollege())
                 .country(user.getCountry())
                 .avatarId(user.getAvatarId() == null ? 1 : Integer.parseInt(user.getAvatarId()))
