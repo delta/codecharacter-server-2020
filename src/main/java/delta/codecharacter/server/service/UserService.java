@@ -216,21 +216,22 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByEmail(email);
 
-        if (user == null) {
-            String username = email.split("@")[0];
+        if (userDetailsResponse.getStatusCode().equals(200)) {
+            if (user == null) {
+                String username = email.split("@")[0];
 
-            RegisterUserRequest registerUserRequest = RegisterUserRequest.builder()
-                    .email(email)
-                    .username(username)
-                    .build();
+                RegisterUserRequest registerUserRequest = RegisterUserRequest.builder()
+                        .email(email)
+                        .username(username)
+                        .build();
 
-            user = registerPragyanUser(registerUserRequest);
+                user = registerPragyanUser(registerUserRequest);
+            }
+            return new CustomUserDetails(user);
         }
 
         //Check AuthType
-        if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
-            return new CustomUserDetails(user);
-        } else if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
+        if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
             if (!user.getIsActivated()) throw new Exception("User not activated");
             return new CustomUserDetails(user);
         }
