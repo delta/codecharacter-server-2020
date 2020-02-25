@@ -13,7 +13,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PragyanUserDetailsMessage {
-    @SerializedName("full_name")
+    @SerializedName("user_fullname")
     private String fullName;
 
     @SerializedName("user_id")

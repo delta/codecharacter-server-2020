@@ -3,7 +3,6 @@ package delta.codecharacter.server.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
-import delta.codecharacter.server.controller.request.User.PragyanApiUserDetailsRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.response.PragyanUserDetailsResponse;
@@ -85,7 +84,7 @@ public class UserService implements UserDetailsService {
      * @param user - User Details from the register Request
      */
     @Transactional
-    public void registerUser(@NotNull RegisterUserRequest user) {
+    public User registerUser(@NotNull RegisterUserRequest user) {
         Integer userId = getMaxUserId() + 1;
 
         User newUser = User.builder()
@@ -108,6 +107,7 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
 
         sendActivationToken(newUser.getUserId());
+        return newUser;
     }
 
     /**
@@ -177,23 +177,12 @@ public class UserService implements UserDetailsService {
 
         String password = request.getParameter("password"); // get from request parameter
 
-        PragyanApiUserDetailsRequest pragyanApiUserDetailsRequest = PragyanApiUserDetailsRequest.builder()
-                .userEmail(email)
-                .userPassword(password)
-                .eventId(pragyanApiEventId)
-                .eventSecret(pragyanApiEventSecret)
-                .build();
-
-        var requestBody = gson.toJson(pragyanApiUserDetailsRequest);
-
-        LOG.info("Request: " + requestBody);
-
         RestTemplate restTemplate = new RestTemplate();
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 
-        map.add("user_email",email);
-        map.add("user_pass",password);
+        map.add("user_email", email);
+        map.add("user_pass", password);
         map.add("event_id", pragyanApiEventId);
         map.add("event_secret", pragyanApiEventSecret);
 
@@ -202,9 +191,11 @@ public class UserService implements UserDetailsService {
         httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, httpHeaders);
-        ResponseEntity<PragyanUserDetailsResponse> result = restTemplate.exchange(pragyanApiUrl, HttpMethod.POST, httpEntity, PragyanUserDetailsResponse.class);
+        ResponseEntity<String> result = restTemplate.exchange(pragyanApiUrl, HttpMethod.POST, httpEntity, String.class);
 
-        if (result.getBody() != null && !result.getBody().getStatusCode().equals(200)) {
+        PragyanUserDetailsResponse userDetailsResponse = gson.fromJson(result.getBody(), PragyanUserDetailsResponse.class);
+
+        if (!userDetailsResponse.getStatusCode().equals(200)) {
             throw new Exception("User not registered in Pragyan");
         }
 
@@ -219,7 +210,7 @@ public class UserService implements UserDetailsService {
                     .password(password)
                     .build();
 
-            registerUser(registerUserRequest);
+            user = registerUser(registerUserRequest);
         }
 
         //Check AuthType
