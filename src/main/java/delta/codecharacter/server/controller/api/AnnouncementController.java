@@ -32,9 +32,10 @@ public class AnnouncementController {
     @PostMapping(value = "/")
     @SneakyThrows
     public ResponseEntity<String> createAnnouncement(@RequestBody String announcementMessage, Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>("User not found!", HttpStatus.UNAUTHORIZED);
-        if (!userService.getIsAdminUserByUsername(user.getUsername())) {
+        if (!userService.getIsAdminUserByEmail(email)) {
             return new ResponseEntity<>("Unauthorized!", HttpStatus.UNAUTHORIZED);
         }
         announcementService.createAnnouncement(announcementMessage, user.getUserId());
@@ -45,7 +46,8 @@ public class AnnouncementController {
     public ResponseEntity<List<AnnouncementResponse>> getAllAnnouncementsPaginated(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                   @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                   Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         List<Announcement> announcements = announcementService.getAllAnnouncementsPaginated(page, size).getContent();
         return new ResponseEntity<>(getAnnouncementResponseListByAnnouncementList(announcements), HttpStatus.OK);
@@ -53,7 +55,8 @@ public class AnnouncementController {
 
     @GetMapping(value = "/{announcementId}/")
     public ResponseEntity<AnnouncementResponse> findAnnouncementById(@PathVariable int announcementId, Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         Announcement announcement = announcementService.findAnnouncementById(announcementId);
         if (announcement == null) {

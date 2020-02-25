@@ -321,7 +321,7 @@ public class UserService implements UserDetailsService {
     /**
      * Check if a user is admin
      *
-     * @param username Username of user to be checked for admin
+     * @param email Email of user to be checked for admin
      * @return True if the user is admin, False otherwise
      */
     @SneakyThrows
