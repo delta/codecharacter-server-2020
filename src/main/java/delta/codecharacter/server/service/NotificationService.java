@@ -31,10 +31,10 @@ public class NotificationService {
     private UserRepository userRepository;
 
     /**
-     * Create a notification with given CreateNotificationRequest
+     * Create a notification with the given details
      *
-     * @param createNotificationRequest Details of notification with title, content and type
-     * @return Details of created Notification
+     * @param createNotificationRequest Details of notification: title, content and type
+     * @return Notification which was created
      */
     @SneakyThrows
     public Notification createNotification(@NotNull CreateNotificationRequest createNotificationRequest) {
@@ -55,7 +55,7 @@ public class NotificationService {
     /**
      * Set isRead of a notification to true
      *
-     * @param notificationId NotificationId of required notification
+     * @param notificationId NotificationId of the notification to be modified
      */
     @SneakyThrows
     public void setIsReadNotificationById(@NotNull Integer notificationId) {
@@ -65,9 +65,9 @@ public class NotificationService {
     }
 
     /**
-     * Delete notification with specified notificationId.
+     * Delete notification with the specified notificationId.
      *
-     * @param notificationId NotificationId
+     * @param notificationId NotificationId of the notification to be deleted
      */
     @SneakyThrows
     public void deleteNotificationById(@NotNull Integer notificationId) {
