@@ -78,17 +78,17 @@ public class NotificationService {
     /**
      * Return a page of a specific type of notification for the given user
      *
-     * @param type Type of notification
-     * @param userId UserId of the given user
+     * @param type       Type of notification
+     * @param userId     UserId of the given user
      * @param pageNumber Page number
-     * @param size Size of the response list
+     * @param size       Size of the response list
      * @return List of notifications by type for the given user
      */
     @SneakyThrows
     public Page<Notification> getAllNotificationsByTypeAndUserIdPaginated(@NotNull Type type,
-                                                                 @NotNull Integer userId,
-                                                                 @NotNull int pageNumber,
-                                                                 @NotNull int size) {
+                                                                          @NotNull Integer userId,
+                                                                          @NotNull int pageNumber,
+                                                                          @NotNull int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return notificationRepository.findAllByTypeAndUserId(type, userId, pageable);
     }
@@ -96,7 +96,7 @@ public class NotificationService {
     /**
      * Delete all notifications of a specific type for the given user
      *
-     * @param type Type of notification
+     * @param type   Type of notification
      * @param userId UserId of the given user
      */
     @SneakyThrows
@@ -108,15 +108,15 @@ public class NotificationService {
     /**
      * Return a page of all notifications for the given user
      *
-     * @param userId UserId of the given user
+     * @param userId     UserId of the given user
      * @param pageNumber Page number
-     * @param size Size of the response list
+     * @param size       Size of the response list
      * @return Paginated response of all notifications for the given user
      */
     @SneakyThrows
     public Page<Notification> getAllNotificationsByUserIdPaginated(@NotNull Integer userId,
-                                                        @NotNull @Positive int pageNumber,
-                                                        @NotNull @PositiveOrZero int size) {
+                                                                   @NotNull @Positive int pageNumber,
+                                                                   @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return notificationRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
     }
@@ -124,15 +124,15 @@ public class NotificationService {
     /**
      * Return a page of all unread notifications for the given user
      *
-     * @param userId UserId of the given user
+     * @param userId     UserId of the given user
      * @param pageNumber Page number
-     * @param size Size of the response list
+     * @param size       Size of the response list
      * @return Paginated response of all unread notifications for the given user
      */
     @SneakyThrows
     public Page<Notification> getAllUnreadNotificationsByUserIdPaginated(@NotNull Integer userId,
-                                                                @NotNull @Positive int pageNumber,
-                                                                @NotNull @PositiveOrZero int size) {
+                                                                         @NotNull @Positive int pageNumber,
+                                                                         @NotNull @PositiveOrZero int size) {
         Pageable pageable = PageRequest.of(pageNumber - 1, size);
         return notificationRepository.findAllByUserIdAndIsReadFalseOrderByIdDesc(userId, pageable);
     }
@@ -140,7 +140,7 @@ public class NotificationService {
     /**
      * Check if a user has access to a particular notification
      *
-     * @param userId UserId of the given user
+     * @param userId         UserId of the given user
      * @param notificationId NotificationId of the required notification
      * @return True if a user is admin or is the creator of the notification, False otherwise.
      */
@@ -168,7 +168,7 @@ public class NotificationService {
      * Find and return the details of a notification by ID
      *
      * @param notificationId NotificationId of the required notification
-     * @return  Details of Notification with the given ID, Null if it doesn't exist
+     * @return Details of Notification with the given ID, Null if it doesn't exist
      */
     @SneakyThrows
     public Notification findNotificationById(Integer notificationId) {
