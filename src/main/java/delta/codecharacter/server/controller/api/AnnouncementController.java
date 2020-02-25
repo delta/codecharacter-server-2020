@@ -1,7 +1,6 @@
 package delta.codecharacter.server.controller.api;
 
 
-import delta.codecharacter.server.controller.response.announcements.AnnouncementResponse;
 import delta.codecharacter.server.model.Announcement;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.AnnouncementService;
@@ -13,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -43,18 +41,18 @@ public class AnnouncementController {
     }
 
     @GetMapping(value = "/")
-    public ResponseEntity<List<AnnouncementResponse>> getAllAnnouncementsPaginated(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
+    public ResponseEntity<List<Announcement>> getAllAnnouncementsPaginated(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                   @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                   Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         List<Announcement> announcements = announcementService.getAllAnnouncementsPaginated(page, size).getContent();
-        return new ResponseEntity<>(getAnnouncementResponseListByAnnouncementList(announcements), HttpStatus.OK);
+        return new ResponseEntity<>(announcements, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{announcementId}/")
-    public ResponseEntity<AnnouncementResponse> findAnnouncementById(@PathVariable int announcementId, Authentication authentication) {
+    public ResponseEntity<Announcement> findAnnouncementById(@PathVariable int announcementId, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
@@ -62,22 +60,7 @@ public class AnnouncementController {
         if (announcement == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(getAnnouncementResponseByAnnouncement(announcement), HttpStatus.OK);
+        return new ResponseEntity<>(announcement, HttpStatus.OK);
     }
 
-    public AnnouncementResponse getAnnouncementResponseByAnnouncement(Announcement announcement) {
-        return AnnouncementResponse.builder()
-                .id(announcement.getId())
-                .message(announcement.getMessage())
-                .build();
-    }
-
-    public List<AnnouncementResponse> getAnnouncementResponseListByAnnouncementList(List<Announcement> announcementList) {
-        List<AnnouncementResponse> announcementResponseList = new ArrayList<>();
-        for (Announcement announcement : announcementList) {
-            AnnouncementResponse announcementResponse = getAnnouncementResponseByAnnouncement(announcement);
-            announcementResponseList.add(announcementResponse);
-        }
-        return announcementResponseList;
-    }
 }
