@@ -67,13 +67,13 @@ public class UserService implements UserDetailsService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    @Value("${api.pragyan.event-id}")
-    private String pragyanApiEventId;
+    @Value("${pragyan.event-id}")
+    private String pragyanEventId;
 
-    @Value("${api.pragyan.event-secret}")
-    private String pragyanApiEventSecret;
+    @Value("${pragyan.event-secret}")
+    private String pragyanEventSecret;
 
-    @Value("${api.pragyan.event-login-url}")
+    @Value("${pragyan.event-login-url}")
     private String pragyanEventUrl;
 
     Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
@@ -114,7 +114,7 @@ public class UserService implements UserDetailsService {
         Integer userId = getMaxUserId() + 1;
         String username = email.split("@")[0];
 
-        User user = User.builder()
+        User newUser = User.builder()
                 .userId(userId)
                 .email(email)
                 .username(username)
@@ -123,14 +123,14 @@ public class UserService implements UserDetailsService {
                 .isActivated(true)
                 .build();
 
-        userRepository.save(user);
-        leaderboardService.initializeLeaderboardData(userId);
+        userRepository.save(newUser);
 
-        //create initial entry for new user in UserRating table
+        // Create initial entry for new user in Leaderboard table
+        leaderboardService.initializeLeaderboardData(userId);
+        // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
 
-        sendActivationToken(user.getUserId());
-        return user;
+        return newUser;
     }
 
     /**
@@ -227,8 +227,8 @@ public class UserService implements UserDetailsService {
 
         map.add("user_email", email);
         map.add("user_pass", password);
-        map.add("event_id", pragyanApiEventId);
-        map.add("event_secret", pragyanApiEventSecret);
+        map.add("event_id", pragyanEventId);
+        map.add("event_secret", pragyanEventSecret);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
