@@ -110,23 +110,24 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public User registerPragyanUser(@NotNull RegisterUserRequest user) {
+    public User registerPragyanUser(String email) {
         Integer userId = getMaxUserId() + 1;
+        String username = email.split("@")[0];
 
-        User newUser = User.builder()
+        User user = User.builder()
                 .userId(userId)
-                .email(user.getEmail())
-                .username(user.getUsername())
+                .email(email)
+                .username(username)
                 .build();
 
-        userRepository.save(newUser);
+        userRepository.save(user);
         leaderboardService.initializeLeaderboardData(userId);
 
         //create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
 
-        sendActivationToken(newUser.getUserId());
-        return newUser;
+        sendActivationToken(user.getUserId());
+        return user;
     }
 
     /**
@@ -195,35 +196,26 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(email);
 
         if (user == null) {
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            String password = request.getParameter("password"); // get from request parameter
-            if (!checkUserPragyanEventsLogin(email, password)) {
-                throw new Exception("Unauthorized");
-            }
-            String username = email.split("@")[0];
-            RegisterUserRequest registerUserRequest = RegisterUserRequest.builder()
-                    .username(username)
-                    .email(email).build();
-            user = registerPragyanUser(registerUserRequest);
+            if (!pragyanUserAuth(email)) return null;
+            user = registerPragyanUser(email);
             return new CustomUserDetails(user);
-
-        } else {
-            if (user.getAuthMethod().equals(AuthMethod.MANUAL))
-                return new CustomUserDetails(user);
-            else if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
-                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-                String password = request.getParameter("password"); // get from request parameter
-                if (!checkUserPragyanEventsLogin(email, password))
-                    throw new Exception("Unauthorized");
-                else 
-                    return new CustomUserDetails(user);
-            } else {
-                throw new Exception("Use Github/Google to Login");
-            }
         }
+
+        if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
+            return new CustomUserDetails(user);
+        }
+        if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
+            if (!pragyanUserAuth(email)) return null;
+            return new CustomUserDetails(user);
+        }
+        throw new Exception("Use Github/Google to Login");
+
     }
 
-    private boolean checkUserPragyanEventsLogin(String email, String password) {
+    private boolean pragyanUserAuth(String email) {
+
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String password = request.getParameter("password"); // get from request parameter
 
         RestTemplate restTemplate = new RestTemplate();
 
