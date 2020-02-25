@@ -82,9 +82,9 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(newUser);
 
-        //create initial entry for new user in Leaderboard table
+        // Create initial entry for new user in Leaderboard table
         leaderboardService.initializeLeaderboardData(userId);
-        //create initial entry for new user in UserRating table
+        // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
 
         sendActivationToken(newUser.getUserId());
