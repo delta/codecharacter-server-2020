@@ -105,7 +105,7 @@ public class NotificationController {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         PageUtils.validatePaginationParams(page, size);
-        Page<Notification> notificationPage = notificationService.getAllUnreadNotificationsByUserId(user.getUserId(), page, size);
+        Page<Notification> notificationPage = notificationService.getAllUnreadNotificationsByUserIdPaginated(user.getUserId(), page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
     }
 
@@ -116,7 +116,7 @@ public class NotificationController {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         PageUtils.validatePaginationParams(page, size);
-        Page<Notification> notificationPage = notificationService.getAllNotificationsByUserId(user.getUserId(), page, size);
+        Page<Notification> notificationPage = notificationService.getAllNotificationsByUserIdPaginated(user.getUserId(), page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
     }
 
@@ -128,7 +128,7 @@ public class NotificationController {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         PageUtils.validatePaginationParams(page, size);
-        Page<Notification> notificationPage = notificationService.getAllNotificationsByTypeAndUserId(type, user.getUserId(), page, size);
+        Page<Notification> notificationPage = notificationService.getAllNotificationsByTypeAndUserIdPaginated(type, user.getUserId(), page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
     }
 }
