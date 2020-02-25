@@ -192,9 +192,38 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        User user = userRepository.findByEmail(email);
 
-        String password = request.getParameter("password"); // get from request parameter
+        if (user == null) {
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            String password = request.getParameter("password"); // get from request parameter
+            if (!checkUserPragyanEventsLogin(email, password)) {
+                throw new Exception("Unauthorized");
+            }
+            String username = email.split("@")[0];
+            RegisterUserRequest registerUserRequest = RegisterUserRequest.builder()
+                    .username(username)
+                    .email(email).build();
+            user = registerPragyanUser(registerUserRequest);
+            return new CustomUserDetails(user);
+
+        } else {
+            if (user.getAuthMethod().equals(AuthMethod.MANUAL))
+                return new CustomUserDetails(user);
+            else if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
+                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+                String password = request.getParameter("password"); // get from request parameter
+                if (!checkUserPragyanEventsLogin(email, password))
+                    throw new Exception("Unauthorized");
+                else 
+                    return new CustomUserDetails(user);
+            } else {
+                throw new Exception("Use Github/Google to Login");
+            }
+        }
+    }
+
+    private boolean checkUserPragyanEventsLogin(String email, String password) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -214,33 +243,7 @@ public class UserService implements UserDetailsService {
 
         PragyanUserDetailsResponse userDetailsResponse = gson.fromJson(result.getBody(), PragyanUserDetailsResponse.class);
 
-        User user = userRepository.findByEmail(email);
-
-        if (userDetailsResponse.getStatusCode().equals(200)) {
-            if (user == null) {
-                String username = email.split("@")[0];
-
-                RegisterUserRequest registerUserRequest = RegisterUserRequest.builder()
-                        .email(email)
-                        .username(username)
-                        .build();
-
-                user = registerPragyanUser(registerUserRequest);
-            }
-            return new CustomUserDetails(user);
-        }
-
-        if (user == null)
-            throw new Exception("Unauthorized");
-
-        //Check AuthType
-        if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
-            if (!user.getIsActivated()) throw new Exception("User not activated");
-            return new CustomUserDetails(user);
-        }
-
-        //AuthType is not PRAGYAN and MANUAL
-        throw new Exception("Use Github/Google to Login");
+        return userDetailsResponse.getStatusCode().equals(200);
     }
 
     /**
