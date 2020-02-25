@@ -230,6 +230,9 @@ public class UserService implements UserDetailsService {
             return new CustomUserDetails(user);
         }
 
+        if (user == null)
+            throw new Exception("Unauthorized");
+
         //Check AuthType
         if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
             if (!user.getIsActivated()) throw new Exception("User not activated");
