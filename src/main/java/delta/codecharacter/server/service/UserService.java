@@ -110,7 +110,7 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public User registerPragyanUser(String email) {
+    public User registerPragyanUser(String email, String password) {
         Integer userId = getMaxUserId() + 1;
         String username = email.split("@")[0];
 
@@ -118,6 +118,9 @@ public class UserService implements UserDetailsService {
                 .userId(userId)
                 .email(email)
                 .username(username)
+                .password(bCryptPasswordEncoder.encode(password))
+                .authMethod(AuthMethod.PRAGYAN)
+                .isActivated(true)
                 .build();
 
         userRepository.save(user);
@@ -196,8 +199,10 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(email);
 
         if (user == null) {
-            if (!pragyanUserAuth(email)) return null;
-            user = registerPragyanUser(email);
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            String password = request.getParameter("password"); // get from request parameter
+            if (!pragyanUserAuth(email, password)) return null;
+            user = registerPragyanUser(email, password);
             return new CustomUserDetails(user);
         }
 
@@ -205,17 +210,16 @@ public class UserService implements UserDetailsService {
             return new CustomUserDetails(user);
         }
         if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
-            if (!pragyanUserAuth(email)) return null;
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            String password = request.getParameter("password"); // get from request parameter
+            if (!pragyanUserAuth(email, password)) return null;
             return new CustomUserDetails(user);
         }
         throw new Exception("Use Github/Google to Login");
 
     }
 
-    private boolean pragyanUserAuth(String email) {
-
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String password = request.getParameter("password"); // get from request parameter
+    private boolean pragyanUserAuth(String email, String password) {
 
         RestTemplate restTemplate = new RestTemplate();
 
