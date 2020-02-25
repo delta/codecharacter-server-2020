@@ -375,7 +375,7 @@ public class UserService implements UserDetailsService {
 
     @SneakyThrows
     public User getUserByUsername(String username) {
-        User user = userRepository.findByEmail(username);
+        User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new Exception("User not found");
         }
