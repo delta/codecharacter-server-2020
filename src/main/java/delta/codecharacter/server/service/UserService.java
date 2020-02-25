@@ -317,8 +317,17 @@ public class UserService implements UserDetailsService {
     }
 
     @SneakyThrows
-    public boolean getIsAdminUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
+    public User getUserByEmail(String username) {
+        User user = userRepository.findByEmail(username);
+        if (user == null) {
+            throw new Exception("User not found");
+        }
+        return user;
+    }
+
+    @SneakyThrows
+    public boolean getIsAdminUserByEmail(String email) {
+        User user = userRepository.findByEmail(email);
         return (user != null) && (user.getIsAdmin());
     }
 
