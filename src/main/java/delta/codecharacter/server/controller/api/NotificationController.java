@@ -37,7 +37,8 @@ public class NotificationController {
 
     @GetMapping(value = "/{notificationId}")
     public ResponseEntity<Notification> findNotificationById(@PathVariable @NotEmpty Integer notificationId, Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         Notification notification = notificationService.findNotificationById(notificationId);
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -51,7 +52,8 @@ public class NotificationController {
 
     @PostMapping(value = "/")
     public ResponseEntity<String> createNotification(@RequestBody @Valid CreateNotificationRequest createNotificationRequest, Authentication authentication) {
-        if (!userService.getIsAdminUserByUsername(authentication.getName())) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        if (!userService.getIsAdminUserByEmail(email)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         notificationService.createNotification(createNotificationRequest);
@@ -60,7 +62,8 @@ public class NotificationController {
 
     @DeleteMapping(value = "/{notificationId}")
     public ResponseEntity<String> deleteNotificationById(@PathVariable @NotEmpty Integer notificationId, Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         Notification notification = notificationService.findNotificationById(notificationId);
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -74,14 +77,16 @@ public class NotificationController {
 
     @DeleteMapping(value = "/type/{type}")
     public ResponseEntity<String> deleteNotificationsByType(@PathVariable @NotEmpty Type type, Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         notificationService.deleteNotificationsByTypeAndUserId(type, user.getUserId());
         return new ResponseEntity<>("Successfully deleted", HttpStatus.OK);
     }
 
     @PatchMapping(value = "/read/{notificationId}")
     public ResponseEntity<String> setIsReadNotificationById(@PathVariable @NotEmpty Integer notificationId, Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         Notification notification = notificationService.findNotificationById(notificationId);
         if (notification == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -97,7 +102,8 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getAllUnreadNotificationsByUserId(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                                 @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                                 Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         PageUtils.validatePaginationParams(page, size);
         Page<Notification> notificationPage = notificationService.getAllUnreadNotificationsByUserId(user.getUserId(), page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
@@ -107,7 +113,8 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getAllNotificationsByUserId(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                           @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                           Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         PageUtils.validatePaginationParams(page, size);
         Page<Notification> notificationPage = notificationService.getAllNotificationsByUserId(user.getUserId(), page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);
@@ -118,7 +125,8 @@ public class NotificationController {
                                                                                  @RequestParam(value = "page", defaultValue = "1", required = false) int page,
                                                                                  @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                                  Authentication authentication) {
-        User user = userService.getUserByUsername(authentication.getName());
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
         PageUtils.validatePaginationParams(page, size);
         Page<Notification> notificationPage = notificationService.getAllNotificationsByTypeAndUserId(type, user.getUserId(), page, size);
         return new ResponseEntity<>(notificationPage.getContent(), HttpStatus.OK);

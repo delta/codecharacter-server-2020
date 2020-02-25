@@ -40,22 +40,13 @@ public class CustomAuthProcessingFilter extends OAuth2ClientAuthenticationProces
             throw new Exception("Please Update Public Email");
         }
 
-        String username = userDetailsMap.get("login");
-        if (username == null) username = userDetailsMap.get("email").split("@")[0];
-
         //If email is present, the user can be logged in
         if (userService.isEmailPresent(userDetailsMap.get("email"))) {
             super.successfulAuthentication(request, response, chain, authResult);
             return;
         }
 
-        //If email is not present but username is present, throw an exception
-        if (userService.isUsernamePresent(username)) {
-            SecurityContextHolder.clearContext();
-            throw new Exception("Username Already Taken");
-        }
-
-        //If both email and username are not present, register the User
+        //If email is not present, register the User
         userService.registerOAuthUser(userDetailsMap);
         super.successfulAuthentication(request, response, chain, authResult);
     }

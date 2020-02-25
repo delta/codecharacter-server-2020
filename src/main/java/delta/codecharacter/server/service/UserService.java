@@ -15,10 +15,12 @@ import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,9 +81,10 @@ public class UserService implements UserDetailsService {
                 .build();
 
         userRepository.save(newUser);
-        leaderboardService.initializeLeaderboardData(userId);
 
-        //create initial entry for new user in UserRating table
+        // Create initial entry for new user in Leaderboard table
+        leaderboardService.initializeLeaderboardData(userId);
+        // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
 
         sendActivationToken(newUser.getUserId());
@@ -99,9 +102,7 @@ public class UserService implements UserDetailsService {
 
         String email = userDetails.get("email");
         String name = userDetails.get("name");
-        String username = userDetails.get("login");
-
-        if (username == null) username = email.split("@")[0];
+        String username = email.split("@")[0];
         if (name == null) name = email.split("@")[0];
 
         User newUser = User.builder()
@@ -115,8 +116,9 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(newUser);
 
-        //create initial entry for new user in UserRating table
+        // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
+        // Create initial entry for new user in Leaderboard table
         leaderboardService.initializeLeaderboardData(userId);
     }
 
@@ -315,8 +317,27 @@ public class UserService implements UserDetailsService {
     }
 
     @SneakyThrows
-    public boolean getIsAdminUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
+    public User getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new Exception("User not found");
+        }
+        return user;
+    }
+
+    @SneakyThrows
+    public boolean getIsAdminUserByEmail(String email) {
+        User user = userRepository.findByEmail(email);
         return (user != null) && (user.getIsAdmin());
+    }
+
+    public String getEmailFromAuthentication(Authentication authentication) {
+        if (authentication instanceof OAuth2Authentication) {
+            var userDetails = ((OAuth2Authentication) authentication).getUserAuthentication().getDetails();
+            Map<String, String> userDetailsMap = (Map<String, String>) userDetails;
+
+            return userDetailsMap.get("email");
+        }
+        return authentication.getName();
     }
 }
