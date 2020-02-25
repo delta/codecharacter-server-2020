@@ -73,7 +73,7 @@ public class UserService implements UserDetailsService {
     @Value("${api.pragyan.event-secret}")
     private String pragyanApiEventSecret;
 
-    @Value("${api.pragyan.user-details-url}")
+    @Value("${api.pragyan.event-login-url}")
     private String pragyanApiUrl;
 
     Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
@@ -104,6 +104,32 @@ public class UserService implements UserDetailsService {
         // Create initial entry for new user in Leaderboard table
         leaderboardService.initializeLeaderboardData(userId);
         // Create initial entry for new user in UserRating table
+        userRatingService.initializeUserRating(userId);
+
+        sendActivationToken(newUser.getUserId());
+        return newUser;
+    }
+
+    @Transactional
+    public User registerPragyanUser(@NotNull RegisterUserRequest user) {
+        Integer userId = getMaxUserId() + 1;
+
+        User newUser = User.builder()
+                .userId(userId)
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .password(bCryptPasswordEncoder.encode(user.getPassword()))
+                .authMethod(AuthMethod.PRAGYAN)
+                .college(user.getCollege())
+                .country(user.getCountry())
+                .avatarId(user.getAvatarId() == null ? 1 : Integer.parseInt(user.getAvatarId()))
+                .build();
+
+        userRepository.save(newUser);
+        leaderboardService.initializeLeaderboardData(userId);
+
+        //create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
 
         sendActivationToken(newUser.getUserId());
@@ -210,7 +236,7 @@ public class UserService implements UserDetailsService {
                     .password(password)
                     .build();
 
-            user = registerUser(registerUserRequest);
+            user = registerPragyanUser(registerUserRequest);
         }
 
         //Check AuthType
