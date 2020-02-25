@@ -74,7 +74,7 @@ public class UserService implements UserDetailsService {
     private String pragyanApiEventSecret;
 
     @Value("${api.pragyan.event-login-url}")
-    private String pragyanApiUrl;
+    private String pragyanEventUrl;
 
     Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
@@ -84,7 +84,7 @@ public class UserService implements UserDetailsService {
      * @param user - User Details from the register Request
      */
     @Transactional
-    public User registerUser(@NotNull RegisterUserRequest user) {
+    public void registerUser(@NotNull RegisterUserRequest user) {
         Integer userId = getMaxUserId() + 1;
 
         User newUser = User.builder()
@@ -107,7 +107,6 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
 
         sendActivationToken(newUser.getUserId());
-        return newUser;
     }
 
     @Transactional
@@ -117,14 +116,7 @@ public class UserService implements UserDetailsService {
         User newUser = User.builder()
                 .userId(userId)
                 .email(user.getEmail())
-                .fullName(user.getFullName())
                 .username(user.getUsername())
-                .password(bCryptPasswordEncoder.encode(user.getPassword()))
-                .authMethod(AuthMethod.PRAGYAN)
-                .isActivated(true)
-                .college(user.getCollege())
-                .country(user.getCountry())
-                .avatarId(user.getAvatarId() == null ? 1 : Integer.parseInt(user.getAvatarId()))
                 .build();
 
         userRepository.save(newUser);
@@ -218,13 +210,9 @@ public class UserService implements UserDetailsService {
         httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, httpHeaders);
-        ResponseEntity<String> result = restTemplate.exchange(pragyanApiUrl, HttpMethod.POST, httpEntity, String.class);
+        ResponseEntity<String> result = restTemplate.exchange(pragyanEventUrl, HttpMethod.POST, httpEntity, String.class);
 
         PragyanUserDetailsResponse userDetailsResponse = gson.fromJson(result.getBody(), PragyanUserDetailsResponse.class);
-
-        if (!userDetailsResponse.getStatusCode().equals(200)) {
-            throw new Exception("User not registered in Pragyan");
-        }
 
         User user = userRepository.findByEmail(email);
 
@@ -234,17 +222,15 @@ public class UserService implements UserDetailsService {
             RegisterUserRequest registerUserRequest = RegisterUserRequest.builder()
                     .email(email)
                     .username(username)
-                    .password(password)
                     .build();
 
             user = registerPragyanUser(registerUserRequest);
         }
 
         //Check AuthType
-        if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
-            if (!user.getIsActivated()) throw new Exception("User not activated");
+        if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
             return new CustomUserDetails(user);
-        } else if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
+        } else if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
             if (!user.getIsActivated()) throw new Exception("User not activated");
             return new CustomUserDetails(user);
         }

@@ -18,8 +18,8 @@ spring.rabbitmq.queue=codechar
 compilebox.secret-key=<>
 
 #pragyan-api
-api.pragyan.event-id=7
-api.pragyan.event-secret=12afc0078ad30f028c86c2b7ae08bd9e
+api.pragyan.event-id=<>
+api.pragyan.event-secret=<>
 
 #mail
 spring.mail.host=smtp.gmail.com
