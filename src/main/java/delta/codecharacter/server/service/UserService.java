@@ -1,8 +1,12 @@
 package delta.codecharacter.server.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
+import delta.codecharacter.server.controller.request.User.PragyanApiUserDetailsRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
+import delta.codecharacter.server.controller.response.PragyanUserDetailsResponse;
 import delta.codecharacter.server.model.PasswordResetDetails;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.model.UserActivation;
@@ -14,6 +18,8 @@ import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,14 +29,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Service
@@ -58,6 +67,17 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private JavaMailSender javaMailSender;
+
+    @Value("${api.pragyan.event-id}")
+    private String pragyanApiEventId;
+
+    @Value("${api.pragyan.event-secret}")
+    private String pragyanApiEventSecret;
+
+    @Value("${api.pragyan.user-details-url}")
+    private String pragyanApiUrl;
+
+    Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
     /**
      * Register a new User for AuthType MANUAL
@@ -152,12 +172,55 @@ public class UserService implements UserDetailsService {
     @SneakyThrows
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        //TODO: Check for email in Pragyan DB
+
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+
+        String password = request.getParameter("password"); // get from request parameter
+
+        PragyanApiUserDetailsRequest pragyanApiUserDetailsRequest = PragyanApiUserDetailsRequest.builder()
+                .userEmail(email)
+                .userPassword(password)
+                .eventId(pragyanApiEventId)
+                .eventSecret(pragyanApiEventSecret)
+                .build();
+
+        var requestBody = gson.toJson(pragyanApiUserDetailsRequest);
+
+        LOG.info("Request: " + requestBody);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+
+        map.add("user_email",email);
+        map.add("user_pass",password);
+        map.add("event_id", pragyanApiEventId);
+        map.add("event_secret", pragyanApiEventSecret);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, httpHeaders);
+        ResponseEntity<PragyanUserDetailsResponse> result = restTemplate.exchange(pragyanApiUrl, HttpMethod.POST, httpEntity, PragyanUserDetailsResponse.class);
+
+        if (result.getBody() != null && !result.getBody().getStatusCode().equals(200)) {
+            throw new Exception("User not registered in Pragyan");
+        }
 
         User user = userRepository.findByEmail(email);
 
-        if (user == null)
-            throw new UsernameNotFoundException("Email Not Found");
+        if (user == null) {
+            String username = email.split("@")[0];
+
+            RegisterUserRequest registerUserRequest = RegisterUserRequest.builder()
+                    .email(email)
+                    .username(username)
+                    .password(password)
+                    .build();
+
+            registerUser(registerUserRequest);
+        }
 
         //Check AuthType
         if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
@@ -312,7 +375,7 @@ public class UserService implements UserDetailsService {
 
     @SneakyThrows
     public User getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByEmail(username);
         if (user == null) {
             throw new Exception("User not found");
         }

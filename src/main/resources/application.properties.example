@@ -5,7 +5,7 @@ spring.data.mongodb.database=codecharacter-2020
 
 #storage
 storage.dir=storage
-storage.playercode.dir=/storage/codes
+storage.playercode.dir=storage/codes
 storage.playercode.filename=main.cpp
 storage.maps.dir=storage/maps
 storage.matchlog.dir=storage/logs
@@ -16,6 +16,10 @@ spring.rabbitmq.queue=codechar
 
 #compilebox
 compilebox.secret-key=<>
+
+#pragyan-api
+api.pragyan.event-id=7
+api.pragyan.event-secret=12afc0078ad30f028c86c2b7ae08bd9e
 
 #mail
 spring.mail.host=smtp.gmail.com
