@@ -308,21 +308,10 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Get user by username
+     * Get user by email
      *
-     * @param username Username of user
-     * @return Details of the user
-     */
-    @SneakyThrows
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
-    /**
-     * Check if a user is admin
-     *
-     * @param email Email of user to be checked for admin
-     * @return True if the user is admin, False otherwise
+     * @param email Email of user
+     * @return User with the given email
      */
     @SneakyThrows
     public User getUserByEmail(String email) {
@@ -333,12 +322,24 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
+    /**
+     * Check if user is admin
+     *
+     * @param email Email of user to be checked
+     * @return True if user is admin, else False
+     */
     @SneakyThrows
     public boolean getIsAdminUserByEmail(String email) {
         User user = userRepository.findByEmail(email);
         return (user != null) && (user.getIsAdmin());
     }
 
+    /**
+     * Get email of currently authenticated user
+     *
+     * @param authentication Authentication details of the logged in user
+     * @return Email of the logged in user
+     */
     public String getEmailFromAuthentication(Authentication authentication) {
         if (authentication instanceof OAuth2Authentication) {
             var userDetails = ((OAuth2Authentication) authentication).getUserAuthentication().getDetails();
