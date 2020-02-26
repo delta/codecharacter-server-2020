@@ -224,6 +224,8 @@ public class UserService implements UserDetailsService {
             if (!pragyanUserAuth(email, password)) return null;
             return new CustomUserDetails(user);
         }
+        
+        // AuthType is not PRAGYAN and MANUAL
         throw new Exception("Use Github/Google to Login");
     }
 
