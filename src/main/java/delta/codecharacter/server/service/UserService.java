@@ -246,16 +246,14 @@ public class UserService implements UserDetailsService {
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, httpHeaders);
         ResponseEntity<String> result = restTemplate.exchange(pragyanEventLoginUrl, HttpMethod.POST, httpEntity, String.class);
 
-        PragyanApiResponse userDetailsResponse = gson.fromJson(result.getBody(), PragyanApiResponse.class);
-
-        Integer statusCode = userDetailsResponse.getStatusCode();
-        if (statusCode.equals(200))
-            return true;
-        // Check for status 401
-        if (statusCode.equals(401))
+        try {
+            var userDetailsResponse = gson.fromJson(result.getBody(), PragyanApiResponse.class);
+            return userDetailsResponse.getStatusCode().equals(200);
+        }
+        // If credentials are wrong, response will be string instead of type PragyanApiResponse
+        catch (Exception e) {
             return false;
-        // If status code is not 200 or 401, it is 500
-        throw new Exception("Pragyan server error");
+        }
     }
 
     /**
