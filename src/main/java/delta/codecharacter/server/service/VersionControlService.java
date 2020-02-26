@@ -67,6 +67,7 @@ public class VersionControlService {
 
     /**
      * Get the last saved time for the given user
+     *
      * @param userId UserId of the given user
      * @return Last saved time for the given user
      */
@@ -80,7 +81,7 @@ public class VersionControlService {
     /**
      * View the contents of file at a particular commit
      *
-     * @param userId UserId of the given user
+     * @param userId     UserId of the given user
      * @param commitHash Commit hash of commit
      * @return Details of the code
      */
@@ -114,7 +115,7 @@ public class VersionControlService {
     /**
      * Fork one's own commit
      *
-     * @param userId UserId of the user
+     * @param userId     UserId of the user
      * @param commitHash Commit hash of the required commit
      * @return True if the fork was successful, False otherwise
      */
@@ -152,7 +153,7 @@ public class VersionControlService {
     /**
      * Check if code repository exists
      *
-     * @param userId  UserId of the user
+     * @param userId UserId of the user
      * @return True if code repository exists, False otherwise
      */
     public boolean checkCodeRepositoryExists(Integer userId) {
@@ -217,7 +218,6 @@ public class VersionControlService {
         ObjectId HEAD = repository.resolve("refs/heads/master");
 
         if (HEAD == null) return new ArrayList<>();
-
 
         // git log on master
         Iterable<RevCommit> log = git.log().add(HEAD).call();
