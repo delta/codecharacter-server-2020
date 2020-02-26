@@ -86,7 +86,7 @@ public class VersionControlService {
      * @return Details of the code
      */
     @SneakyThrows
-    public String viewCommitByHash(Integer userId, String commitHash) {
+    public String getCodeByCommitHash(Integer userId, String commitHash) {
         if (!checkCodeRepositoryExists(userId)) return null;
 
         checkout(userId, commitHash);

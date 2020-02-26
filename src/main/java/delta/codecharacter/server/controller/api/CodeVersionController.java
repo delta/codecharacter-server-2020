@@ -64,7 +64,7 @@ public class CodeVersionController {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
-        String code = versionControlService.viewCommitByHash(user.getUserId(), commitHash);
+        String code = versionControlService.getCodeByCommitHash(user.getUserId(), commitHash);
         if (code == null) return new ResponseEntity<>("Code repository not created", HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(code, HttpStatus.OK);
     }
