@@ -49,10 +49,10 @@ public class SimulationService {
      * Send an execute match request to compile-box
      *
      * @param simulateMatchRequest Details of the match to be simulated
-     * @param username             Username of the User initiating the match
+     * @param userId               UserId of the User initiating the match
      */
     @SneakyThrows
-    public void simulateMatch(SimulateMatchRequest simulateMatchRequest, String username) {
+    public void simulateMatch(SimulateMatchRequest simulateMatchRequest, Integer userId) {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
@@ -80,7 +80,7 @@ public class SimulationService {
 
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    simpMessagingTemplate.convertAndSendToUser(username, "/simulation/match-response", "MapId cannot be null");
+                    simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "MapId cannot be null");
                 }
 
                 Game newGame = gameService.createGame(match.getId(), mapId);
@@ -96,10 +96,15 @@ public class SimulationService {
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.AI);
                 Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
 
+                Integer mapId = simulateMatchRequest.getMapId();
+                if (mapId == null) {
+                    simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "MapId cannot be null");
+                }
+
                 executeGames = new ExecuteGameDetails[1];
                 executeGames[0] = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
-                        .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
+                        .map(MapUtil.getMap(mapId))
                         .build();
 
                 executeMatchRequest.setDll2(AiDllUtil.getAiDll(playerId2));
@@ -122,10 +127,15 @@ public class SimulationService {
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.PREV_COMMIT);
                 Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
 
+                Integer mapId = simulateMatchRequest.getMapId();
+                if (mapId == null) {
+                    simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "MapId cannot be null");
+                }
+
                 executeGames = new ExecuteGameDetails[1];
                 executeGames[0] = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
-                        .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
+                        .map(MapUtil.getMap(mapId))
                         .build();
 
                 executeMatchRequest.setCode2(versionControlService.getCodeByCommitHash(playerId2, simulateMatchRequest.getCommitHash()));
