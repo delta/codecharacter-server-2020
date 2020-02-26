@@ -61,6 +61,9 @@ public class UserService implements UserDetailsService {
     private LeaderboardService leaderboardService;
 
     @Autowired
+    private VersionControlService versionControlService;
+
+    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
@@ -104,6 +107,8 @@ public class UserService implements UserDetailsService {
         leaderboardService.initializeLeaderboardData(userId);
         // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
+        // Create a code repository
+        versionControlService.createCodeRepository(userId);
 
         sendActivationToken(newUser.getUserId());
     }
@@ -128,6 +133,8 @@ public class UserService implements UserDetailsService {
         leaderboardService.initializeLeaderboardData(userId);
         // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
+        // Create a code repository
+        versionControlService.createCodeRepository(userId);
 
         return newUser;
     }
@@ -162,6 +169,8 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
         // Create initial entry for new user in Leaderboard table
         leaderboardService.initializeLeaderboardData(userId);
+        // Create a code repository
+        versionControlService.createCodeRepository(userId);
     }
 
     /**
