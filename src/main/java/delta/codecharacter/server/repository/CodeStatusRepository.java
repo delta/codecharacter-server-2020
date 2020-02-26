@@ -1,7 +1,7 @@
 package delta.codecharacter.server.repository;
 
 import delta.codecharacter.server.model.CodeStatus;
-import delta.codecharacter.server.util.Status;
+import delta.codecharacter.server.util.enums.Status;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
