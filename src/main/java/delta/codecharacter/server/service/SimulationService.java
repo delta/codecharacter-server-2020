@@ -10,7 +10,6 @@ import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.util.AiDllUtil;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MapUtil;
-import delta.codecharacter.server.util.enums.AiDllId;
 import delta.codecharacter.server.util.enums.DllId;
 import delta.codecharacter.server.util.enums.MatchMode;
 import lombok.SneakyThrows;
@@ -103,19 +102,7 @@ public class SimulationService {
                         .map(MapUtil.getMap(simulateMatchRequest.getMapId()))
                         .build();
 
-                switch (Integer.valueOf(simulateMatchRequest.getPlayerId2())) {
-                    case 1:
-                        executeMatchRequest.setDll2(AiDllUtil.getAiDll(AiDllId.AI_1_DLL));
-                        break;
-                    case 2:
-                        executeMatchRequest.setDll2(AiDllUtil.getAiDll(AiDllId.AI_2_DLL));
-                        break;
-                    case 3:
-                        executeMatchRequest.setDll2(AiDllUtil.getAiDll(AiDllId.AI_3_DLL));
-                        break;
-                    default:
-                        throw new Exception("Unexpected AiId " + simulateMatchRequest.getPlayerId2());
-                }
+                executeMatchRequest.setDll2(AiDllUtil.getAiDll(playerId2));
                 break;
             }
             case MANUAL: {

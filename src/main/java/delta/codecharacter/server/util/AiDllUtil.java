@@ -1,6 +1,5 @@
 package delta.codecharacter.server.util;
 
-import delta.codecharacter.server.util.enums.AiDllId;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -12,30 +11,32 @@ public class AiDllUtil {
     private static String aiDllStoragePath;
 
     /**
-     * Return the absolute path to the dll files directory of given userId
+     * Return the absolute path to the AI dll files directory of given aiId
      *
+     * @param aiId - AiId of the ai
      * @return Path to codes directory
      */
-    public static String getAiDllRepositoryUri() {
-        return System.getProperty("user.dir") + File.separator + aiDllStoragePath;
+    public static String getAiDllRepositoryUri(Integer aiId) {
+        return System.getProperty("user.dir") + File.separator + aiDllStoragePath + File.separator + aiId;
     }
 
     /**
-     * Return the absolute path to the player dll file of given userId
+     * Return the absolute path to the player AI dll file of given aiId
      *
-     * @param aiDllId DllId of the dll needed
-     * @return Path to required dll file
+     * @param aiId - AiId of the ai
+     * @return Path to required AI dll file
      */
-    private static String getAiDllFileUri(AiDllId aiDllId) {
-        return getAiDllRepositoryUri() + File.separator + aiDllId;
+    private static String getAiDllFileUri(Integer aiId) {
+        return getAiDllRepositoryUri(aiId) + File.separator + "AI_DLL";
     }
 
     /**
-     * Create a new dll repository for given userId
+     * @param aiId - AiId of the ai
+     *             Create a new AiDll repository for given aiId
      */
     @SneakyThrows
-    public static void createAiDllRepository() {
-        String aiDllRepositoryUri = getAiDllRepositoryUri();
+    public static void createAiDllRepository(Integer aiId) {
+        String aiDllRepositoryUri = getAiDllRepositoryUri(aiId);
         if (!FileHandler.checkFileExists(aiDllRepositoryUri)) {
             boolean dirCreated = FileHandler.createDirectory(aiDllRepositoryUri);
             if (!dirCreated) {
@@ -45,13 +46,13 @@ public class AiDllUtil {
     }
 
     /**
-     * Get dll of given userId
+     * Get AIdll of given aiId
      *
-     * @param aiDllId DllId of the dll needed
+     * @param aiId - AiId of the ai
      * @return Contents of the required dll file
      */
-    public static String getAiDll(AiDllId aiDllId) {
-        String aiDllFileUri = getAiDllFileUri(aiDllId);
+    public static String getAiDll(Integer aiId) {
+        String aiDllFileUri = getAiDllFileUri(aiId);
         try {
             return FileHandler.getFileContents(aiDllFileUri);
         } catch (Exception e) {
@@ -60,22 +61,22 @@ public class AiDllUtil {
     }
 
     /**
-     * Set contents of dll file of given userId
+     * Set contents of dll file of given aiId
      *
-     * @param aiDllId DllId of the dll which is to be set
-     * @param aiDll   Contents of dll to be written in the dll file
+     * @param aiId  - AiId of the ai
+     * @param aiDll Contents of Aidll to be written in the AiDll file
      */
-    public static void setAiDll(AiDllId aiDllId, String aiDll) {
-        String aiDllFileUri = getAiDllFileUri(aiDllId);
+    public static void setAiDll(Integer aiId, String aiDll) {
+        String aiDllFileUri = getAiDllFileUri(aiId);
         FileHandler.writeFileContents(aiDllFileUri, aiDll);
     }
 
     /**
-     * Delete the dll file for the given userId and dllId
+     * Delete the dll file for the given aiId
      *
-     * @param aiDllId DllId of the file to be deleted
+     * @param aiId - AiId of the ai
      */
-    public static void deleteAiDllFile(AiDllId aiDllId) {
-        FileHandler.deleteFile(getAiDllFileUri(aiDllId));
+    public static void deleteAiDllFile(Integer aiId) {
+        FileHandler.deleteFile(getAiDllFileUri(aiId));
     }
 }
