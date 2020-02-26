@@ -12,7 +12,7 @@ public class RatingCalculator {
 
     private Double minRatingDeviation = 50d;
 
-    // Amount which decides how much a player's rating deviation changes per 5 mins
+    // Amount which decides how much a player's rating deviation changes every time period
     private Double c = 416d;
 
     // Time for one rating period in minutes
@@ -49,7 +49,7 @@ public class RatingCalculator {
     /**
      * Calculate value of d^2
      *
-     * @return
+     * @return d^2
      */
     private Double calculateD2(Double rating, List<GlickoRating> opponentRatings) {
         double sum = 0d;
@@ -108,7 +108,7 @@ public class RatingCalculator {
      * @param rd Rating deviation of player
      * @return Current latest rating deviation after taking time into consideration
      */
-    public Double getCurrentRatingDeviation(Double rd, Date lastMatchTime) {
+    public Double calculateWeightedRatingDeviation(Double rd, Date lastMatchTime) {
         Date currentDate = new Date();
         long duration = currentDate.getTime() - lastMatchTime.getTime();
 

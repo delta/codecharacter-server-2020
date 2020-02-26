@@ -6,6 +6,9 @@ import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.model.UserRating;
 import delta.codecharacter.server.repository.UserRatingRepository;
 import delta.codecharacter.server.repository.UserRepository;
+import delta.codecharacter.server.util.Glicko.GlickoRating;
+import delta.codecharacter.server.util.Glicko.RatingCalculator;
+import delta.codecharacter.server.util.enums.Verdict;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,15 @@ public class UserRatingService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MatchService matchService;
+
+    private RatingCalculator ratingCalculator;
+
+    UserRatingService() {
+        ratingCalculator = new RatingCalculator();
+    }
+
     /**
      * Get all the ratings of a user
      *
@@ -45,6 +57,7 @@ public class UserRatingService {
         for (var rating : ratings) {
             userRatings.add(UserRatingsResponse.builder()
                     .rating(rating.getRating())
+                    .ratingDeviation(rating.getRatingDeviation())
                     .validFrom(rating.getValidFrom())
                     .build());
         }
@@ -65,10 +78,107 @@ public class UserRatingService {
         LocalDateTime currentDate = LocalDateTime.now();
         UserRating initialUserRating = UserRating.builder()
                 .userId(userId)
-                .rating(1200)
+                .rating(1500d)
+                .ratingDeviation(350d)
                 .validFrom(currentDate)
                 .build();
         userRatingRepository.save(initialUserRating);
     }
 
+    /**
+     * Calculate updated ratings for a match
+     *
+     * @param userId1 UserId of player 1 (Match initiator)
+     * @param userId2 UserId of player 2
+     * @param verdict Verdict of match
+     */
+    public void calculateMatchRatings(Integer userId1, Integer userId2, Verdict verdict) {
+        UserRating rating1 = userRatingRepository.findOneByUserId(userId1);
+        UserRating rating2 = userRatingRepository.findOneByUserId(userId2);
+
+        // Calculate weighted rating deviations for both players
+        Double weightedRatingDeviation1 = ratingCalculator.calculateWeightedRatingDeviation(
+                rating1.getRating(), matchService.getRecentMatchTime(userId1));
+        Double weightedRatingDeviation2 = ratingCalculator.calculateWeightedRatingDeviation(
+                rating2.getRating(), matchService.getRecentMatchTime(userId2));
+
+        rating1.setRatingDeviation(weightedRatingDeviation1);
+        rating2.setRatingDeviation(weightedRatingDeviation2);
+
+        GlickoRating glickoRating1 = GlickoRating.builder()
+                .rating(rating1.getRating())
+                .ratingDeviation(rating1.getRatingDeviation())
+                .build();
+
+        GlickoRating glickoRating2 = GlickoRating.builder()
+                .rating(rating2.getRating())
+                .ratingDeviation(rating2.getRatingDeviation())
+                .build();
+
+        // Calculate player 1 new rating
+        List<GlickoRating> opponentRatings1 = new ArrayList<>();
+        opponentRatings1.add(glickoRating2);
+
+        List<Double> matchScores1 = new ArrayList<>();
+        matchScores1.add(getVerdictScore(verdict, false));
+
+        Double newRating1 = ratingCalculator.calculateNewRating(glickoRating1, opponentRatings1, matchScores1);
+
+        // Calculate player 2 new rating
+        List<GlickoRating> opponentRatings2 = new ArrayList<>();
+        opponentRatings1.add(glickoRating1);
+
+        List<Double> matchScores2 = new ArrayList<>();
+        matchScores1.add(getVerdictScore(verdict, true));
+
+        Double newRating2 = ratingCalculator.calculateNewRating(glickoRating2, opponentRatings2, matchScores2);
+
+        // Calculate new rating deviation of player 1
+        Double newRatingDeviation1 = ratingCalculator.calculateNewRatingDeviation(glickoRating1, opponentRatings1);
+
+        // Player 2 deviation doesn't change since he did not initiate match
+
+        updateUserRating(userId1, newRating1, newRatingDeviation1);
+        updateUserRating(userId2, newRating2, null);
+    }
+
+    private Double getVerdictScore(Verdict verdict, boolean isOpponent) {
+        double score;
+
+        switch (verdict) {
+            case PLAYER_1:
+                score = 1d;
+                break;
+            case PLAYER_2:
+                score = 0d;
+                break;
+            default:
+                score = 0.5d;
+        }
+
+        if (isOpponent) return (1d - score);
+
+        return score;
+    }
+
+    /**
+     * Update user rating details of player in db
+     *
+     * @param userId          User Id
+     * @param rating          Player rating
+     * @param ratingDeviation Rating deviation of player
+     */
+    public void updateUserRating(Integer userId, Double rating, Double ratingDeviation) {
+        UserRating userRating = userRatingRepository.findOneByUserId(userId);
+
+        if (rating != null) {
+            userRating.setRating(rating);
+        }
+
+        if (ratingDeviation != null) {
+            userRating.setRatingDeviation(ratingDeviation);
+        }
+
+        userRatingRepository.save(userRating);
+    }
 }

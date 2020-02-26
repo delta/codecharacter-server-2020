@@ -18,8 +18,10 @@ public class UserRating {
     private Integer userId;
 
     @NotNull
-    @Positive
-    private Integer rating;
+    private Double rating;
+
+    @NotNull
+    private Double ratingDeviation;
 
     @Field("valid_from")
     @NotNull
