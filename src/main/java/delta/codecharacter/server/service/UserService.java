@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
-import delta.codecharacter.server.controller.response.PragyanUserDetailsResponse;
+import delta.codecharacter.server.controller.response.PragyanApiResponse;
 import delta.codecharacter.server.model.PasswordResetDetails;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.model.UserActivation;
@@ -34,7 +34,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -74,7 +73,7 @@ public class UserService implements UserDetailsService {
     private String pragyanEventSecret;
 
     @Value("${pragyan.event-login-url}")
-    private String pragyanEventUrl;
+    private String pragyanEventLoginUrl;
 
     Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
@@ -198,8 +197,9 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByEmail(email);
 
+        // User is not present in db. Checking if registered in pragyan and registering in local db.
         if (user == null) {
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             String password = request.getParameter("password"); // get from request parameter
             if (!pragyanUserAuth(email, password)) return null;
             user = registerPragyanUser(email, password);
@@ -210,15 +210,15 @@ public class UserService implements UserDetailsService {
             return new CustomUserDetails(user);
         }
         if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             String password = request.getParameter("password"); // get from request parameter
             if (!pragyanUserAuth(email, password)) return null;
             return new CustomUserDetails(user);
         }
         throw new Exception("Use Github/Google to Login");
-
     }
 
+    @SneakyThrows
     private boolean pragyanUserAuth(String email, String password) {
 
         RestTemplate restTemplate = new RestTemplate();
@@ -235,11 +235,18 @@ public class UserService implements UserDetailsService {
         httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, httpHeaders);
-        ResponseEntity<String> result = restTemplate.exchange(pragyanEventUrl, HttpMethod.POST, httpEntity, String.class);
+        ResponseEntity<String> result = restTemplate.exchange(pragyanEventLoginUrl, HttpMethod.POST, httpEntity, String.class);
 
-        PragyanUserDetailsResponse userDetailsResponse = gson.fromJson(result.getBody(), PragyanUserDetailsResponse.class);
+        PragyanApiResponse userDetailsResponse = gson.fromJson(result.getBody(), PragyanApiResponse.class);
 
-        return userDetailsResponse.getStatusCode().equals(200);
+        Integer statusCode = userDetailsResponse.getStatusCode();
+        if (statusCode.equals(200))
+            return true;
+        // Check for status 401
+        if (statusCode.equals(401))
+            return false;
+        // If status code is not 200 or 401, it is 500
+        throw new Exception("Pragyan server error");
     }
 
     /**

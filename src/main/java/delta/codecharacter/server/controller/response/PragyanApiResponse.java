@@ -8,9 +8,9 @@ import lombok.Data;
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PragyanUserDetailsResponse {
+public class PragyanApiResponse {
     @SerializedName("status_code")
     private Integer statusCode;
 
-    private PragyanUserDetailsMessage message;
+    private PragyanUserDetails message;
 }

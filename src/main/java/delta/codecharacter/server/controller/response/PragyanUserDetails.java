@@ -8,7 +8,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PragyanUserDetailsMessage {
+public class PragyanUserDetails {
     @SerializedName("user_fullname")
     private String fullName;
 
