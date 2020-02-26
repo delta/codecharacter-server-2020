@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+// Based on http://www.glicko.net/glicko/glicko.pdf
 public class RatingCalculator {
 
     // Constants
