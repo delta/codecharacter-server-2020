@@ -307,15 +307,6 @@ public class UserService implements UserDetailsService {
         return user != null;
     }
 
-    @SneakyThrows
-    public User getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new Exception("User not found");
-        }
-        return user;
-    }
-
     /**
      * Get user by email
      *

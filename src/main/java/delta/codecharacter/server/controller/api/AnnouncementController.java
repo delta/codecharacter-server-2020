@@ -41,12 +41,11 @@ public class AnnouncementController {
     }
 
     @GetMapping(value = "/")
-    public ResponseEntity<List<Announcement>> getAllAnnouncementsPaginated(@RequestParam(value = "page", defaultValue = "1", required = false) int page,
+    public ResponseEntity<List<Announcement>> getAllAnnouncementsPaginated(@RequestParam(value = "page", defaultValue = "1", required = true) int page,
                                                                   @RequestParam(value = "size", defaultValue = "10", required = false) int size,
                                                                   Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
-        User user = userService.getUserByEmail(email);
-        if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        if (!userService.isEmailPresent(email)) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         List<Announcement> announcements = announcementService.getAllAnnouncementsPaginated(page, size).getContent();
         return new ResponseEntity<>(announcements, HttpStatus.OK);
     }
@@ -54,8 +53,7 @@ public class AnnouncementController {
     @GetMapping(value = "/{announcementId}/")
     public ResponseEntity<Announcement> findAnnouncementById(@PathVariable int announcementId, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
-        User user = userService.getUserByEmail(email);
-        if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        if (!userService.isEmailPresent(email)) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         Announcement announcement = announcementService.findAnnouncementById(announcementId);
         if (announcement == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
