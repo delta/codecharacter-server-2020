@@ -1,0 +1,103 @@
+package delta.codecharacter.server.controller.api;
+
+import delta.codecharacter.server.model.User;
+import delta.codecharacter.server.service.UserService;
+import delta.codecharacter.server.service.CodeVersionService;
+import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.logging.Logger;
+
+@RestController
+@RequestMapping(value = "/code")
+public class CodeVersionController {
+    private final Logger LOG = Logger.getLogger(CodeVersionController.class.getName());
+
+    @Autowired
+    CodeVersionService codeVersionService;
+
+    @Autowired
+    UserService userService;
+
+    @GetMapping(value = "/latest")
+    @SneakyThrows
+    public ResponseEntity<String> getLatestCode(Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        String code = codeVersionService.getCode(user.getUserId());
+        if (code == null) return new ResponseEntity<>("Code repository not created", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(code, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/save")
+    @SneakyThrows
+    public ResponseEntity<String> saveCode(@RequestBody @Valid String code, Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        if (!codeVersionService.setCode(user.getUserId(), code))
+            return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("Saved Code", HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/commit")
+    @SneakyThrows
+    public ResponseEntity<String> commit(Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        String commitHash = codeVersionService.commitCode(user.getUserId());
+        if (commitHash == null) return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(commitHash, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/commit/{commitHash}")
+    @SneakyThrows
+    public ResponseEntity<String> viewCommitByHash(@PathVariable String commitHash, Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        String code = codeVersionService.viewCommitByHash(user.getUserId(), commitHash);
+        if (code == null) return new ResponseEntity<>("Code repository not created", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(code, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/log")
+    public ResponseEntity<List<String>> getLog(Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        List<String> log = codeVersionService.getLog(user.getUserId());
+        if (log == null) return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(log, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/last-saved-at")
+    @SneakyThrows
+    public ResponseEntity<String> getLatestCommittedTime(Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        String lastCommittedTime = codeVersionService.getLastSavedTime(user.getUserId());
+        if (lastCommittedTime == null) return new ResponseEntity<>("Code repository not created", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(lastCommittedTime, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/fork/{commitHash}")
+    @SneakyThrows
+    public ResponseEntity<String> forkCommitByHash(@PathVariable String commitHash, Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        if (!codeVersionService.forkCommitByHash(user.getUserId(), commitHash))
+            return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("Forked successfully", HttpStatus.OK);
+    }
+}
