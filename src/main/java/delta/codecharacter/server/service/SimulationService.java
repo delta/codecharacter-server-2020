@@ -39,7 +39,7 @@ public class SimulationService {
     private String socketDest;
 
     @Autowired
-    private CodeVersionService codeVersionService;
+    private VersionControlService versionControlService;
 
     @Autowired
     private MatchService matchService;
@@ -93,8 +93,8 @@ public class SimulationService {
         String dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
         String player1Code = null;
         String player2Code = null;
-        if (dll1 == null) player1Code = codeVersionService.getCode(playerId1);
-        if (dll2 == null) player2Code = codeVersionService.getCode(playerId2);
+        if (dll1 == null) player1Code = versionControlService.getCode(playerId1);
+        if (dll2 == null) player2Code = versionControlService.getCode(playerId2);
 
         ExecuteMatchRequest executeMatchRequest = ExecuteMatchRequest.builder()
                 .dll1(dll1)
