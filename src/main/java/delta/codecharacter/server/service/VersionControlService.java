@@ -118,7 +118,7 @@ public class VersionControlService {
     }
 
     /**
-     * Return the absolute path to the codes directory of given username
+     * Return the absolute path to the codes directory of given userId
      *
      * @param userId - UserId of whose directory is to be accessed
      * @return Path to codes directory
@@ -128,7 +128,7 @@ public class VersionControlService {
     }
 
     /**
-     * Return the absolute path to the player code file of given username
+     * Return the absolute path to the player code file of given userId
      *
      * @param userId - UserId of whose code is to be accessed
      * @return Path to player code file
@@ -149,7 +149,7 @@ public class VersionControlService {
     }
 
     /**
-     * Create a new code repository with git initialized for given username
+     * Create a new code repository with git initialized for given userId
      *
      * @param userId UserId of the user
      */
@@ -274,6 +274,46 @@ public class VersionControlService {
     }
 
     /**
+     * Get code present in the commit of given commit-hash
+     *
+     * @param userId     UserId of the user
+     * @param commitHash Commit Hash to checkout to
+     */
+    @SneakyThrows
+    public String getCodeByCommitHash(Integer userId, String commitHash) {
+        Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
+        Repository repository = git.getRepository();
+
+        String code;
+
+        // A RevWalk allows to walk over commits based on some filtering that is defined
+        try (RevWalk revWalk = new RevWalk(repository)) {
+            RevCommit commit = revWalk.parseCommit(repository.resolve(commitHash));
+            // Using commit's tree find the path
+            RevTree tree = commit.getTree();
+
+            // Try to find a specific file
+            try (TreeWalk treeWalk = new TreeWalk(repository)) {
+                treeWalk.addTree(tree);
+                treeWalk.setRecursive(true);
+                treeWalk.setFilter(PathFilter.create(codeFileName));
+                if (!treeWalk.next()) {
+                    throw new IllegalStateException("Did not find expected file " + codeFileName);
+                }
+
+                ObjectId objectId = treeWalk.getObjectId(0);
+                ObjectLoader loader = repository.open(objectId);
+
+                code = new String(loader.getBytes());
+            }
+
+            revWalk.dispose();
+        }
+        git.close();
+        return code;
+    }
+
+    /**
      * Reset HEAD to master if HEAD is detached
      *
      * @param userId UserId of the user
@@ -290,7 +330,7 @@ public class VersionControlService {
     }
 
     /**
-     * Get code of given username
+     * Get code of given userId
      *
      * @param userId UserId of user
      * @return Contents of file
