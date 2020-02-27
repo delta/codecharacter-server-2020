@@ -90,6 +90,7 @@ public class AutoMatchUpService {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         LOG.info("Starting auto match-up service...");
 
+        // TODO: Fetch from constants
         // Match up is executed every frequency seconds from midnight
         var autoMatchUpFrequencySeconds = 60L;
 
