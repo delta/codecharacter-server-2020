@@ -2,12 +2,19 @@ package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.model.CodeStatus;
 import delta.codecharacter.server.repository.CodeStatusRepository;
+import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.FileHandler;
+import delta.codecharacter.server.util.enums.DllId;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -120,7 +127,7 @@ public class VersionControlService {
     /**
      * Return the absolute path to the codes directory of given userId
      *
-     * @param userId - UserId of whose directory is to be accessed
+     * @param userId UserId of whose directory is to be accessed
      * @return Path to codes directory
      */
     private String getCodeRepositoryUri(Integer userId) {
@@ -130,7 +137,7 @@ public class VersionControlService {
     /**
      * Return the absolute path to the player code file of given userId
      *
-     * @param userId - UserId of whose code is to be accessed
+     * @param userId UserId of whose code is to be accessed
      * @return Path to player code file
      */
     private String getCodeFileUri(Integer userId) {
@@ -348,6 +355,10 @@ public class VersionControlService {
      * @param code   Code to be inside the code file
      */
     public boolean setCode(Integer userId, String code) {
+        //Since code changes the dlls become obsolete
+        DllUtil.deleteDllFile(userId, DllId.DLL_1);
+        DllUtil.deleteDllFile(userId, DllId.DLL_2);
+        
         if (!checkCodeRepositoryExists(userId)) createCodeRepository(userId);
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
