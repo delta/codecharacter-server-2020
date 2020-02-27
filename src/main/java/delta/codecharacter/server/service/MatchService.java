@@ -3,7 +3,7 @@ package delta.codecharacter.server.service;
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.request.Match.GameDetails;
 import delta.codecharacter.server.controller.request.Match.GameResult;
-import delta.codecharacter.server.controller.request.Match.UpdateMatchRequest;
+import delta.codecharacter.server.controller.request.Match.ExecuteMatchRequest;
 import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
@@ -148,15 +148,31 @@ public class MatchService {
             return (long) (minWaitTime - timePassedSeconds);
     }
 
-    public void updateMatch(@NotNull UpdateMatchRequest updateMatchRequest) {
-        Integer matchId = updateMatchRequest.getMatchId();
-        List<GameDetails> gameDetailsList = updateMatchRequest.getGameResults();
+    public void executeMatch(@NotNull ExecuteMatchRequest executeMatchRequest) {
+        if (!executeMatchRequest.getSuccess())
+            return;
+        Integer matchId = executeMatchRequest.getMatchId();
+        Match match = matchRepository.findFirstById(matchId);
+        if (match == null) return;
+        List<GameDetails> gameDetailsList = executeMatchRequest.getGameResults();
         for (GameDetails gameDetails : gameDetailsList) {
+            // If game is not success, go to next game
+            if (!gameDetails.isSuccess())
+                continue;
             Game game = gameRepository.findFirstById(gameDetails.getGameId());
             GameResult gameResult = gameDetails.getResults();
             game.setInterestingness(gameResult.getInterestingness());
-            game.setPoints1(gameResult.getScores().getScore());
-            game.setPoints2(gameResult.getScores().getScore());
+
+            Integer points1 = gameResult.getScores().get(0).getScore();
+            Integer points2 = gameResult.getScores().get(1).getScore();
+
+            if (points1 != null && points2 != null) {
+                game.setPoints1(points1);
+                game.setPoints2(points2);
+            }
+
+            game.setMapId(gameDetails.getMapId());
+            game.setVerdict(gameResult.getWinType());
             gameRepository.save(game);
         }
     }

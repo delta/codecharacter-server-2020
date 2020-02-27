@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 @Builder
@@ -13,7 +14,7 @@ public class GameResult {
     private Integer key;
 
     @NotNull
-    private Integer winnerUserId;
+    private String winner;
 
     @NotNull
     @Builder.Default
@@ -23,5 +24,5 @@ public class GameResult {
     private Integer interestingness;
 
     @NotNull
-    private Score scores;
+    private List<Score> scores;
 }

@@ -1,6 +1,6 @@
 package delta.codecharacter.server.controller.api;
 
-import delta.codecharacter.server.controller.request.Match.UpdateMatchRequest;
+import delta.codecharacter.server.controller.request.Match.ExecuteMatchRequest;
 import delta.codecharacter.server.service.ConstantService;
 import delta.codecharacter.server.service.MatchService;
 import delta.codecharacter.server.service.UserService;
@@ -30,9 +30,9 @@ public class MatchController {
     private String key;
 
     @PutMapping("/")
-    public ResponseEntity<String> updateMatch(@RequestBody @Valid UpdateMatchRequest updateMatchRequest, Authentication authentication) {
+    public ResponseEntity<String> updateMatch(@RequestBody @Valid ExecuteMatchRequest executeMatchRequest, Authentication authentication) {
         // TODO: Check if the key sent by compilebox matches with the server key.
-        matchService.updateMatch(updateMatchRequest);
+        matchService.executeMatch(executeMatchRequest);
         return new ResponseEntity<>("Updated successfully", HttpStatus.OK);
     }
 }
