@@ -42,6 +42,7 @@ public class Notification {
     @Builder.Default
     private Type type = Type.INFO;
 
+    @Field("created_at")
     @NotNull
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
