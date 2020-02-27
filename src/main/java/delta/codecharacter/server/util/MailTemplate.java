@@ -15,15 +15,12 @@ public class MailTemplate {
      * @param authToken AuthToken for account activation
      * @return Message to be sent
      */
-    public static SimpleMailMessage getActivationMessage(String email, String username, String authToken) {
-        mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(email);
-        mailMessage.setSubject("Code Character - Account Activation");
-        mailMessage.setText("Greetings " + username + "!,\nKindly use the link below " +
+    public static String getActivationMessage(String email, String username, String authToken) {
+        String message = "Greetings " + username + "!,\nKindly use the link below " +
                 "to activate your account for Code Character 2020\n" +
-                BASE_URL + "/user/activate/" + authToken + "\nThis link is valid only for 24 hours");
+                BASE_URL + "/user/activate/" + authToken + "\nThis link is valid only for 24 hours";
 
-        return mailMessage;
+        return message;
     }
 
     /**

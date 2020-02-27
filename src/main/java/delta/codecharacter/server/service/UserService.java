@@ -233,7 +233,7 @@ public class UserService implements UserDetailsService {
         Email to = new Email(email);
         String contentString = MailTemplate.getActivationMessage(email, username, activationToken).toString();
         Content content = new Content("text/plain", contentString);
-        String subject = "Invitation to code character";
+        String subject = "Code Character - Account Activation";
         Mail mail = new Mail(from, subject, to, content);
 
         SendGrid sg = new SendGrid(sendGridApiKey);
