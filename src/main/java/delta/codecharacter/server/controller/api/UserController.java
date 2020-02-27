@@ -5,6 +5,7 @@ import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
+import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.MatchService;
 import delta.codecharacter.server.service.UserRatingService;
 import delta.codecharacter.server.service.UserService;
@@ -35,7 +36,9 @@ public class UserController {
 
     @PostMapping(value = "")
     public ResponseEntity<String> registerUser(@RequestBody @Valid RegisterUserRequest user) {
-        userService.registerUser(user);
+        User newUser = userService.registerUser(user);
+        if (newUser == null)
+            return new ResponseEntity<>("Email already taken!", HttpStatus.FORBIDDEN);
         return new ResponseEntity<>("User Registration Successful!", HttpStatus.CREATED);
     }
 

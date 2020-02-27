@@ -65,8 +65,11 @@ public class UserService implements UserDetailsService {
      * @param user - User Details from the register Request
      */
     @Transactional
-    public void registerUser(@NotNull RegisterUserRequest user) {
+    public User registerUser(@NotNull RegisterUserRequest user) {
         Integer userId = getMaxUserId() + 1;
+
+        if (isEmailPresent(user.getEmail()))
+            return null;
 
         User newUser = User.builder()
                 .userId(userId)
@@ -88,6 +91,7 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
 
         sendActivationToken(newUser.getUserId());
+        return newUser;
     }
 
     /**
@@ -319,9 +323,6 @@ public class UserService implements UserDetailsService {
     @SneakyThrows
     public User getUserByEmail(String email) {
         User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new Exception("User not found");
-        }
         return user;
     }
 
