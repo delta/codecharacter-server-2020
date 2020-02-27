@@ -133,7 +133,7 @@ public class UserService implements UserDetailsService {
         leaderboardService.initializeLeaderboardData(userId);
         // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
-        // Create a code repository
+        // Create code repository for new user
         versionControlService.createCodeRepository(userId);
 
         return newUser;
@@ -206,10 +206,10 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByEmail(email);
 
-        // User is not present in db. Checking if registered in pragyan and registering in local db.
+        // If the user is not present in DB, check if the user is registered with Pragyan.
         if (user == null) {
             var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            String password = request.getParameter("password"); // get from request parameter
+            String password = request.getParameter("password"); // get password from request parameter
             if (!pragyanUserAuth(email, password)) return null;
             user = registerPragyanUser(email, password);
             return new CustomUserDetails(user);
@@ -220,7 +220,7 @@ public class UserService implements UserDetailsService {
         }
         if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
             var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            String password = request.getParameter("password"); // get from request parameter
+            String password = request.getParameter("password"); // get password from request parameter
             if (!pragyanUserAuth(email, password)) return null;
             return new CustomUserDetails(user);
         }
