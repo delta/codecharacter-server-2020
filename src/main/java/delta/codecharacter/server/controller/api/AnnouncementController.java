@@ -42,8 +42,8 @@ public class AnnouncementController {
 
     @GetMapping(value = "/")
     public ResponseEntity<List<Announcement>> getAllAnnouncementsPaginated(@RequestParam(value = "page", defaultValue = "1", required = true) int page,
-                                                                  @RequestParam(value = "size", defaultValue = "10", required = false) int size,
-                                                                  Authentication authentication) {
+                                                                           @RequestParam(value = "size", defaultValue = "10", required = false) int size,
+                                                                           Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         if (!userService.isEmailPresent(email)) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         List<Announcement> announcements = announcementService.getAllAnnouncementsPaginated(page, size).getContent();

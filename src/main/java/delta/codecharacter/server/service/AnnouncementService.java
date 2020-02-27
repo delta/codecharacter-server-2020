@@ -24,7 +24,7 @@ public class AnnouncementService {
      * Create an announcement with the given announcementMessage
      *
      * @param announcementMessage Message of announcement
-     * @param adminUserId UserId of the admin user
+     * @param adminUserId         UserId of the admin user
      * @return Details of the created announcement
      */
     @SneakyThrows
@@ -54,7 +54,7 @@ public class AnnouncementService {
      * Return all announcements paginated
      *
      * @param pageNumber Page number
-     * @param size Size of results
+     * @param size       Size of results
      * @return Page of all announcements
      */
     @SneakyThrows
@@ -66,7 +66,7 @@ public class AnnouncementService {
 
     /**
      * Get maximum announcementId
-     * 
+     *
      * @return Maximum announcementId
      */
     private Integer getMaxAnnouncementId() {
