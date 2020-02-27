@@ -211,6 +211,7 @@ public class UserService implements UserDetailsService {
             var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             String password = request.getParameter("password"); // get password from request parameter
             if (!pragyanUserAuth(email, password)) return null;
+            // Add the user registered with Pragyan to DB
             user = registerPragyanUser(email, password);
             return new CustomUserDetails(user);
         }
