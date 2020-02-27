@@ -120,7 +120,7 @@ public class VersionControlService {
     /**
      * Return the absolute path to the codes directory of given username
      *
-     * @param userId - User ID of whose directory is to be accessed
+     * @param userId - UserId of whose directory is to be accessed
      * @return Path to codes directory
      */
     private String getCodeRepositoryUri(Integer userId) {
@@ -130,7 +130,7 @@ public class VersionControlService {
     /**
      * Return the absolute path to the player code file of given username
      *
-     * @param userId - User ID of whose code is to be accessed
+     * @param userId - UserId of whose code is to be accessed
      * @return Path to player code file
      */
     private String getCodeFileUri(Integer userId) {
@@ -151,7 +151,7 @@ public class VersionControlService {
     /**
      * Create a new code repository with git initialized for given username
      *
-     * @param userId User ID of the user
+     * @param userId UserId of the user
      */
     @SneakyThrows
     public void createCodeRepository(Integer userId) {
@@ -181,7 +181,7 @@ public class VersionControlService {
     /**
      * Add all files to stage
      *
-     * @param userId User ID of user
+     * @param userId UserId of user
      */
     @SneakyThrows
     private void gitAdd(Integer userId) {
@@ -194,7 +194,7 @@ public class VersionControlService {
     /**
      * Get git log of user's code repository
      *
-     * @param userId User ID of user
+     * @param userId UserId of user
      * @return Iterable of commits
      */
     @SneakyThrows
@@ -216,7 +216,7 @@ public class VersionControlService {
     /**
      * Get number of commits in user's code repository
      *
-     * @param userId User ID of user
+     * @param userId UserId of user
      * @return long Number of commits
      */
     @SneakyThrows
@@ -235,7 +235,7 @@ public class VersionControlService {
     /**
      * Commit the user's code repository
      *
-     * @param userId User ID of user
+     * @param userId UserId of user
      */
     @SneakyThrows
     public String commit(Integer userId) {
@@ -257,7 +257,7 @@ public class VersionControlService {
     /**
      * Checkout to a given commit hash in a user's code repository
      *
-     * @param userId     User ID of the user
+     * @param userId     UserId of the user
      * @param commitHash Commit Hash to checkout to
      */
     @SneakyThrows
@@ -276,7 +276,7 @@ public class VersionControlService {
     /**
      * Reset HEAD to master if HEAD is detached
      *
-     * @param userId User ID of the user
+     * @param userId UserId of the user
      */
     @SneakyThrows
     public void resetHead(Integer userId) {
@@ -292,7 +292,7 @@ public class VersionControlService {
     /**
      * Get code of given username
      *
-     * @param userId User ID of user
+     * @param userId UserId of user
      * @return Contents of file
      */
     public String getCode(Integer userId) {
@@ -302,9 +302,9 @@ public class VersionControlService {
     }
 
     /**
-     * Set code of given username
+     * Set code of given userId
      *
-     * @param userId User ID of user
+     * @param userId UserId of user
      * @param code   Code to be inside the code file
      */
     public boolean setCode(Integer userId, String code) {
