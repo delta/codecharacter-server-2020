@@ -9,6 +9,9 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Data
 @Builder
@@ -38,4 +41,8 @@ public class Notification {
     @NotBlank(message = "Type is mandatory")
     @Builder.Default
     private Type type = Type.INFO;
+
+    @NotNull
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
 }
