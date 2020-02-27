@@ -1,6 +1,8 @@
 package delta.codecharacter.server.service;
 
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -31,14 +33,14 @@ public class RabbitMqService {
     @SneakyThrows
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
-//        ConnectionFactory connectionFactory = new ConnectionFactory();
-//        connectionFactory.setHost(host);
-//        Connection connection = connectionFactory.newConnection();
-//        channel = connection.createChannel();
-//
-//        //Number of messages that can be processed at a time
-//        channel.basicQos(1);
-//        channel.queueDeclare(queue, true, false, false, null);
-//        LOG.info("RabbitMq Ready!");
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(host);
+        Connection connection = connectionFactory.newConnection();
+        channel = connection.createChannel();
+
+        //Number of messages that can be processed at a time
+        channel.basicQos(1);
+        channel.queueDeclare(queue, true, false, false, null);
+        LOG.info("RabbitMq Ready!");
     }
 }
