@@ -112,7 +112,7 @@ public class UserService implements UserDetailsService {
         leaderboardService.initializeLeaderboardData(userId);
         // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
-        // Create a code repository
+        // Create code repository for the new user
         versionControlService.createCodeRepository(userId);
 
         sendActivationToken(newUser.getUserId());
@@ -186,7 +186,7 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
         // Create initial entry for new user in Leaderboard table
         leaderboardService.initializeLeaderboardData(userId);
-        // Create a code repository
+        // Create code repository for the new user
         versionControlService.createCodeRepository(userId);
     }
 

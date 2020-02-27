@@ -1,9 +1,7 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.model.CodeStatus;
-import delta.codecharacter.server.model.CodeVersion;
 import delta.codecharacter.server.repository.CodeStatusRepository;
-import delta.codecharacter.server.repository.CodeVersionRepository;
 import delta.codecharacter.server.util.FileHandler;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
@@ -32,9 +30,6 @@ public class VersionControlService {
     private String codeFileName;
 
     @Autowired
-    CodeVersionRepository codeVersionRepository;
-
-    @Autowired
     CodeStatusRepository codeStatusRepository;
 
     /**
@@ -49,20 +44,12 @@ public class VersionControlService {
         gitAdd(userId);
         String commitHash = commit(userId);
 
-        Integer codeVersionId = getMaxCodeVersionId() + 1;
-        CodeVersion codeVersion = CodeVersion.builder()
-                .id(codeVersionId)
-                .userId(userId)
-                .commitHash(commitHash)
-                .build();
-        codeVersionRepository.save(codeVersion);
-
         CodeStatus codeStatus = findCodeStatusByUserId(userId);
         codeStatus.setCurrentCommit(commitHash);
         codeStatus.setLastSavedAt(LocalDateTime.now());
         codeStatusRepository.save(codeStatus);
 
-        return codeVersion.getCommitHash();
+        return commitHash;
     }
 
     /**
@@ -325,14 +312,6 @@ public class VersionControlService {
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
         return true;
-    }
-
-    private Integer getMaxCodeVersionId() {
-        CodeVersion codeVersion = codeVersionRepository.findFirstByOrderByIdDesc();
-        if (codeVersion == null) {
-            return 0;
-        }
-        return codeVersion.getId();
     }
 
     private CodeStatus findCodeStatusByUserId(Integer userId) {
