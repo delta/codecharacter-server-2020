@@ -1,5 +1,6 @@
 package delta.codecharacter.server.service;
 
+import com.sendgrid.*;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
@@ -14,6 +15,7 @@ import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -58,6 +60,12 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private JavaMailSender javaMailSender;
+
+    @Value("${spring.sendgrid.api-key}")
+    private String sendGridApiKey;
+
+    @Value("${spring.sendgrid.mail}")
+    private String sendGridSenderMail;
 
     /**
      * Register a new User for AuthType MANUAL
@@ -213,10 +221,27 @@ public class UserService implements UserDetailsService {
                 .build();
 
         User user = userRepository.findByUserId(userId);
-
-        javaMailSender.send(MailTemplate.getActivationMessage(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken()));
+        
+        sendMail(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken());
 
         userActivationRepository.save(newUserActivation);
+    }
+
+    @SneakyThrows
+    private void sendMail(String email, String username, String activationToken) {
+        Email from = new Email(sendGridSenderMail);
+        Email to = new Email(email);
+        String contentString = MailTemplate.getActivationMessage(email, username, activationToken).toString();
+        Content content = new Content("text/plain", contentString);
+        String subject = "Invitation to code character";
+        Mail mail = new Mail(from, subject, to, content);
+
+        SendGrid sg = new SendGrid(sendGridApiKey);
+        Request request = new Request();
+        request.setMethod(Method.POST);
+        request.setEndpoint("mail/send");
+        request.setBody(mail.build());
+
     }
 
     /**
