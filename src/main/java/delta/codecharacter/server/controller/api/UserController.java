@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping(value = "/user")
 public class UserController {
 
