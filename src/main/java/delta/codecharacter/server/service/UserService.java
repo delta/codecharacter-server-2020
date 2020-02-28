@@ -5,16 +5,11 @@ import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.User.ActivateUserRequest;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
-<<<<<<< HEAD
 import delta.codecharacter.server.controller.request.User.UpdateUserRequest;
 import delta.codecharacter.server.controller.response.User.PragyanApiResponse;
 import delta.codecharacter.server.controller.response.User.PragyanUserDetails;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
-=======
-import delta.codecharacter.server.controller.response.PragyanApiResponse;
-import delta.codecharacter.server.controller.request.User.*;
->>>>>>> Update routes for User
 import delta.codecharacter.server.model.PasswordResetDetails;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.model.UserActivation;
@@ -219,6 +214,9 @@ public class UserService implements UserDetailsService {
                 .avatarId(user.getAvatarId())
                 .college(user.getCollege())
                 .fullName(user.getFullName())
+                .email(user.getEmail())
+                .college(user.getCollege())
+                .country(user.getCountry())
                 .userType(user.getUserType())
                 .createdAt(user.getCreatedAt())
                 .build();
