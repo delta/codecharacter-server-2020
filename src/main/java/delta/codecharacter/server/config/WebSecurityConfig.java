@@ -61,12 +61,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     // Prevent unauthenticated access and also exclude specified end-point
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterBefore(corsFilter, ChannelProcessingFilter.class).antMatcher("/**").authorizeRequests()
+        http.antMatcher("/**").authorizeRequests()
                 .antMatchers(ignoringAntMatchers).permitAll().anyRequest().authenticated().and()
                 .exceptionHandling().and()
                 .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).successHandler(new CustomAuthenticationSuccessHandler()).and()
                 .logout().logoutSuccessUrl("/").and()
                 .csrf().ignoringAntMatchers(ignoringAntMatchers).csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
+                .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
                 .addFilterBefore(ssoFilters(), BasicAuthenticationFilter.class);
     }
 
