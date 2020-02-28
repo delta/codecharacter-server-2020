@@ -251,10 +251,10 @@ public class UserService implements UserDetailsService {
     }
 
     @SneakyThrows
-    public void sendResetPasswordMail(String email, String username, String activationToken) {
+    public void sendPasswordResetMail(String email, String username, String activationToken) {
         Email from = new Email(sendGridSenderMail);
         Email to = new Email(email);
-        String contentString = MailTemplate.getPasswordResetMessage(email, username, activationToken).toString();
+        String contentString = MailTemplate.getPasswordResetMessage(email, username, activationToken);
         Content content = new Content("text/plain", contentString);
         String subject = "Code Character - Account Activation";
         Mail mail = new Mail(from, subject, to, content);
@@ -292,8 +292,7 @@ public class UserService implements UserDetailsService {
                 .passwordResetToken(UUID.randomUUID().toString())
                 .build();
 
-        javaMailSender.send(MailTemplate.getPasswordResetMessage(user.getEmail(), user.getUsername(), newPasswordResetDetails.getPasswordResetToken()));
-
+        sendPasswordResetMail(user.getEmail(), user.getUsername(), newPasswordResetDetails.getPasswordResetToken());
         passwordResetDetailsRepository.save(newPasswordResetDetails);
     }
 
