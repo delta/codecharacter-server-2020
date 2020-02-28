@@ -61,7 +61,7 @@ public class UserService implements UserDetailsService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    @Value("${sendgrid.api-key}")
+    @Value("${sendgrid.api.key}")
     private String sendGridApiKey;
 
     @Value("${sendgrid.mail}")
