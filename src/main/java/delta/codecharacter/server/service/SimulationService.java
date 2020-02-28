@@ -66,13 +66,10 @@ public class SimulationService {
         if (remTime != 0) {
             simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "PLease wait for " + remTime + " seconds to initiate your next match");
             return;
-        } else {
-            if (matchRepository.findByPlayerId1AndStatus(playerId1, Status.IDLE) != null
-                    || matchRepository.findByPlayerId1AndStatus(playerId1, Status.EXECUTE_QUEUED) != null
-                    || matchRepository.findByPlayerId1AndStatus(playerId1, Status.EXECUTING) != null) {
-                simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Your previous match is has not yet completed");
-                return;
-            }
+        }
+        if (matchRepository.findByStatusOrStatusOrStatusAndPlayerId1(Status.IDLE, Status.EXECUTE_QUEUED, Status.EXECUTING, userId) != null) {
+            simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Previous match has not completed");
+            return;
         }
 
         String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
@@ -173,16 +170,17 @@ public class SimulationService {
                 break;
             }
             default: {
-                throw new IllegalStateException("Unexpected MatchMode value: " + simulateMatchRequest.getMatchMode());
+                simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Unexpected MatchMode");
+                return;
             }
         }
         executeMatchRequest.setMatchId(match.getId());
         executeMatchRequest.setGames(executeGames);
         executeMatchRequest.setSecretKey(secretKey);
 
-        simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Match has been added to queue");
-
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
+
+        simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Match has been added to queue");
 
         //set match status to Execute_Queued
         match.setStatus(Status.EXECUTE_QUEUED);

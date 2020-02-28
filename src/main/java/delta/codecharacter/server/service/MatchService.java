@@ -167,31 +167,22 @@ public class MatchService {
     }
 
     /**
-     * Return the time(seconds) left for user to be able to attack next manually
+     * Return the time of last Initiated match of a user
+     * NOTE: Initiated match includes AI, SELF, PREV_COMMIT, MANUAL
      *
-     * @param username - Username of the user
-     * @return remaining time in seconds
+     * @param userId - User id of the user
+     * @return if user initiated a match, return time of last match initiated by user
+     * else return time of user account creation
      */
-    @SneakyThrows
-    public Long getManualWaitTime(@NotEmpty String username) {
-        if (userRepository.findByUsername(username) == null)
-            throw new Exception("Invalid username");
-
-        Integer userId = userRepository.findByUsername(username).getUserId();
-        Float minWaitTime = Float.parseFloat(constantRepository.findByKey("MATCH_WAIT_TIME").getValue());
-        Date lastMatchTime = getLastManualMatchTime(userId);
-        Date currentTime = new Date();
-
-        // Seconds passed since last initiated match
-        Long timePassedSeconds = (currentTime.getTime() - lastMatchTime.getTime()) / 1000;
-        if (timePassedSeconds > minWaitTime)
-            return (long) 0;
-        else
-            return (long) (minWaitTime - timePassedSeconds);
+    public Date getLastInitiatedMatchTime(Integer userId) {
+        Match match = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO);
+        if (match == null)
+            return userRepository.findByUserId(userId).getCreatedAt();
+        return match.getCreatedAt();
     }
 
     /**
-     * Return the time(seconds) left for user to be able to attack next
+     * Return the time(seconds) left for user to be able to initiate a match
      *
      * @param userId - UserID of the user
      * @return remaining time in seconds
@@ -202,15 +193,14 @@ public class MatchService {
             throw new Exception("Invalid user ID");
 
         Float minWaitTime = Float.parseFloat(constantRepository.findByKey("MATCH_WAIT_TIME").getValue());
-        Date lastMatchTime = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
+        Date lastInitiatedMatchTime = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
         Date currentTime = new Date();
 
         // Seconds passed since last initiated match
-        Long timePassedSeconds = (currentTime.getTime() - lastMatchTime.getTime()) / 1000;
+        Long timePassedSeconds = (currentTime.getTime() - lastInitiatedMatchTime.getTime()) / 1000;
         if (timePassedSeconds > minWaitTime)
             return (long) 0;
-        else
-            return (long) (minWaitTime - timePassedSeconds);
+        return (long) (minWaitTime - timePassedSeconds);
     }
 
 }

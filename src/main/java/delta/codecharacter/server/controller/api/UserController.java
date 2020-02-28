@@ -52,7 +52,7 @@ public class UserController {
 
     @GetMapping(value = "/wait-time/{username}")
     public ResponseEntity<Long> getWaitTime(@PathVariable @NotEmpty String username) {
-        return new ResponseEntity<>(matchService.getManualWaitTime(username), HttpStatus.OK);
+        return new ResponseEntity<>(matchService.getWaitTime(username), HttpStatus.OK);
     }
 
     @PostMapping(value = "/activate")
