@@ -7,11 +7,13 @@ import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequ
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.util.AiDllUtil;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MapUtil;
 import delta.codecharacter.server.util.enums.DllId;
 import delta.codecharacter.server.util.enums.MatchMode;
+import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,9 @@ public class SimulationService {
     private MatchService matchService;
 
     @Autowired
+    private MatchRepository matchRepository;
+
+    @Autowired
     private GameService gameService;
 
     @Autowired
@@ -56,6 +61,19 @@ public class SimulationService {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
+
+        Long remTime = matchService.getWaitTime(playerId1);
+        if (remTime != 0) {
+            simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "PLease wait for " + remTime + " seconds to initiate your next match");
+            return;
+        } else {
+            if (matchRepository.findByPlayerId1AndStatus(playerId1, Status.IDLE) != null
+                    || matchRepository.findByPlayerId1AndStatus(playerId1, Status.EXECUTE_QUEUED) != null
+                    || matchRepository.findByPlayerId1AndStatus(playerId1, Status.EXECUTING) != null) {
+                simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Your previous match is has not yet completed");
+                return;
+            }
+        }
 
         String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
         String dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
@@ -163,6 +181,11 @@ public class SimulationService {
         executeMatchRequest.setSecretKey(secretKey);
 
         simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Match has been added to queue");
+
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
+
+        //set match status to Execute_Queued
+        match.setStatus(Status.EXECUTE_QUEUED);
+        matchRepository.save(match);
     }
 }
