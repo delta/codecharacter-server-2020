@@ -73,14 +73,13 @@ public class MatchService {
     /**
      * Return the match statistics of a user
      *
-     * @param username - Username of the given user
+     * @param userId - userId of the given user
      * @return match statistics of the user
      */
     @SneakyThrows
-    public UserMatchStatsResponse getUserMatchStats(@NotEmpty String username) {
-        if (userRepository.findByUsername(username) == null)
+    public UserMatchStatsResponse getUserMatchStats(@NotEmpty Integer userId) {
+        if (userRepository.findByUserId(userId) == null)
             throw new Exception("Invalid username");
-        Integer userId = userRepository.findByUsername(username).getUserId();
 
         List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2AndMatchModeOrMatchMode(userId, userId, MatchMode.MANUAL, MatchMode.AUTO);
 
@@ -139,11 +138,7 @@ public class MatchService {
             }
         }
 
-<<<<<<< HEAD
         Date lastMatchAt = getLastInitiatedManualMatchTime(userId);
-=======
-        Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL).getCreatedAt();
->>>>>>> Update routes for User
 
         return UserMatchStatsResponse.builder()
                 .userId(userId)

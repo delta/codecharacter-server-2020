@@ -65,15 +65,14 @@ public class UserController {
         return new ResponseEntity<>(userService.getUser(authentication), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/match-stats/{username}")
-    public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable @NotEmpty String username) {
-        return new ResponseEntity<>(matchService.getUserMatchStats(username), HttpStatus.OK);
+    @GetMapping(value = "/match-stats/{userId}")
+    public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable @NotEmpty Integer userId) {
+        return new ResponseEntity<>(matchService.getUserMatchStats(userId), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/wait-time")
-    public ResponseEntity<Long> getWaitTime(Authentication authentication) {
-        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
-        return new ResponseEntity<>(matchService.getWaitTime(user.getUserId()), HttpStatus.OK);
+    @GetMapping(value = "/wait-time/{userId}")
+    public ResponseEntity<Long> getWaitTime(@PathVariable @NotEmpty Integer userId) {
+        return new ResponseEntity<>(matchService.getWaitTime(userId), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/email/{email}", method = RequestMethod.HEAD)
@@ -104,8 +103,8 @@ public class UserController {
     }
 
     //Get all the Ratings of a User from the beginning to the current rating.
-    @GetMapping(value = "/ratings/{username}")
-    public ResponseEntity<List<UserRatingsResponse>> getUserRatings(@PathVariable String username) {
-        return new ResponseEntity<List<UserRatingsResponse>>(userRatingService.getUserRatings(username), HttpStatus.OK);
+    @GetMapping(value = "/ratings/{userId}")
+    public ResponseEntity<List<UserRatingsResponse>> getUserRatings(@PathVariable Integer userId) {
+        return new ResponseEntity<List<UserRatingsResponse>>(userRatingService.getUserRatings(userId), HttpStatus.OK);
     }
 }

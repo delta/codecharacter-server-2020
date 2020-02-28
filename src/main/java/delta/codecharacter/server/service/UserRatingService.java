@@ -31,16 +31,15 @@ public class UserRatingService {
     /**
      * Get all the ratings of all a user
      *
-     * @param username username of user
+     * @param userId userId of user
      * @return ratings of a User
      */
     @SneakyThrows
-    public List<UserRatingsResponse> getUserRatings(String username) {
-        User user = userRepository.findByUsername(username);
+    public List<UserRatingsResponse> getUserRatings(Integer userId) {
+        User user = userRepository.findByUserId(userId);
         if (user == null)
             throw new Exception("Invalid username");
 
-        Integer userId = user.getUserId();
         List<UserRating> ratings = userRatingRepository.findByUserId(userId);
         List<UserRatingsResponse> userRatings = new ArrayList<>();
         for (var rating : ratings) {
