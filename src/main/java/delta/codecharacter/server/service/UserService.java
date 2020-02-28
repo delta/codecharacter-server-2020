@@ -347,10 +347,10 @@ public class UserService implements UserDetailsService {
     @SneakyThrows
     @Transactional
     public void changePassword(PasswordResetRequest passwordResetRequest) {
-        PasswordResetDetails passwordResetDetails = passwordResetDetailsRepository.findByPasswordResetToken(passwordResetRequest.getPasswordResetToken());
+        PasswordResetDetails passwordResetDetails = passwordResetDetailsRepository.findByUserId(passwordResetRequest.getUserId());
 
         if (passwordResetDetails == null)
-            throw new Exception("Invalid Token");
+            throw new Exception("Invalid User ID");
 
         if (passwordResetDetails.getTokenExpiry().isAfter(LocalDateTime.now(ZoneId.of("Asia/Kolkata")))) {
             if (passwordResetDetails.getPasswordResetToken().equals(passwordResetRequest.getPasswordResetToken())) {
