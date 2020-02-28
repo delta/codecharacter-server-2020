@@ -365,6 +365,12 @@ public class VersionControlService {
         return true;
     }
 
+    /**
+     * Find CodeStatus by userId
+     *
+     * @param userId userId of the given user
+     * @return CodeStatus details of the given user
+     */
     private CodeStatus findCodeStatusByUserId(Integer userId) {
         CodeStatus codeStatus = codeStatusRepository.findByUserId(userId);
         if (codeStatus == null) {
