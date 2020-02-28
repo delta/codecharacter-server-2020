@@ -244,7 +244,30 @@ public class UserService implements UserDetailsService {
             request.setEndpoint("mail/send");
             request.setBody(mail.build());
             Response response = sendGrid.api(request);
-            LOG.info("Mail status code to " + email + ": " + String.valueOf(response.getStatusCode()));
+            LOG.info("Activation mail status code to " + email + ": " + String.valueOf(response.getStatusCode()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SneakyThrows
+    public void sendResetPasswordMail(String email, String username, String activationToken) {
+        Email from = new Email(sendGridSenderMail);
+        Email to = new Email(email);
+        String contentString = MailTemplate.getPasswordResetMessage(email, username, activationToken).toString();
+        Content content = new Content("text/plain", contentString);
+        String subject = "Code Character - Account Activation";
+        Mail mail = new Mail(from, subject, to, content);
+
+        SendGrid sendGrid = new SendGrid(sendGridApiKey);
+        Request request = new Request();
+
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendGrid.api(request);
+            LOG.info("Reset password mail status code to " + email + ": " + String.valueOf(response.getStatusCode()));
         } catch (Exception e) {
             e.printStackTrace();
         }

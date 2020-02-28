@@ -31,14 +31,11 @@ public class MailTemplate {
      * @param passwordResetToken PasswordResetToken for resetting password
      * @return Message to be sent
      */
-    public static SimpleMailMessage getPasswordResetMessage(String email, String username, String passwordResetToken) {
-        mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(email);
-        mailMessage.setSubject("Code Character - Account Activation");
-        mailMessage.setText("Greeting " + username + "!\nKindly use the link below " +
+    public static String getPasswordResetMessage(String email, String username, String passwordResetToken) {
+        String message = "Greeting " + username + "!\nKindly use the link below " +
                 "to reset your account password for Code Character 2020\n" +
-                BASE_URL + "/user/password/" + passwordResetToken + "\nThink link is valid only for 24 hours");
+                BASE_URL + "/user/password/" + passwordResetToken + "\nThink link is valid only for 24 hours";
 
-        return mailMessage;
+        return message;
     }
 }
