@@ -4,6 +4,7 @@ import delta.codecharacter.server.service.UserService;
 import delta.codecharacter.server.util.UserAuthUtil.ClientResources;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthProcessingFilter;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationFailureHandler;
+import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,6 +20,7 @@ import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,20 +49,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserService userService;
 
-    //Configures where to fetch the user from
+    @Autowired
+    private CorsFilter corsFilter;
+
+    // Configures where to fetch the user from
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService).passwordEncoder(bCryptPasswordEncoder);
     }
 
-    //Prevent unauthenticated access and also exclude specified end-point
+    // Prevent unauthenticated access and also exclude specified end-point
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/**").authorizeRequests().antMatchers(ignoringAntMatchers).permitAll().anyRequest().authenticated().and()
+        http.antMatcher("/**").authorizeRequests()
+                .antMatchers(ignoringAntMatchers).permitAll().anyRequest().authenticated().and()
                 .exceptionHandling().and()
-                .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).and()
+                .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).successHandler(new CustomAuthenticationSuccessHandler()).and()
                 .logout().logoutSuccessUrl("/").and()
                 .csrf().ignoringAntMatchers(ignoringAntMatchers).csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
+                .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
                 .addFilterBefore(ssoFilters(), BasicAuthenticationFilter.class);
     }
 

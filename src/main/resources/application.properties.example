@@ -25,6 +25,9 @@ spring.mail.password=<>
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
+#client
+client.request.origin=http://localhost:3000
+
 spring.security.oauth2.client.github.client.client-id=<>
 spring.security.oauth2.client.github.client.client-secret=<>
 spring.security.oauth2.client.github.client.redirect-uri=http://localhost:8080
