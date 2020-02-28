@@ -11,9 +11,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 @Service
@@ -73,24 +70,24 @@ public class AutoMatchUpService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        LOG.info("Starting auto match-up service...");
-
-        // Match up is executed every frequency seconds from midnight
-        var autoMatchUpFrequencySeconds = Long.parseLong(constantService.getConstantValueByKey("AUTO_MATCH_UP_FREQUENCY_SECONDS"));
-
-        // Wait to synchronize the scheduler with match frequency
-        try {
-            var waitTime = getWaitTimeSeconds(autoMatchUpFrequencySeconds);
-            LOG.info(waitTime.toString());
-            TimeUnit.SECONDS.sleep(waitTime);
-        } catch (InterruptedException e) {
-            LOG.severe(e.toString());
-        }
-
-        scheduler.scheduleAtFixedRate(() -> {
-            LOG.info("Matching Up Players...");
-            this.executeMatchUp();
-        }, 0, autoMatchUpFrequencySeconds, TimeUnit.SECONDS);
+//        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+//        LOG.info("Starting auto match-up service...");
+//
+//        // Match up is executed every frequency seconds from midnight
+//        var autoMatchUpFrequencySeconds = Long.parseLong(constantService.getConstantValueByKey("AUTO_MATCH_UP_FREQUENCY_SECONDS"));
+//
+//        // Wait to synchronize the scheduler with match frequency
+//        try {
+//            var waitTime = getWaitTimeSeconds(autoMatchUpFrequencySeconds);
+//            LOG.info(waitTime.toString());
+//            TimeUnit.SECONDS.sleep(waitTime);
+//        } catch (InterruptedException e) {
+//            LOG.severe(e.toString());
+//        }
+//
+//        scheduler.scheduleAtFixedRate(() -> {
+//            LOG.info("Matching Up Players...");
+//            this.executeMatchUp();
+//        }, 0, autoMatchUpFrequencySeconds, TimeUnit.SECONDS);
     }
 }

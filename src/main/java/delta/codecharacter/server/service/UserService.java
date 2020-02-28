@@ -61,10 +61,10 @@ public class UserService implements UserDetailsService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    @Value("${spring.sendgrid.api-key}")
+    @Value("${sendgrid.api-key}")
     private String sendGridApiKey;
 
-    @Value("${spring.sendgrid.mail}")
+    @Value("${sendgrid.mail}")
     private String sendGridSenderMail;
 
     /**
@@ -222,13 +222,13 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByUserId(userId);
         
-        sendMail(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken());
+        sendActivationMail(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken());
 
         userActivationRepository.save(newUserActivation);
     }
 
     @SneakyThrows
-    private void sendMail(String email, String username, String activationToken) {
+    public void sendActivationMail(String email, String username, String activationToken) {
         Email from = new Email(sendGridSenderMail);
         Email to = new Email(email);
         String contentString = MailTemplate.getActivationMessage(email, username, activationToken).toString();
@@ -236,12 +236,18 @@ public class UserService implements UserDetailsService {
         String subject = "Code Character - Account Activation";
         Mail mail = new Mail(from, subject, to, content);
 
-        SendGrid sg = new SendGrid(sendGridApiKey);
+        SendGrid sendGrid = new SendGrid(sendGridApiKey);
         Request request = new Request();
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
-        request.setBody(mail.build());
 
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendGrid.api(request);
+            LOG.info("Mail status code to " + email + ": " + String.valueOf(response.getStatusCode()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
