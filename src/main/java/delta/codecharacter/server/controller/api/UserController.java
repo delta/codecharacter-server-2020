@@ -61,8 +61,8 @@ public class UserController {
     }
 
     @GetMapping(value = "")
-    public ResponseEntity<PublicUserRequest> getTheUser(Authentication authentication) {
-        return new ResponseEntity<>(userService.getTheUser(authentication), HttpStatus.OK);
+    public ResponseEntity<PublicUserRequest> getUser(Authentication authentication) {
+        return new ResponseEntity<>(userService.getUser(authentication), HttpStatus.OK);
     }
 
     @GetMapping(value = "/match-stats/{username}")
@@ -80,18 +80,15 @@ public class UserController {
     public ResponseEntity<HttpStatus> checkUserExistsByEmail(@PathVariable String email) {
         Boolean exists = userService.isEmailPresent(email);
 
-        //if username exits, return Response code 200
-        //else return Response code 404
-        if (exists)
-            return new ResponseEntity<>(HttpStatus.OK);
-        else
+        // If username exits, return FOUND, else return NOT_FOUND
+        if (!exists)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.FOUND);
     }
 
     @PostMapping(value = "/activate")
     public ResponseEntity<String> activateUser(@RequestBody ActivateUserRequest activateUserRequest) {
-        userService.activateUser(activateUserRequest);
-        return new ResponseEntity<>("Account Activation Successful!", HttpStatus.OK);
+        return new ResponseEntity<>(userService.activateUser(activateUserRequest), HttpStatus.OK);
     }
 
     @PostMapping(value = "/forgot-password")

@@ -178,18 +178,24 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Get the details of the logged in user
+     * Get the details of the authenticated user
      *
-     * @return Details of the logged in user
+     * @return Details of the authenticated user
      */
-    public PublicUserRequest getTheUser(Authentication authentication) {
+    public PublicUserRequest getUser(Authentication authentication) {
         User user = userRepository.findByEmail(getEmailFromAuthentication(authentication));
 
         return PublicUserRequest.builder()
+                .userId(user.getUserId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
+                .email(user.getEmail())
+                .college(user.getCollege())
+                .country(user.getCountry())
                 .userType(user.getUserType())
                 .email(user.getEmail())
+                .avatarId(user.getAvatarId())
+                .isAdmin(user.getIsAdmin())
                 .build();
     }
 
@@ -261,30 +267,32 @@ public class UserService implements UserDetailsService {
     /**
      * Activate the User account by verifying the activation token
      *
-     * @param activateUserRequest - Activation Details from the activate Request
+     * @param activateUserRequest Activation Details for activating user account
+     * @return response message after verifying activation token
      */
     @SneakyThrows
     @Transactional
-    public void activateUser(ActivateUserRequest activateUserRequest) {
+    public String activateUser(ActivateUserRequest activateUserRequest) {
         UserActivation userActivation = userActivationRepository.findByUserId(activateUserRequest.getUserId());
 
         if (userActivation == null) {
-            throw new Exception("User Already Activated. Please Login");
+            return "User Already Activated. Please Login";
         }
 
         User user = userRepository.findByUserId(userActivation.getUserId());
-        if (userActivation.getTokenExpiry().isAfter(LocalDateTime.now(ZoneId.of("Asia/Kolkata"))))
+        if (userActivation.getTokenExpiry().isAfter(LocalDateTime.now(ZoneId.of("Asia/Kolkata")))) {
             if (activateUserRequest.getAuthToken().equals(userActivation.getActivationToken())) {
                 user.setIsActivated(true);
                 userRepository.save(user);
                 userActivationRepository.deleteByUserId(user.getUserId());
-                return;
+                return "Account Activation Successful";
             }
+            return "Invalid Activation Token";
+        }
 
         //Since Activation has failed send a new Activation token
         sendActivationToken(user.getUserId());
-
-        throw new Exception("Invalid Activation Token / Activation Token Expired");
+        return "Activation Token Expired";
     }
 
     /**
@@ -425,8 +433,8 @@ public class UserService implements UserDetailsService {
     /**
      * Update a user's details
      *
-     * @param email             - User's email
-     * @param updateUserRequest - User Details from the updateUserRequest
+     * @param email             User's email
+     * @param updateUserRequest User Details from the updateUserRequest
      */
     @SneakyThrows
     @Transactional
