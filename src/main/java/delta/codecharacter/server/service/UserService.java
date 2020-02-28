@@ -256,10 +256,16 @@ public class UserService implements UserDetailsService {
         if (passwordResetDetails == null)
             throw new Exception("Invalid Token");
 
+        User user = userRepository.findByUserId(passwordResetDetails.getUserId());
+        String oldPassword = passwordResetRequest.getOldPassword();
+        // If old password in request does not match with user's password, throw exception
+        if (!bCryptPasswordEncoder.encode(oldPassword).equals(user.getPassword()))
+            throw new Exception("Invalid user password");
+
+        }
+
         if (passwordResetDetails.getTokenExpiry().isAfter(LocalDateTime.now(ZoneId.of("Asia/Kolkata")))) {
             if (passwordResetDetails.getPasswordResetToken().equals(passwordResetRequest.getPasswordResetToken())) {
-                User user = userRepository.findByUserId(passwordResetDetails.getUserId());
-
                 user.setPassword(bCryptPasswordEncoder.encode(passwordResetRequest.getNewPassword()));
                 userRepository.save(user);
 

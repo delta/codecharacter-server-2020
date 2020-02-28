@@ -10,5 +10,8 @@ public class PasswordResetRequest {
     private String passwordResetToken;
 
     @NotEmpty(message = "{constraints.NotEmpty.message}")
+    private String oldPassword;
+
+    @NotEmpty(message = "{constraints.NotEmpty.message}")
     private String newPassword;
 }
