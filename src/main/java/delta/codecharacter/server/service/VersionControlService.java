@@ -234,7 +234,9 @@ public class VersionControlService {
     @SneakyThrows
     private long getCommitCount(Integer userId) {
         var log = log(userId);
-        long commitCount = log.spliterator().getExactSizeIfKnown();
+        long commitCount = 0;
+
+        for (var commit : log) ++commitCount;
 
         // Iterable is not sized
         if (commitCount == -1) {
