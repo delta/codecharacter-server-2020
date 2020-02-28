@@ -4,14 +4,13 @@ import delta.codecharacter.server.service.UserService;
 import delta.codecharacter.server.util.UserAuthUtil.ClientResources;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthProcessingFilter;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationFailureHandler;
+import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,8 +24,6 @@ import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 
 import javax.servlet.Filter;
@@ -67,7 +64,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(corsFilter, ChannelProcessingFilter.class).antMatcher("/**").authorizeRequests()
                 .antMatchers(ignoringAntMatchers).permitAll().anyRequest().authenticated().and()
                 .exceptionHandling().and()
-                .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).and()
+                .formLogin().loginPage("/login").usernameParameter("email").failureHandler(new CustomAuthenticationFailureHandler()).successHandler(new CustomAuthenticationSuccessHandler()).and()
                 .logout().logoutSuccessUrl("/").and()
                 .csrf().ignoringAntMatchers(ignoringAntMatchers).csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
                 .addFilterBefore(ssoFilters(), BasicAuthenticationFilter.class);
