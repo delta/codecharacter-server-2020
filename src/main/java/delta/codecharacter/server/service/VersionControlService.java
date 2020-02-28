@@ -1,5 +1,6 @@
 package delta.codecharacter.server.service;
 
+import delta.codecharacter.server.controller.request.codeversion.CommitResponse;
 import delta.codecharacter.server.model.CodeStatus;
 import delta.codecharacter.server.repository.CodeStatusRepository;
 import delta.codecharacter.server.util.DllUtil;
@@ -97,11 +98,15 @@ public class VersionControlService {
      * @return Returns git log
      */
     @SneakyThrows
-    public List<String> getLog(Integer userId) {
+    public List<CommitResponse> getLog(Integer userId) {
         if (!checkCodeRepositoryExists(userId)) return null;
-        List<String> commitResponses = new ArrayList<>();
+        List<CommitResponse> commitResponses = new ArrayList<>();
         for (RevCommit revCommit : log(userId)) {
-            commitResponses.add(revCommit.getName());
+            CommitResponse commitResponse = CommitResponse.builder()
+                    .commitName(revCommit.getFullMessage())
+                    .commitHash(revCommit.getName())
+                    .timestamp(revCommit.getAuthorIdent().getWhen()).build();
+            commitResponses.add(commitResponse);
         }
         return commitResponses;
     }
