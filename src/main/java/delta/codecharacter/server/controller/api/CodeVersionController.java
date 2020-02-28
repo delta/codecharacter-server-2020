@@ -1,5 +1,6 @@
 package delta.codecharacter.server.controller.api;
 
+import delta.codecharacter.server.controller.request.codeversion.CommitResponse;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.UserService;
 import delta.codecharacter.server.service.VersionControlService;
@@ -70,11 +71,11 @@ public class CodeVersionController {
     }
 
     @GetMapping(value = "/log")
-    public ResponseEntity<List<String>> getLog(Authentication authentication) {
+    public ResponseEntity<List<CommitResponse>> getLog(Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
-        List<String> log = versionControlService.getLog(user.getUserId());
+        List<CommitResponse> log = versionControlService.getLog(user.getUserId());
         if (log == null) return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(log, HttpStatus.OK);
     }
