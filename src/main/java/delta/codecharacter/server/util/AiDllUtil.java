@@ -31,8 +31,9 @@ public class AiDllUtil {
     }
 
     /**
+     * Create a new AiDll repository for given aiId
+     *
      * @param aiId - AiId of the ai
-     *             Create a new AiDll repository for given aiId
      */
     @SneakyThrows
     public static void createAiDllRepository(Integer aiId) {

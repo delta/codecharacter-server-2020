@@ -162,6 +162,7 @@ public class SimulationService {
         executeMatchRequest.setGames(executeGames);
         executeMatchRequest.setSecretKey(secretKey);
 
+        simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Match has been added to queue");
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
     }
 }
