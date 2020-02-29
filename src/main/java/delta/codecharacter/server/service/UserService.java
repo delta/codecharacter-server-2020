@@ -54,31 +54,23 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private UserActivationRepository userActivationRepository;
-
     @Autowired
     private PasswordResetDetailsRepository passwordResetDetailsRepository;
-
     @Autowired
     private LeaderboardService leaderboardService;
-
     @Autowired
     private VersionControlService versionControlService;
-
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-
     @Autowired
     private SendGridService sendGridService;
 
     @Value("${pragyan.event-id}")
     private String pragyanEventId;
-
     @Value("${pragyan.event-secret}")
     private String pragyanEventSecret;
-
     @Value("${pragyan.event-login-url}")
     private String pragyanEventLoginUrl;
 

@@ -52,8 +52,8 @@ public class UserRatingService {
      * @return ratings of a User
      */
     @SneakyThrows
-    public List<UserRatingsResponse> getUserRatings(Integer userId) {
-        User user = userRepository.findByUserId(userId);
+    public List<UserRatingsResponse> getUserRatings(String username) {
+        User user = userRepository.findByUsername(username);
         if (user == null)
             throw new Exception("Invalid username");
 

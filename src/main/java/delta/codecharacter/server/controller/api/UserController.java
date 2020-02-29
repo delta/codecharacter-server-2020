@@ -71,7 +71,6 @@ public class UserController {
     @GetMapping(value = "")
     public ResponseEntity<PrivateUserResponse> getPrivateUser(Authentication authentication) {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
-
         if (user == null)
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(userService.getPrivateUser(user.getUserId()), HttpStatus.OK);
@@ -109,7 +108,6 @@ public class UserController {
         return new ResponseEntity<>(matchService.getDetailedMatchStatsByUsername(username), HttpStatus.OK);
     }
 
-    @SneakyThrows
     @GetMapping(value = "/wait-time")
     public ResponseEntity<Long> getWaitTime(Authentication authentication) {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));

@@ -8,6 +8,7 @@ import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsRe
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.TopMatchRepository;
