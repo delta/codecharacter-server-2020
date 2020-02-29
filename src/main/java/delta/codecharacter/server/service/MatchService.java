@@ -93,47 +93,47 @@ public class MatchService {
                 if (match.getPlayerId1() == userId) {
                     switch (match.getVerdict()) {
                         case PLAYER_1:
-                            auto.wins++;
+                            auto.setWins(auto.getWins() + 1);
                             break;
                         case PLAYER_2:
-                            auto.losses++;
+                            auto.setLosses(auto.getLosses() + 1);
                             break;
                         default:
-                            auto.ties++;
+                            auto.setTies(auto.getTies() + 1);
                     }
                 } else if (match.getPlayerId2() == userId) {
                     switch (match.getVerdict()) {
                         case PLAYER_1:
-                            auto.losses++;
+                            auto.setLosses(auto.getLosses() + 1);
                             break;
                         case PLAYER_2:
-                            auto.wins++;
+                            auto.setWins(auto.getWins() + 1);
                             break;
                         default:
-                            auto.ties++;
+                            auto.setTies(auto.getTies() + 1);
                     }
                 }
             } else if (match.getPlayerId1() == userId) {
                 switch (match.getVerdict()) {
                     case PLAYER_1:
-                        initiated.wins++;
+                        initiated.setWins(initiated.getWins() + 1);
                         break;
                     case PLAYER_2:
-                        initiated.losses++;
+                        initiated.setLosses(initiated.getLosses() + 1);
                         break;
                     default:
-                        initiated.ties++;
+                        initiated.setTies(initiated.getTies() + 1);
                 }
             } else if (match.getPlayerId2() == userId) {
                 switch (match.getVerdict()) {
                     case PLAYER_1:
-                        faced.losses++;
+                        faced.setLosses(faced.getLosses() + 1);
                         break;
                     case PLAYER_2:
-                        faced.wins++;
+                        faced.setWins(faced.getWins() + 1);
                         break;
                     default:
-                        faced.ties++;
+                        faced.setTies(faced.getTies() + 1);
                 }
             }
         }
@@ -172,18 +172,18 @@ public class MatchService {
             switch (match.getVerdict()) {
                 case PLAYER_1:
                     if (match.getPlayerId1().equals(userId))
-                        matchStats.wins++;
+                        matchStats.setWins(matchStats.getWins() + 1);
                     else
-                        matchStats.losses++;
+                        matchStats.setLosses(matchStats.getLosses() + 1);
                     break;
                 case PLAYER_2:
                     if (match.getPlayerId2().equals(userId))
-                        matchStats.wins++;
+                        matchStats.setWins(matchStats.getWins() + 1);
                     else
-                        matchStats.losses++;
+                        matchStats.setLosses(matchStats.getLosses() + 1);
                     break;
                 case TIE:
-                    matchStats.ties++;
+                    matchStats.setTies(matchStats.getTies() + 1);
                     break;
             }
         }
