@@ -27,15 +27,18 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @Service
-public class VersionControlService {
+public class CodeVersionControlService {
 
-    private static final Logger LOG = Logger.getLogger(VersionControlService.class.getName());
+    private static final Logger LOG = Logger.getLogger(CodeVersionControlService.class.getName());
 
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
 
     @Value("${storage.playercode.filename}")
     private String codeFileName;
+
+    @Autowired
+    private CodeStatusService codeStatusService;
 
     @Autowired
     CodeStatusRepository codeStatusRepository;
@@ -52,7 +55,7 @@ public class VersionControlService {
         gitAdd(userId);
         String commitHash = commit(userId, commitMessage);
 
-        CodeStatus codeStatus = findCodeStatusByUserId(userId);
+        CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
         codeStatus.setCurrentCommit(commitHash);
         codeStatus.setLastSavedAt(LocalDateTime.now());
         codeStatusRepository.save(codeStatus);
@@ -69,26 +72,8 @@ public class VersionControlService {
     @SneakyThrows
     public String getLastSavedTime(Integer userId) {
         if (!checkCodeRepositoryExists(userId)) return null;
-        CodeStatus codeStatus = findCodeStatusByUserId(userId);
+        CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
         return codeStatus.getLastSavedAt().toString();
-    }
-
-    /**
-     * View the contents of file at a particular commit
-     *
-     * @param userId     UserId of the given user
-     * @param commitHash Commit hash of commit
-     * @return Details of the code
-     */
-    @SneakyThrows
-    public String getCodeByCommitHash(Integer userId, String commitHash) {
-        if (!checkCodeRepositoryExists(userId)) return null;
-
-        checkout(userId, commitHash);
-        String code = getCode(userId);
-        resetHead(userId);
-
-        return code;
     }
 
     /**
@@ -186,6 +171,7 @@ public class VersionControlService {
         FileHandler.createFile(getCodeFileUri(userId));
 
         gitAdd(userId);
+        commit(userId, "Initial Commit");
 
         git.close();
     }
@@ -348,21 +334,5 @@ public class VersionControlService {
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
         return true;
-    }
-
-    /**
-     * Find CodeStatus by userId
-     *
-     * @param userId userId of the given user
-     * @return CodeStatus details of the given user
-     */
-    private CodeStatus findCodeStatusByUserId(Integer userId) {
-        CodeStatus codeStatus = codeStatusRepository.findByUserId(userId);
-        if (codeStatus == null) {
-            codeStatus = CodeStatus.builder().
-                    userId(userId).
-                    build();
-        }
-        return codeStatus;
     }
 }
