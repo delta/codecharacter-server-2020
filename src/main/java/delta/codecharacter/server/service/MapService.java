@@ -13,11 +13,7 @@ public class MapService {
     @Autowired
     private MapRepository mapRepository;
 
-    public Integer getMapsCount() {
-        return 0;
-    }
-
     public List<Map> getAllMaps() {
-        return null;
+        return mapRepository.findAll();
     }
 }
