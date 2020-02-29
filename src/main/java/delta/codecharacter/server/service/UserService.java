@@ -96,7 +96,6 @@ public class UserService implements UserDetailsService {
         User newUser = User.builder()
                 .userId(userId)
                 .email(user.getEmail())
-                .userType(user.getUserType())
                 .fullName(user.getFullName())
                 .username(user.getUsername())
                 .password(bCryptPasswordEncoder.encode(user.getPassword()))
