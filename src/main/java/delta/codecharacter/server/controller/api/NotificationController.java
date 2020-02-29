@@ -54,7 +54,7 @@ public class NotificationController {
     @PostMapping(value = "/")
     public ResponseEntity<String> createNotification(@RequestBody @Valid CreateNotificationRequest createNotificationRequest, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
-        if (!userService.getIsAdminUserByEmail(email)) {
+        if (!userService.getIsAdminByEmail(email)) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         notificationService.createNotification(createNotificationRequest);
