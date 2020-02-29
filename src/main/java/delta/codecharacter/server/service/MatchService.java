@@ -161,8 +161,9 @@ public class MatchService {
     @SneakyThrows
     public Date getLastManualMatchTime(Integer userId) {
         Match match = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL);
-        if (match == null)
-            return userRepository.findByUserId(userId).getCreatedAt();
+        if (match == null) {
+            return null;
+        }
         return match.getCreatedAt();
     }
 
@@ -174,11 +175,13 @@ public class MatchService {
      * @return if user initiated a match, return time of last match initiated by user
      * else return time of user account creation
      */
-    public Date getLastInitiatedMatchTime(Integer userId) {
+    public Long getLastInitiatedMatchTime(Integer userId) {
         Match match = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO);
-        if (match == null)
-            return userRepository.findByUserId(userId).getCreatedAt();
-        return match.getCreatedAt();
+        LOG.info("userid: " + userId + " match: " + match);
+        if (match == null) {
+            return (long) 0;
+        }
+        return match.getCreatedAt().getTime();
     }
 
     /**
@@ -193,11 +196,11 @@ public class MatchService {
             throw new Exception("Invalid user ID");
 
         Float minWaitTime = Float.parseFloat(constantRepository.findByKey("MATCH_WAIT_TIME").getValue());
-        Date lastInitiatedMatchTime = getLastInitiatedMatchTime(userId);
+        Long lastInitiatedMatchTime = getLastInitiatedMatchTime(userId);
         Date currentTime = new Date();
 
         // Seconds passed since last initiated match
-        Long timePassedSeconds = (currentTime.getTime() - lastInitiatedMatchTime.getTime()) / 1000;
+        Long timePassedSeconds = (currentTime.getTime() - lastInitiatedMatchTime) / 1000;
         if (timePassedSeconds > minWaitTime)
             return (long) 0;
         return (long) (minWaitTime - timePassedSeconds);
