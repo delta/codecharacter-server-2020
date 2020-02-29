@@ -70,9 +70,9 @@ public class UserController {
         return new ResponseEntity<>(matchService.getUserMatchStats(userId), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/wait-time/{userId}")
-    public ResponseEntity<Long> getWaitTime(@PathVariable @NotEmpty Integer userId) {
-        return new ResponseEntity<>(matchService.getWaitTime(userId), HttpStatus.OK);
+    @GetMapping(value = "/wait-time")
+    public ResponseEntity<Long> getWaitTime(Authentication authentication) {
+        return new ResponseEntity<>(matchService.getWaitTime(authentication), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/email/{email}", method = RequestMethod.HEAD)
