@@ -6,9 +6,11 @@ import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse
 import delta.codecharacter.server.controller.response.Game.GameResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.model.TopMatchDetails;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
+import delta.codecharacter.server.repository.TopMatchDetailsRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.MatchStats;
 import delta.codecharacter.server.util.enums.MatchMode;
@@ -48,6 +50,9 @@ public class MatchService {
     private MatchRepository matchRepository;
 
     @Autowired
+    private TopMatchDetailsRepository topMatchDetailsRepository;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -82,6 +87,36 @@ public class MatchService {
         matches.addAll(matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.MANUAL));
         List<MatchResponse> matchResponses = new ArrayList<>();
         for (var match : matches) {
+            User user2 = userRepository.findByUserId(match.getPlayerId2());
+            MatchResponse matchResponse = MatchResponse.builder()
+                    .username1(user1.getUsername())
+                    .username2(user2.getUsername())
+                    .avatar1(user1.getAvatarId())
+                    .avatar2(user1.getAvatarId())
+                    .score1(match.getScore1())
+                    .score2(match.getScore2())
+                    .verdict(match.getVerdict())
+                    .playedAt(match.getCreatedAt())
+                    .build();
+            List<GameResponse> gameResponses = new ArrayList<>();
+            for (var game : gameService.findAllGamesByMatchId(match.getId())) {
+                gameResponses.add(GameResponse.builder()
+                        .id(game.getId())
+                        .mapId(game.getMapId())
+                        .verdict(game.getVerdict())
+                        .build());
+            }
+            matchResponse.setGames(gameResponses);
+        }
+        return matchResponses;
+    }
+
+    public List<MatchResponse> getAllTopMatches() {
+        List<TopMatchDetails> topMatchDetails = topMatchDetailsRepository.findAll();
+        List<MatchResponse> matchResponses = new ArrayList<>();
+        for (var topMatch : topMatchDetails) {
+            Match match = matchRepository.findFirstById(topMatch.getMatchId());
+            User user1 = userRepository.findByUserId(match.getPlayerId1());
             User user2 = userRepository.findByUserId(match.getPlayerId2());
             MatchResponse matchResponse = MatchResponse.builder()
                     .username1(user1.getUsername())

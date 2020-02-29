@@ -107,13 +107,6 @@ public class UserController {
         return new ResponseEntity<>(matchService.getDetailedMatchStatsByUsername(username), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/match")
-    public ResponseEntity<List<MatchResponse>> getMatchesByUserId(Authentication authentication) {
-        String email = userService.getEmailFromAuthentication(authentication);
-        User user = userService.getUserByEmail(email);
-        return new ResponseEntity<>(matchService.getAllMatchesByUserId(user.getUserId()), HttpStatus.OK);
-    }
-
     @GetMapping(value = "/wait-time")
     public ResponseEntity<Long> getWaitTime(Authentication authentication) {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
