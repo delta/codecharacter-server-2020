@@ -1,6 +1,7 @@
 package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.User.*;
+import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
 import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
@@ -95,6 +96,13 @@ public class UserController {
 
         userService.updatePassword(user.getEmail(), updatePasswordRequest.getNewPassword());
         return new ResponseEntity<>("User Password Updated Successfully!", HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/match")
+    public ResponseEntity<List<MatchResponse>> getMatchesByUserId(Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        return new ResponseEntity<>(matchService.getAllMatchesByUserId(user.getUserId()), HttpStatus.OK);
     }
 
     @GetMapping(value = "/match-stats/{username}")

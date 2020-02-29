@@ -5,6 +5,8 @@ import delta.codecharacter.server.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class GameService {
 
@@ -29,6 +31,10 @@ public class GameService {
         gameRepository.save(game);
 
         return game;
+    }
+
+    public List<Game> findAllGamesByMatchId(Integer matchId) {
+        return gameRepository.findAllByMatchId(matchId);
     }
 
     /**
