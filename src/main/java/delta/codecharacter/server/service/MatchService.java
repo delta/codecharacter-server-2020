@@ -3,6 +3,8 @@ package delta.codecharacter.server.service;
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
+import delta.codecharacter.server.controller.response.Game.GameResponse;
+import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
@@ -72,6 +74,36 @@ public class MatchService {
 
         matchRepository.save(match);
         return match;
+    }
+
+    public List<MatchResponse> getAllMatchesByUserId(Integer userId) {
+        User user1 = userRepository.findByUserId(userId);
+        List<Match> matches = matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.AUTO);
+        matches.addAll(matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.MANUAL));
+        List<MatchResponse> matchResponses = new ArrayList<>();
+        for (var match : matches) {
+            User user2 = userRepository.findByUserId(match.getPlayerId2());
+            MatchResponse matchResponse = MatchResponse.builder()
+                    .username1(user1.getUsername())
+                    .username2(user2.getUsername())
+                    .avatar1(user1.getAvatarId())
+                    .avatar2(user1.getAvatarId())
+                    .score1(match.getScore1())
+                    .score2(match.getScore2())
+                    .verdict(match.getVerdict())
+                    .playedAt(match.getCreatedAt())
+                    .build();
+            List<GameResponse> gameResponses = new ArrayList<>();
+            for (var game : gameService.findAllGamesByMatchId(match.getId())) {
+                gameResponses.add(GameResponse.builder()
+                        .id(game.getId())
+                        .mapId(game.getMapId())
+                        .verdict(game.getVerdict())
+                        .build());
+            }
+            matchResponse.setGames(gameResponses);
+        }
+        return matchResponses;
     }
 
     /**
