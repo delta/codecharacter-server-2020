@@ -80,11 +80,10 @@ public class SimulationService {
             }
 
             // Check if the User has any matches that are not yet completed
-            // NOTE: IDLE, EXECUTE_QUEUED, EXECUTING are the statuses indicating unfinished matches
-            Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.IDLE) != null;
-            Boolean isExecuteQueuedMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.EXECUTE_QUEUED) != null;
-            Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.EXECUTING) != null;
-            if (isIdleMatchPresent || isExecuteQueuedMatchPresent || isExecutingMatchPresent) {
+            // NOTE: IDLE, EXECUTING are the statuses indicating unfinished matches
+            Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(userId, Status.IDLE, MatchMode.AUTO) != null;
+            Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(userId, Status.EXECUTING, MatchMode.AUTO) != null;
+            if (isIdleMatchPresent || isExecutingMatchPresent) {
                 socketService.sendMessage(socketDest + userId, "Previous match has not completed");
                 return;
             }
@@ -205,10 +204,10 @@ public class SimulationService {
 
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
 
-        socketService.sendMessage(socketDest + userId, "Match added to queue");
+        socketService.sendMessage(socketDest + userId, "Match is executing");
 
-        //set match status to Execute_Queued
-        match.setStatus(Status.EXECUTE_QUEUED);
+        // Set match status to EXECUTING
+        match.setStatus(Status.EXECUTING);
         matchRepository.save(match);
     }
 }

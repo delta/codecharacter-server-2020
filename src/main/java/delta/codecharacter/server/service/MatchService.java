@@ -139,7 +139,7 @@ public class MatchService {
             }
         }
 
-        Date lastMatchAt = getLastManualMatchTime(userId);
+        Date lastMatchAt = getLastInitiatedManualMatchTime(userId);
 
         return UserMatchStatsResponse.builder()
                 .userId(userId)
@@ -152,14 +152,14 @@ public class MatchService {
     }
 
     /**
-     * Return the time of last match played by a user against another user
+     * Return the time of last match initiated by a user against another user
      *
      * @param userId - User id of the user
      * @return if user played a Manual match, return time of last manual match played by user
      * else return time of user account creation
      */
     @SneakyThrows
-    public Date getLastManualMatchTime(Integer userId) {
+    public Date getLastInitiatedManualMatchTime(Integer userId) {
         Match match = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL);
         if (match == null) {
             return null;
