@@ -181,13 +181,13 @@ public class LeaderboardService {
         return getLeaderboardResponseFromLeaderboardData(groupResults.getMappedResults());
     }
 
-    /* Get details of users of given userType and division
+    /* Get leaderboard data of users with given userType and division
      *
-     * @param userType   desired userType
-     * @param division   desired division
+     * @param userType   userType to be filtered
+     * @param division   division to be filtered
      * @param pageNumber page number
      * @param pageSize   page size
-     * @return list of users of given userType
+     * @return leaderboard data of the users of given userType and division
      */
     public List<PublicLeaderboardResponse> getLeaderboardDataByUserTypeAndDivisionPaginated(UserType userType, Division division, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
