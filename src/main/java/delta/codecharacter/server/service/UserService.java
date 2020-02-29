@@ -7,6 +7,12 @@ import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.response.PragyanApiResponse;
 import delta.codecharacter.server.controller.request.User.*;
+import delta.codecharacter.server.controller.request.User.ActivateUserRequest;
+import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
+import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
+import delta.codecharacter.server.controller.request.User.UpdateUserRequest;
+import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
+import delta.codecharacter.server.controller.response.User.PublicUserResponse;
 import delta.codecharacter.server.model.PasswordResetDetails;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.model.UserActivation;
@@ -95,7 +101,6 @@ public class UserService implements UserDetailsService {
         User newUser = User.builder()
                 .userId(userId)
                 .email(user.getEmail())
-                .userType(user.getUserType())
                 .fullName(user.getFullName())
                 .username(user.getUsername())
                 .password(bCryptPasswordEncoder.encode(user.getPassword()))
@@ -158,6 +163,14 @@ public class UserService implements UserDetailsService {
         String username = email.split("@")[0];
         if (name == null) name = email.split("@")[0];
 
+        String count = "";
+        Integer c = 0;
+        while (isUsernamePresent(username + count)) {
+            c++;
+            count = String.valueOf(c);
+        }
+        username += count;
+
         User newUser = User.builder()
                 .userId(userId)
                 .email(email)
@@ -178,14 +191,30 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Get the details of the authenticated user
+     * Get the public details of the a user
+     *
+     * @return Public details of the a user
+     */
+    public PublicUserResponse getPublicUser(String username) {
+        User user = userRepository.findByUsername(username);
+
+        return PublicUserResponse.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .country(user.getCountry())
+                .avatarId(user.getAvatarId())
+                .build();
+    }
+
+    /**
+     * Get all details of the authenticated user
      *
      * @return Details of the authenticated user
      */
-    public PublicUserRequest getUser(Authentication authentication) {
-        User user = userRepository.findByEmail(getEmailFromAuthentication(authentication));
+    public PrivateUserResponse getPrivateUser(Integer userId) {
+        User user = userRepository.findByUserId(userId);
 
-        return PublicUserRequest.builder()
+        return PrivateUserResponse.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
@@ -292,7 +321,7 @@ public class UserService implements UserDetailsService {
 
         //Since Activation has failed send a new Activation token
         sendActivationToken(user.getUserId());
-        return "Activation Token Expired";
+        return "Activation Token Expired! A new token has been sent to the same email.";
     }
 
     /**
@@ -440,6 +469,10 @@ public class UserService implements UserDetailsService {
     @Transactional
     public void updateUser(String email, @NotNull UpdateUserRequest updateUserRequest) {
         User user = getUserByEmail(email);
+
+        if (isUsernamePresent(updateUserRequest.getUsername()))
+            throw new Exception("Username already exists");
+
         User newUser = User.builder()
                 .userId(user.getUserId())
                 .username(updateUserRequest.getUsername() == null ? user.getUsername() : updateUserRequest.getUsername())

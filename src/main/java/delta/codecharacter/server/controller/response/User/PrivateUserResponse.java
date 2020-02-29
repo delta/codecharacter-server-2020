@@ -1,4 +1,4 @@
-package delta.codecharacter.server.controller.request.User;
+package delta.codecharacter.server.controller.response.User;
 
 import delta.codecharacter.server.util.enums.UserType;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class PublicUserRequest {
+public class PrivateUserResponse {
 
     private Integer userId;
 

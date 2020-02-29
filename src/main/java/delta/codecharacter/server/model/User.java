@@ -32,7 +32,8 @@ public class User {
 
     @Field("user_type")
     @NotNull
-    private UserType userType;
+    @Builder.Default
+    private UserType userType = UserType.PROFESSIONAL;
 
     @NotNull
     @Email
