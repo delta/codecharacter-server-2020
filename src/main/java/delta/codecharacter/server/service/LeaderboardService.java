@@ -209,8 +209,7 @@ public class LeaderboardService {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
                 lookup("user", "user_id", "_id", "join"),
-                match(Criteria.where("join.user_type").is(userType)),
-                match(Criteria.where("division").is(division)),
+                match(Criteria.where("join.user_type").is(userType).and("division").is(division)),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
                 skip((long) pageable.getPageNumber() * pageable.getPageSize()),
                 limit(pageable.getPageSize())
