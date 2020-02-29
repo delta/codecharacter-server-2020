@@ -52,25 +52,36 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     UserRatingService userRatingService;
+
     Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private UserActivationRepository userActivationRepository;
+
     @Autowired
     private PasswordResetDetailsRepository passwordResetDetailsRepository;
+
     @Autowired
     private LeaderboardService leaderboardService;
+
     @Autowired
     private VersionControlService versionControlService;
+
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Autowired
     private JavaMailSender javaMailSender;
+
     @Value("${pragyan.event-id}")
     private String pragyanEventId;
+
     @Value("${pragyan.event-secret}")
     private String pragyanEventSecret;
+
     @Value("${pragyan.event-login-url}")
     private String pragyanEventLoginUrl;
 
@@ -111,6 +122,12 @@ public class UserService implements UserDetailsService {
     public User registerPragyanUser(String email, String password) {
         Integer userId = getMaxUserId() + 1;
         String username = email.split("@")[0];
+
+        Integer c = 1;
+        while (isUsernamePresent(username + c)) {
+            c++;
+        }
+        username += c;
 
         User newUser = User.builder()
                 .userId(userId)
