@@ -3,8 +3,6 @@ package delta.codecharacter.server.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.User.ActivateUserRequest;
-import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
-import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.request.User.UpdateUserRequest;
 import delta.codecharacter.server.controller.response.User.PragyanApiResponse;
 import delta.codecharacter.server.controller.response.User.PragyanUserDetails;
