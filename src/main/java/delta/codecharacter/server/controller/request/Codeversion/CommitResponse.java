@@ -1,4 +1,4 @@
-package delta.codecharacter.server.controller.request.codeversion;
+package delta.codecharacter.server.controller.request.Codeversion;
 
 import lombok.Builder;
 import lombok.Data;
