@@ -48,4 +48,10 @@ public class LeaderboardController {
         return new ResponseEntity<List<LeaderboardResponse>>(leaderboardService.getLeaderboardDataByUserType(userType, PageNo, PageSize), HttpStatus.OK);
     }
 
+    @GetMapping("userType/{userType}/division/{division}/{PageNo}/{PageSize}")
+    public ResponseEntity<List<LeaderboardResponse>> getLeaderboardDataByUserTypeAndDivision(@PathVariable @NotEmpty UserType userType, @PathVariable @NotEmpty Division division, @PathVariable @NotEmpty Integer PageNo, @PathVariable @NotEmpty Integer PageSize) {
+        PageUtils.validatePaginationParams(PageNo, PageSize);
+        return new ResponseEntity<List<LeaderboardResponse>>(leaderboardService.getLeaderboardDataByUserTypeAndDivision(userType, division, PageNo, PageSize), HttpStatus.OK);
+    }
+
 }

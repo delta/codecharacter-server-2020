@@ -196,4 +196,34 @@ public class LeaderboardService {
         return leaderboard;
     }
 
+    /**
+     * Get details of users of given userType and division
+     *
+     * @param userType   desired userType
+     * @param division   desired division
+     * @param pageNumber page number
+     * @param pageSize   page size
+     * @return list of users of given userType
+     */
+    public List<LeaderboardResponse> getLeaderboardDataByUserTypeAndDivision(UserType userType, Division division, Integer pageNumber, Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Aggregation aggregation = newAggregation(
+                lookup("user", "user_id", "_id", "join"),
+                match(Criteria.where("join.user_type").is(userType)),
+                match(Criteria.where("division").is(division)),
+                sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
+                limit(pageable.getPageSize())
+        );
+
+        AggregationResults<LeaderboardResponse> groupResults = mongoTemplate.aggregate(
+                aggregation, Leaderboard.class, LeaderboardResponse.class);
+        List<LeaderboardResponse> leaderboard = groupResults.getMappedResults();
+        for (var leaderboardData : leaderboard) {
+            leaderboardData.setUsername(userRepository.findByUserId(leaderboardData.getUserId()).getUsername());
+            leaderboardData.setRank(getRank(leaderboardData.getRating()));
+        }
+        return leaderboard;
+    }
+
 }
