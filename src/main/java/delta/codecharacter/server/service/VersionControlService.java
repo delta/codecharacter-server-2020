@@ -1,5 +1,8 @@
 package delta.codecharacter.server.service;
 
+import delta.codecharacter.server.controller.request.Codeversion.CommitResponse;
+import delta.codecharacter.server.model.CodeStatus;
+import delta.codecharacter.server.repository.CodeStatusRepository;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.FileHandler;
 import delta.codecharacter.server.util.enums.DllId;
@@ -13,19 +16,103 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 @Service
 public class VersionControlService {
+
+    private static final Logger LOG = Logger.getLogger(VersionControlService.class.getName());
 
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
 
     @Value("${storage.playercode.filename}")
     private String codeFileName;
+
+    @Autowired
+    private CodeStatusService codeStatusService;
+
+    @Autowired
+    CodeStatusRepository codeStatusRepository;
+
+    /**
+     * Commit the saved code
+     *
+     * @param userId UserId of the given user
+     * @return Commit hash of the created commit
+     */
+    @SneakyThrows
+    public String commitCode(Integer userId, String commitMessage) {
+        if (!checkCodeRepositoryExists(userId)) return null;
+        gitAdd(userId);
+        String commitHash = commit(userId, commitMessage);
+
+        CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
+        codeStatus.setCurrentCommit(commitHash);
+        codeStatus.setLastSavedAt(LocalDateTime.now());
+        codeStatusRepository.save(codeStatus);
+
+        return commitHash;
+    }
+
+    /**
+     * Get the last saved time for the given user
+     *
+     * @param userId UserId of the given user
+     * @return Last saved time for the given user
+     */
+    @SneakyThrows
+    public String getLastSavedTime(Integer userId) {
+        if (!checkCodeRepositoryExists(userId)) return null;
+        CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
+        return codeStatus.getLastSavedAt().toString();
+    }
+
+    /**
+     * Get log of all commits
+     *
+     * @param userId UserId of the given user
+     * @return Returns git log
+     */
+    @SneakyThrows
+    public List<CommitResponse> getLog(Integer userId) {
+        if (!checkCodeRepositoryExists(userId)) return null;
+        List<CommitResponse> commitResponses = new ArrayList<>();
+        for (RevCommit revCommit : log(userId)) {
+            CommitResponse commitResponse = CommitResponse.builder()
+                    .commitName(revCommit.getFullMessage())
+                    .commitHash(revCommit.getName())
+                    .timestamp(revCommit.getAuthorIdent().getWhen()).build();
+            commitResponses.add(commitResponse);
+        }
+        return commitResponses;
+    }
+
+    /**
+     * Fork one's own commit
+     *
+     * @param userId     UserId of the user
+     * @param commitHash Commit hash of the required commit
+     * @return True if the fork was successful, False otherwise
+     */
+    @SneakyThrows
+    public boolean forkCommitByHash(Integer userId, String commitHash) {
+        if (!checkCodeRepositoryExists(userId)) return false;
+        checkout(userId, commitHash);
+        String code = getCode(userId);
+        resetHead(userId);
+        setCode(userId, code);
+        gitAdd(userId);
+        return true;
+    }
 
     /**
      * Return the absolute path to the codes directory of given userId
@@ -34,7 +121,7 @@ public class VersionControlService {
      * @return Path to codes directory
      */
     private String getCodeRepositoryUri(Integer userId) {
-        return System.getProperty("user.dir") + codeStoragePath + File.separator + userId;
+        return System.getProperty("user.dir") + File.separator + codeStoragePath + File.separator + userId;
     }
 
     /**
@@ -48,6 +135,17 @@ public class VersionControlService {
     }
 
     /**
+     * Check if code repository exists
+     *
+     * @param userId UserId of the user
+     * @return True if code repository exists, False otherwise
+     */
+    public boolean checkCodeRepositoryExists(Integer userId) {
+        String codeRepositoryUri = getCodeRepositoryUri(userId);
+        return FileHandler.checkFileExists(codeRepositoryUri);
+    }
+
+    /**
      * Create a new code repository with git initialized for given userId
      *
      * @param userId UserId of the user
@@ -58,9 +156,6 @@ public class VersionControlService {
 
         if (!FileHandler.checkFileExists(codeRepositoryUri)) {
             boolean dirCreated = FileHandler.createDirectory(codeRepositoryUri);
-            if (!dirCreated) {
-                throw new Exception("Cannot create directory");
-            }
         }
 
         // git init
@@ -73,13 +168,10 @@ public class VersionControlService {
         }
 
         // Create code file, add and commit
-        if (!FileHandler.createFile(getCodeFileUri(userId))) {
-            git.close();
-            throw new Exception("Code file cannot be created");
-        }
+        FileHandler.createFile(getCodeFileUri(userId));
 
-        add(userId);
-        commit(userId);
+        gitAdd(userId);
+        commit(userId, "Initial Commit");
 
         git.close();
     }
@@ -90,7 +182,7 @@ public class VersionControlService {
      * @param userId UserId of user
      */
     @SneakyThrows
-    private void add(Integer userId) {
+    private void gitAdd(Integer userId) {
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
         // git add .
         git.add().addFilepattern(".").call();
@@ -104,10 +196,13 @@ public class VersionControlService {
      * @return Iterable of commits
      */
     @SneakyThrows
-    public Iterable<RevCommit> log(Integer userId) {
+    private Iterable<RevCommit> log(Integer userId) {
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
+
         Repository repository = git.getRepository();
         ObjectId HEAD = repository.resolve("refs/heads/master");
+
+        if (HEAD == null) return new ArrayList<>();
 
         // git log on master
         Iterable<RevCommit> log = git.log().add(HEAD).call();
@@ -117,40 +212,24 @@ public class VersionControlService {
     }
 
     /**
-     * Get number of commits in user's code repository
-     *
-     * @param userId UserId of user
-     * @return long Number of commits
-     */
-    @SneakyThrows
-    private long getCommitCount(Integer userId) {
-        var log = log(userId);
-        long commitCount = log.spliterator().getExactSizeIfKnown();
-
-        // Iterable is not sized
-        if (commitCount == -1) {
-            commitCount = 0;
-        }
-
-        return commitCount;
-    }
-
-    /**
      * Commit the user's code repository
      *
      * @param userId UserId of user
      */
     @SneakyThrows
-    public void commit(Integer userId) {
-        var commitCount = getCommitCount(userId);
+    public String commit(Integer userId, String commitMessage) {
+        if (!checkCodeRepositoryExists(userId)) return null;
+
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
 
+        git.add().addFilepattern(".").call();
         // git commit -m "Commit #{commitCount}"
-        git.commit()
+        RevCommit commit = git.commit()
                 .setAuthor("Codecharacter", "codecharacter@pragyan.org")
-                .setMessage("Commit #" + commitCount)
+                .setMessage(commitMessage)
                 .call();
         git.close();
+        return commit.getName();
     }
 
     /**
@@ -161,6 +240,8 @@ public class VersionControlService {
      */
     @SneakyThrows
     public void checkout(Integer userId, String commitHash) {
+        if (!checkCodeRepositoryExists(userId)) return;
+
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
 
         // If already checked out, need to reset head to master
@@ -217,6 +298,8 @@ public class VersionControlService {
      */
     @SneakyThrows
     public void resetHead(Integer userId) {
+        if (!checkCodeRepositoryExists(userId)) return;
+
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
 
         // git checkout master
@@ -231,8 +314,8 @@ public class VersionControlService {
      * @return Contents of file
      */
     public String getCode(Integer userId) {
+        if (!checkCodeRepositoryExists(userId)) return null;
         String codeFileUri = getCodeFileUri(userId);
-        if (!FileHandler.checkFileExists(codeFileUri)) return null;
         return FileHandler.getFileContents(codeFileUri);
     }
 
@@ -242,13 +325,14 @@ public class VersionControlService {
      * @param userId UserId of user
      * @param code   Code to be inside the code file
      */
-    public void setCode(Integer userId, String code) {
-
+    public boolean setCode(Integer userId, String code) {
         //Since code changes the dlls become obsolete
         DllUtil.deleteDllFile(userId, DllId.DLL_1);
         DllUtil.deleteDllFile(userId, DllId.DLL_2);
 
+        if (!checkCodeRepositoryExists(userId)) createCodeRepository(userId);
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
+        return true;
     }
 }
