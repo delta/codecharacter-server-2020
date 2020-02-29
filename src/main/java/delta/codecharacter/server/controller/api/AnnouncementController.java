@@ -34,7 +34,7 @@ public class AnnouncementController {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>("User not found!", HttpStatus.UNAUTHORIZED);
-        if (!userService.getIsAdminUserByEmail(email)) {
+        if (!userService.getIsAdminByEmail(email)) {
             return new ResponseEntity<>("Unauthorized!", HttpStatus.UNAUTHORIZED);
         }
         announcementService.createAnnouncement(announcementMessage, user.getUserId());

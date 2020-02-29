@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface PasswordResetDetailsRepository extends MongoRepository<PasswordResetDetails, Integer> {
     void deleteByUserId(Integer userId);
 
-    PasswordResetDetails findByPasswordResetToken(String passwordResetToken);
+    PasswordResetDetails findByUserId(Integer userId);
 }

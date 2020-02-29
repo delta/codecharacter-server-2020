@@ -38,7 +38,9 @@ import java.util.logging.Logger;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final Logger LOG = Logger.getLogger(WebSecurityConfig.class.getName());
-    String[] ignoringAntMatchers = {"/", "/login/**", "/error/**", "/logout", "/user", "/user/activate", "/user/forgot-password", "/user/password"};
+
+    //routes which do not require authentication
+    String[] ignoringAntMatchers = {"/", "/login/**", "/error/**", "/logout", "/user", "/user/**"};
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;

@@ -1,18 +1,18 @@
 package delta.codecharacter.server.controller.request.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 @Data
-public class PasswordResetRequest {
-    @NotNull
-    private Integer userId;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class UpdatePasswordRequest {
 
     @NotEmpty(message = "{constraints.NotEmpty.message}")
-    private String passwordResetToken;
+    private String oldPassword;
 
     @NotEmpty(message = "{constraints.NotEmpty.message}")
     private String newPassword;
+
 }
