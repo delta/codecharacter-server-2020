@@ -7,6 +7,7 @@ import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.request.User.UpdateUserRequest;
 import delta.codecharacter.server.controller.response.PragyanApiResponse;
+import delta.codecharacter.server.controller.response.PragyanUserDetails;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
 import delta.codecharacter.server.model.PasswordResetDetails;
@@ -119,21 +120,17 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public User registerPragyanUser(String email, String password) {
+    public User registerPragyanUser(String email, String password, PragyanUserDetails pragyanUserDetails) {
         Integer userId = getMaxUserId() + 1;
         String username = email.split("@")[0];
-
-        Integer c = 1;
-        while (isUsernamePresent(username + c)) {
-            c++;
-        }
-        username += c;
 
         User newUser = User.builder()
                 .userId(userId)
                 .email(email)
                 .username(username)
+                .fullName(pragyanUserDetails.getFullName())
                 .password(bCryptPasswordEncoder.encode(password))
+                .country(pragyanUserDetails.getUserCountry())
                 .authMethod(AuthMethod.PRAGYAN)
                 .isActivated(true)
                 .build();
@@ -165,11 +162,7 @@ public class UserService implements UserDetailsService {
         String username = email.split("@")[0];
         if (name == null) name = email.split("@")[0];
 
-        Integer c = 1;
-        while (isUsernamePresent(username + c)) {
-            c++;
-        }
-        username += c;
+        username = getUniqueUsername(username);
 
         User newUser = User.builder()
                 .userId(userId)
@@ -188,6 +181,22 @@ public class UserService implements UserDetailsService {
         leaderboardService.initializeLeaderboardData(userId);
         // Create a code repository
         versionControlService.createCodeRepository(userId);
+    }
+
+    /**
+     * Get unique username from the given username
+     *
+     * @param username Username sent in the request
+     * @return Unique username corresponding to the given username
+     */
+    private String getUniqueUsername(String username) {
+        if (!isUsernamePresent(username))
+            return username;
+        int suffix = 1;
+        while (isUsernamePresent(username + suffix))
+            suffix++;
+
+        return username + suffix;
     }
 
     /**
@@ -243,10 +252,13 @@ public class UserService implements UserDetailsService {
         // If the user is not present in DB, check if the user is registered with Pragyan.
         if (user == null) {
             var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-            String password = request.getParameter("password"); // get password from request parameter
-            if (!pragyanUserAuth(email, password)) return null;
+            String password = request.getParameter("password");
+            PragyanUserDetails pragyanUserDetails = pragyanUserAuth(email, password);
+            if (pragyanUserDetails == null)
+                return new CustomUserDetails(new User());
+
             // Add the user registered with Pragyan to DB
-            user = registerPragyanUser(email, password);
+            user = registerPragyanUser(email, password, pragyanUserDetails);
             return new CustomUserDetails(user);
         }
 
@@ -256,7 +268,10 @@ public class UserService implements UserDetailsService {
         if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
             var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             String password = request.getParameter("password"); // get password from request parameter
-            if (!pragyanUserAuth(email, password)) return null;
+            PragyanUserDetails pragyanUserDetails = pragyanUserAuth(email, password);
+            if (pragyanUserDetails == null) {
+                return new CustomUserDetails(new User());
+            }
             return new CustomUserDetails(user);
         }
 
@@ -265,7 +280,7 @@ public class UserService implements UserDetailsService {
     }
 
     @SneakyThrows
-    private boolean pragyanUserAuth(String email, String password) {
+    private PragyanUserDetails pragyanUserAuth(String email, String password) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -285,11 +300,11 @@ public class UserService implements UserDetailsService {
 
         try {
             var userDetailsResponse = gson.fromJson(result.getBody(), PragyanApiResponse.class);
-            return userDetailsResponse.getStatusCode().equals(200);
+            return userDetailsResponse.getMessage();
         }
         // If credentials are wrong, response will be string instead of type PragyanApiResponse
         catch (Exception e) {
-            return false;
+            return null;
         }
     }
 
