@@ -192,7 +192,8 @@ public class UserService implements UserDetailsService {
     private String getUniqueUsername(String username) {
         if (!isUsernamePresent(username))
             return username;
-        int suffix = 1;
+        
+        Integer suffix = 1;
         while (isUsernamePresent(username + suffix))
             suffix++;
 
