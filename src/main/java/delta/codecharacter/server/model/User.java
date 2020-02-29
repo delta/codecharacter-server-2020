@@ -2,8 +2,10 @@ package delta.codecharacter.server.model;
 
 import delta.codecharacter.server.util.enums.AuthMethod;
 import delta.codecharacter.server.util.enums.UserType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -12,6 +14,8 @@ import java.util.Date;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
 
     @Id
