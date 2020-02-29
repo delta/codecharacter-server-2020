@@ -1,4 +1,4 @@
-package delta.codecharacter.server.controller.response;
+package delta.codecharacter.server.controller.response.Match;
 
 import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;

@@ -1,4 +1,4 @@
-package delta.codecharacter.server.controller.response;
+package delta.codecharacter.server.controller.response.User;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;

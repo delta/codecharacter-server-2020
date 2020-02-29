@@ -1,7 +1,8 @@
-package delta.codecharacter.server.controller.response;
+package delta.codecharacter.server.controller.response.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.SerializedName;
+import delta.codecharacter.server.controller.response.User.PragyanUserDetails;
 import lombok.Builder;
 import lombok.Data;
 
