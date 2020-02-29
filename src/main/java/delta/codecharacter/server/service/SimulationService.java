@@ -63,7 +63,8 @@ public class SimulationService {
      * Send an execute match request to compile-box
      *
      * @param simulateMatchRequest Details of the match to be simulated
-     * @param userId               UserId of the User initiating the match
+     * @param userId               UserId of the User to whom socket messages are to be sent
+     *                             NOTE: userId is null if matchMode is AUTO
      */
     @SneakyThrows
     public void simulateMatch(SimulateMatchRequest simulateMatchRequest, @Nullable Integer userId) {
@@ -78,10 +79,11 @@ public class SimulationService {
                 return;
             }
 
+            // Check if the User has any matches that are not yet completed
+            // NOTE: IDLE, EXECUTE_QUEUED, EXECUTING are the statuses indicating unfinished matches
             Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.IDLE) != null;
             Boolean isExecuteQueuedMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.EXECUTE_QUEUED) != null;
             Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.EXECUTING) != null;
-
             if (isIdleMatchPresent || isExecuteQueuedMatchPresent || isExecutingMatchPresent) {
                 socketService.sendMessage(socketDest + userId, "Previous match has not completed");
                 return;
@@ -90,7 +92,6 @@ public class SimulationService {
 
         String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
         String dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
-
         String player1Code = null;
         String player2Code = null;
         if (dll1 == null) player1Code = versionControlService.getCode(playerId1);
@@ -115,7 +116,6 @@ public class SimulationService {
                 }
 
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.SELF);
-
                 Game newGame = gameService.createGame(match.getId(), mapId);
 
                 ExecuteGameDetails executeGameDetails = ExecuteGameDetails.builder()
