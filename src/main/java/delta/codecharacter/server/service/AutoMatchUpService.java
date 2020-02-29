@@ -92,7 +92,7 @@ public class AutoMatchUpService {
 
         // TODO: Fetch from constants
         // Match up is executed every frequency seconds from midnight
-        var autoMatchUpFrequencySeconds = 60L;
+        var autoMatchUpFrequencySeconds = Long.parseLong(constantService.getConstantValueByKey("AUTO_MATCH_UP_FREQUENCY_SECONDS"));
 
         // Wait to synchronize the scheduler with match frequency
         try {
