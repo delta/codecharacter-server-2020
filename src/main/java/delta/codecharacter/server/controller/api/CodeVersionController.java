@@ -50,11 +50,11 @@ public class CodeVersionController {
 
     @PostMapping(value = "/commit")
     @SneakyThrows
-    public ResponseEntity<String> commit(Authentication authentication) {
+    public ResponseEntity<String> commit(@RequestBody @Valid String commitMessage, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
-        String commitHash = versionControlService.commitCode(user.getUserId());
+        String commitHash = versionControlService.commitCode(user.getUserId(), commitMessage);
         if (commitHash == null) return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
         return new ResponseEntity<>(commitHash, HttpStatus.OK);
     }

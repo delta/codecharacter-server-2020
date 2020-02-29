@@ -47,10 +47,10 @@ public class VersionControlService {
      * @return Commit hash of the created commit
      */
     @SneakyThrows
-    public String commitCode(Integer userId) {
+    public String commitCode(Integer userId, String commitMessage) {
         if (!checkCodeRepositoryExists(userId)) return null;
         gitAdd(userId);
-        String commitHash = commit(userId);
+        String commitHash = commit(userId, commitMessage);
 
         CodeStatus codeStatus = findCodeStatusByUserId(userId);
         codeStatus.setCurrentCommit(commitHash);
@@ -226,43 +226,21 @@ public class VersionControlService {
     }
 
     /**
-     * Get number of commits in user's code repository
-     *
-     * @param userId UserId of user
-     * @return long Number of commits
-     */
-    @SneakyThrows
-    private long getCommitCount(Integer userId) {
-        var log = log(userId);
-        long commitCount = 0;
-
-        for (var commit : log) ++commitCount;
-
-        // Iterable is not sized
-        if (commitCount == -1) {
-            commitCount = 0;
-        }
-
-        return commitCount;
-    }
-
-    /**
      * Commit the user's code repository
      *
      * @param userId UserId of user
      */
     @SneakyThrows
-    public String commit(Integer userId) {
+    public String commit(Integer userId, String commitMessage) {
         if (!checkCodeRepositoryExists(userId)) return null;
 
-        var commitCount = getCommitCount(userId);
         Git git = Git.open(FileHandler.getFile(getCodeRepositoryUri(userId)));
 
         git.add().addFilepattern(".").call();
         // git commit -m "Commit #{commitCount}"
         RevCommit commit = git.commit()
                 .setAuthor("Codecharacter", "codecharacter@pragyan.org")
-                .setMessage("Commit #" + commitCount)
+                .setMessage(commitMessage)
                 .call();
         git.close();
         return commit.getName();
