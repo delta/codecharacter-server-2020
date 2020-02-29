@@ -141,6 +141,24 @@ public class LeaderboardService {
     }
 
     /**
+     * Get details of all users playing in given division
+     *
+     * @param division desired division
+     * @return list of all users playing in the given division
+     */
+    public List<LeaderboardData> getLeaderboardDataByDivision(Division division) {
+        Aggregation aggregation = newAggregation(
+                match(Criteria.where("division").is(division)),
+                lookup("user", "user_id", "_id", "join"),
+                sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending()))
+        );
+
+        var groupResults = mongoTemplate.aggregate(aggregation, Leaderboard.class, LeaderboardData.class);
+
+        return groupResults.getMappedResults();
+    }
+
+    /**
      * Get details of users of given userType
      *
      * @param userType   desired userType
@@ -148,7 +166,7 @@ public class LeaderboardService {
      * @param pageSize   page size
      * @return list of users of given userType
      */
-    public List<PublicLeaderboardResponse> getLeaderboardDataByUserType(UserType userType, Integer pageNumber, Integer pageSize) {
+    public List<PublicLeaderboardResponse> getLeaderboardDataByUserTypePaginated(UserType userType, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
                 lookup("user", "user_id", "_id", "join"),

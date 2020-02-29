@@ -45,7 +45,7 @@ public class LeaderboardController {
     @GetMapping("/userType/{userType}/{PageNo}/{PageSize}")
     public ResponseEntity<List<PublicLeaderboardResponse>> getLeaderboardDataByUserType(@PathVariable @NotEmpty UserType userType, @PathVariable @NotEmpty Integer PageNo, @PathVariable @NotEmpty Integer PageSize) {
         PageUtils.validatePaginationParams(PageNo, PageSize);
-        return new ResponseEntity<>(leaderboardService.getLeaderboardDataByUserType(userType, PageNo, PageSize), HttpStatus.OK);
+        return new ResponseEntity<>(leaderboardService.getLeaderboardDataByUserTypePaginated(userType, PageNo, PageSize), HttpStatus.OK);
     }
 
 }
