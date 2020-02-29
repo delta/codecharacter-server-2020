@@ -3,6 +3,7 @@ package delta.codecharacter.server.service;
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
@@ -76,15 +77,18 @@ public class MatchService {
     /**
      * Return the match statistics of a user
      *
-     * @param userId UserId of the given user
+     * @param username Username of the given user
      * @return match statistics of the user
      */
     @SneakyThrows
-    public UserMatchStatsResponse getUserMatchStats(@NotEmpty Integer userId) {
-        if (userRepository.findByUserId(userId) == null)
-            throw new Exception("Invalid userID");
+    public UserMatchStatsResponse getUserMatchStats(String username) {
+        User user = userRepository.findByUsername(username);
+        Integer userId = user.getUserId();
 
-        List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2AndMatchModeOrMatchMode(userId, userId, MatchMode.MANUAL, MatchMode.AUTO);
+        List<Match> matches = matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.AUTO);
+        matches.addAll(matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.MANUAL));
+        matches.addAll(matchRepository.findAllByPlayerId2AndMatchMode(userId, MatchMode.AUTO));
+        matches.addAll(matchRepository.findAllByPlayerId2AndMatchMode(userId, MatchMode.MANUAL));
 
         UserMatchStatData initiated = new UserMatchStatData();
         UserMatchStatData faced = new UserMatchStatData();

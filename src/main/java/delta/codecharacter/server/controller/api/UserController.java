@@ -43,10 +43,12 @@ public class UserController {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping(value = "")
-    public ResponseEntity<String> registerUser(@RequestBody @Valid RegisterUserRequest user) {
-        if (userService.isEmailPresent(user.getEmail()))
+    public ResponseEntity<String> registerUser(@RequestBody @Valid RegisterUserRequest registerUserRequest) {
+        if (userService.isEmailPresent(registerUserRequest.getEmail()))
             return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
-        userService.registerUser(user);
+        if (userService.isUsernamePresent(registerUserRequest.getUsername()))
+            return new ResponseEntity<>("Username already exists", HttpStatus.CONFLICT);
+        userService.registerUser(registerUserRequest);
         return new ResponseEntity<>("User Registration Successful!", HttpStatus.CREATED);
     }
 
@@ -55,26 +57,10 @@ public class UserController {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
         if (user == null)
             return new ResponseEntity<>("Invalid Login", HttpStatus.UNAUTHORIZED);
+        if (updateUserRequest.getUsername() != null && userService.isUsernamePresent(updateUserRequest.getUsername()))
+            return new ResponseEntity<>("Username already exists", HttpStatus.CONFLICT);
         userService.updateUser(user.getEmail(), updateUserRequest);
-        return new ResponseEntity<>("User Account Updation Successful!", HttpStatus.OK);
-    }
-
-    //route to enable authenticated user to change their password
-    @PatchMapping(value = "/password")
-    public ResponseEntity<String> updatePassword(@RequestBody @NotEmpty UpdatePasswordRequest updatePasswordRequest, Authentication authentication) {
-        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
-
-        if (user == null)
-            return new ResponseEntity<>("Invalid Login", HttpStatus.UNAUTHORIZED);
-
-        if (user.getAuthMethod() != AuthMethod.MANUAL)
-            return new ResponseEntity<>("Auth type not supported", HttpStatus.UNAUTHORIZED);
-
-        if (!user.getPassword().matches(bCryptPasswordEncoder.encode(updatePasswordRequest.getOldPassword())))
-            return new ResponseEntity<>("Incorrect old password", HttpStatus.UNAUTHORIZED);
-
-        userService.updatePassword(user.getEmail(), updatePasswordRequest.getNewPassword());
-        return new ResponseEntity<>("User Password Updation Successful!", HttpStatus.OK);
+        return new ResponseEntity<>("User Account Updated Successfully!", HttpStatus.OK);
     }
 
     @SneakyThrows
@@ -82,60 +68,88 @@ public class UserController {
     public ResponseEntity<PrivateUserResponse> getPrivateUser(Authentication authentication) {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
         if (user == null)
-            throw new Exception("Invalid Login");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(userService.getPrivateUser(user.getUserId()), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/username/{username}")
-    public ResponseEntity<PublicUserResponse> getPublicUser(String username) {
+    @GetMapping(value = "/{username}")
+    public ResponseEntity<PublicUserResponse> getPublicUser(@PathVariable @NotEmpty String username) {
+        if (!userService.isUsernamePresent(username))
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(userService.getPublicUser(username), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/match-stats/{userId}")
-    public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable @NotEmpty Integer userId) {
-        return new ResponseEntity<>(matchService.getUserMatchStats(userId), HttpStatus.OK);
+    //route to enable authenticated user to change their password
+    @PatchMapping(value = "/password")
+    public ResponseEntity<String> updatePassword(@RequestBody @Valid UpdatePasswordRequest updatePasswordRequest, Authentication authentication) {
+        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
+        if (user == null)
+            return new ResponseEntity<>("Invalid Login", HttpStatus.UNAUTHORIZED);
+
+        // PRAGYAN and SSO authType users should not be allowed to update password
+        if (user.getAuthMethod() != AuthMethod.MANUAL)
+            return new ResponseEntity<>("Auth type not supported", HttpStatus.FORBIDDEN);
+
+        if (!user.getPassword().matches(bCryptPasswordEncoder.encode(updatePasswordRequest.getOldPassword())))
+            return new ResponseEntity<>("Incorrect old password", HttpStatus.UNAUTHORIZED);
+
+        userService.updatePassword(user.getEmail(), updatePasswordRequest.getNewPassword());
+        return new ResponseEntity<>("User Password Updated Successfully!", HttpStatus.OK);
     }
 
-    @SneakyThrows
+    @GetMapping(value = "/match-stats/{username}")
+    public ResponseEntity<UserMatchStatsResponse> getUserMatchStats(@PathVariable @NotEmpty String username) {
+        if (!userService.isUsernamePresent(username))
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(matchService.getUserMatchStats(username), HttpStatus.OK);
+    }
+
     @GetMapping(value = "/wait-time")
     public ResponseEntity<Long> getWaitTime(Authentication authentication) {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
         if (user == null)
-            throw new Exception("Invalid Login");
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         return new ResponseEntity<>(matchService.getWaitTime(user.getUserId()), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/email/{email}", method = RequestMethod.HEAD)
     public ResponseEntity<HttpStatus> checkUserExistsByEmail(@PathVariable String email) {
-        Boolean exists = userService.isEmailPresent(email);
-
         // If email exists, return FOUND, else return NOT_FOUND
-        if (!exists)
+        if (!userService.isEmailPresent(email))
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.FOUND);
+    }
+
+    @RequestMapping(value = "/username/{username}", method = RequestMethod.HEAD)
+    public ResponseEntity<HttpStatus> checkUserExistsByUsername(@PathVariable @NotEmpty String username) {
+        // If email exists, return FOUND, else return NOT_FOUND
+        if (!userService.isUsernamePresent(username))
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(HttpStatus.FOUND);
     }
 
     @PostMapping(value = "/activate")
-    public ResponseEntity<String> activateUser(@RequestBody ActivateUserRequest activateUserRequest) {
+    public ResponseEntity<String> activateUser(@RequestBody @Valid ActivateUserRequest activateUserRequest) {
         return new ResponseEntity<>(userService.activateUser(activateUserRequest), HttpStatus.OK);
     }
 
     @PostMapping(value = "/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody String email) {
+    public ResponseEntity<String> forgotPassword(@RequestBody @NotEmpty String email) {
+        if (!userService.isEmailPresent(email))
+            return new ResponseEntity<>("Invalid email", HttpStatus.NOT_FOUND);
         userService.sendPasswordResetLink(email);
         return new ResponseEntity<>("Password Reset URL sent to the registered email!", HttpStatus.OK);
     }
 
-    //route to enable user to reset password after getting passwordResetToken from /forgot-password
+    // Route to enable user to reset password after getting passwordResetToken from /forgot-password
     @PostMapping(value = "/password")
-    public ResponseEntity<String> changePassword(@RequestBody @Valid PasswordResetRequest passwordResetRequest) {
-        userService.changePassword(passwordResetRequest);
-        return new ResponseEntity<>("Password Changed Successfully!", HttpStatus.OK);
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid PasswordResetRequest passwordResetRequest) {
+        return new ResponseEntity<>(userService.resetPassword(passwordResetRequest), HttpStatus.OK);
     }
 
-    //Get all the Ratings of a User from the beginning to the current rating.
-    @GetMapping(value = "/ratings/{userId}")
-    public ResponseEntity<List<UserRatingsResponse>> getUserRatings(@PathVariable Integer userId) {
-        return new ResponseEntity<List<UserRatingsResponse>>(userRatingService.getUserRatings(userId), HttpStatus.OK);
+    // Get all the Ratings of a User from the beginning to the current rating.
+    @GetMapping(value = "/ratings/{username}")
+    public ResponseEntity<List<UserRatingsResponse>> getUserRatings(@PathVariable String username) {
+        return new ResponseEntity<List<UserRatingsResponse>>(userRatingService.getUserRatings(username), HttpStatus.OK);
     }
 }

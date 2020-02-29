@@ -2,11 +2,11 @@ package delta.codecharacter.server.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import delta.codecharacter.server.controller.request.User.ActivateUserRequest;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
-import delta.codecharacter.server.controller.response.PragyanApiResponse;
-import delta.codecharacter.server.controller.request.User.ActivateUserRequest;
 import delta.codecharacter.server.controller.request.User.UpdateUserRequest;
+import delta.codecharacter.server.controller.response.PragyanApiResponse;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
 import delta.codecharacter.server.model.PasswordResetDetails;
@@ -40,7 +40,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -52,38 +52,27 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     UserRatingService userRatingService;
-
+    Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private UserActivationRepository userActivationRepository;
-
     @Autowired
     private PasswordResetDetailsRepository passwordResetDetailsRepository;
-
     @Autowired
     private LeaderboardService leaderboardService;
-
     @Autowired
     private VersionControlService versionControlService;
-
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-
     @Autowired
     private JavaMailSender javaMailSender;
-
     @Value("${pragyan.event-id}")
     private String pragyanEventId;
-
     @Value("${pragyan.event-secret}")
     private String pragyanEventSecret;
-
     @Value("${pragyan.event-login-url}")
     private String pragyanEventLoginUrl;
-
-    Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
     /**
      * Register a new User for AuthType MANUAL
@@ -159,13 +148,11 @@ public class UserService implements UserDetailsService {
         String username = email.split("@")[0];
         if (name == null) name = email.split("@")[0];
 
-        String count = "";
-        Integer c = 0;
-        while (isUsernamePresent(username + count)) {
+        Integer c = 1;
+        while (isUsernamePresent(username + c)) {
             c++;
-            count = String.valueOf(c);
         }
-        username += count;
+        username += c;
 
         User newUser = User.builder()
                 .userId(userId)
@@ -255,7 +242,7 @@ public class UserService implements UserDetailsService {
             if (!pragyanUserAuth(email, password)) return null;
             return new CustomUserDetails(user);
         }
-        
+
         // AuthType is not PRAGYAN and MANUAL
         throw new Exception("Use Github/Google to Login");
     }
@@ -315,7 +302,7 @@ public class UserService implements UserDetailsService {
             return "Invalid Activation Token";
         }
 
-        //Since Activation has failed send a new Activation token
+        // Since token has expired and activation has failed send a new Activation token
         sendActivationToken(user.getUserId());
         return "Activation Token Expired! A new token has been sent to the same email.";
     }
@@ -369,13 +356,12 @@ public class UserService implements UserDetailsService {
      *
      * @param passwordResetRequest Password Reset details from the Change Password Request
      */
-    @SneakyThrows
     @Transactional
-    public void changePassword(PasswordResetRequest passwordResetRequest) {
+    public String resetPassword(PasswordResetRequest passwordResetRequest) {
         PasswordResetDetails passwordResetDetails = passwordResetDetailsRepository.findByUserId(passwordResetRequest.getUserId());
 
         if (passwordResetDetails == null)
-            throw new Exception("Invalid User ID");
+            return "Invalid User ID";
 
         if (passwordResetDetails.getTokenExpiry().isAfter(LocalDateTime.now(ZoneId.of("Asia/Kolkata")))) {
             if (passwordResetDetails.getPasswordResetToken().equals(passwordResetRequest.getPasswordResetToken())) {
@@ -385,11 +371,11 @@ public class UserService implements UserDetailsService {
                 userRepository.save(user);
 
                 passwordResetDetailsRepository.deleteByUserId(passwordResetDetails.getUserId());
-                return;
+                return "Password reset successful!";
             }
         }
 
-        throw new Exception("Invalid Password Reset Token / Password Reset Token Expired");
+        return "Invalid Password Reset Token / Password Reset Token Expired";
     }
 
     /**
@@ -450,7 +436,7 @@ public class UserService implements UserDetailsService {
      * @return True if user is admin, else False
      */
     @SneakyThrows
-    public boolean getIsAdminUserByEmail(String email) {
+    public boolean getIsAdminByEmail(String email) {
         User user = userRepository.findByEmail(email);
         return (user != null) && (user.getIsAdmin());
     }
