@@ -1,6 +1,5 @@
 package delta.codecharacter.server.service;
 
-import com.sendgrid.*;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
@@ -10,12 +9,10 @@ import delta.codecharacter.server.model.UserActivation;
 import delta.codecharacter.server.repository.PasswordResetDetailsRepository;
 import delta.codecharacter.server.repository.UserActivationRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.MailTemplate;
 import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -61,11 +58,8 @@ public class UserService implements UserDetailsService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
-
-    @Value("${sendgrid.mail}")
-    private String sendGridSenderMail;
+    @Autowired
+    MailService mailService;
 
     /**
      * Register a new User for AuthType MANUAL
@@ -222,55 +216,9 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByUserId(userId);
         
-        sendActivationMail(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken());
+        mailService.sendActivationMail(user.getEmail(), user.getUsername(), newUserActivation.getActivationToken());
 
         userActivationRepository.save(newUserActivation);
-    }
-
-    @SneakyThrows
-    public void sendActivationMail(String email, String username, String activationToken) {
-        Email from = new Email(sendGridSenderMail);
-        Email to = new Email(email);
-        String contentString = MailTemplate.getActivationMessage(email, username, activationToken).toString();
-        Content content = new Content("text/plain", contentString);
-        String subject = "Code Character - Account Activation";
-        Mail mail = new Mail(from, subject, to, content);
-
-        SendGrid sendGrid = new SendGrid(sendGridApiKey);
-        Request request = new Request();
-
-        try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sendGrid.api(request);
-            LOG.info("Activation mail status code to " + email + ": " + String.valueOf(response.getStatusCode()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @SneakyThrows
-    public void sendPasswordResetMail(String email, String username, String activationToken) {
-        Email from = new Email(sendGridSenderMail);
-        Email to = new Email(email);
-        String contentString = MailTemplate.getPasswordResetMessage(email, username, activationToken);
-        Content content = new Content("text/plain", contentString);
-        String subject = "Code Character - Account Activation";
-        Mail mail = new Mail(from, subject, to, content);
-
-        SendGrid sendGrid = new SendGrid(sendGridApiKey);
-        Request request = new Request();
-
-        try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sendGrid.api(request);
-            LOG.info("Reset password mail status code to " + email + ": " + String.valueOf(response.getStatusCode()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -292,7 +240,7 @@ public class UserService implements UserDetailsService {
                 .passwordResetToken(UUID.randomUUID().toString())
                 .build();
 
-        sendPasswordResetMail(user.getEmail(), user.getUsername(), newPasswordResetDetails.getPasswordResetToken());
+        mailService.sendPasswordResetMail(user.getEmail(), user.getUsername(), newPasswordResetDetails.getPasswordResetToken());
         passwordResetDetailsRepository.save(newPasswordResetDetails);
     }
 
