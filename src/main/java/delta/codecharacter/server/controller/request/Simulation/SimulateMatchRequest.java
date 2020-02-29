@@ -11,6 +11,7 @@ public class SimulateMatchRequest {
     @NotEmpty(message = "PlayerId1 is required")
     String playerId1;
 
+    //playerId2 is aiId, if matchMode is AI
     @NotEmpty(message = "PlayerId2 is required")
     String playerId2;
 

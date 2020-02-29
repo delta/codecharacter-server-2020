@@ -152,7 +152,7 @@ public class MatchService {
     }
 
     /**
-     * Return the time of last Manual match played by a user
+     * Return the time of last match played by a user against another user
      *
      * @param userId - User id of the user
      * @return if user played a Manual match, return time of last manual match played by user
@@ -193,7 +193,7 @@ public class MatchService {
             throw new Exception("Invalid user ID");
 
         Float minWaitTime = Float.parseFloat(constantRepository.findByKey("MATCH_WAIT_TIME").getValue());
-        Date lastInitiatedMatchTime = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
+        Date lastInitiatedMatchTime = getLastInitiatedMatchTime(userId);
         Date currentTime = new Date();
 
         // Seconds passed since last initiated match

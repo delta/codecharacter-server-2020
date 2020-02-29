@@ -6,6 +6,7 @@ import delta.codecharacter.server.controller.request.Simulation.ExecuteGameDetai
 import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequest;
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.model.Game;
+import delta.codecharacter.server.model.Map;
 import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.util.AiDllUtil;
@@ -17,9 +18,11 @@ import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 @Service
@@ -31,6 +34,9 @@ public class SimulationService {
 
     @Value("${compilebox.secret-key}")
     private String secretKey;
+
+    @Value("/response/")
+    private String socketDest;
 
     @Autowired
     private VersionControlService versionControlService;
@@ -48,7 +54,10 @@ public class SimulationService {
     private RabbitMqService rabbitMqService;
 
     @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
+    private SocketService socketService;
+
+    @Autowired
+    private MapService mapService;
 
     /**
      * Send an execute match request to compile-box
@@ -57,19 +66,26 @@ public class SimulationService {
      * @param userId               UserId of the User initiating the match
      */
     @SneakyThrows
-    public void simulateMatch(SimulateMatchRequest simulateMatchRequest, Integer userId) {
+    public void simulateMatch(SimulateMatchRequest simulateMatchRequest, @Nullable Integer userId) {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
 
-        Long remTime = matchService.getWaitTime(playerId1);
-        if (remTime != 0) {
-            simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "PLease wait for " + remTime + " seconds to initiate your next match");
-            return;
-        }
-        if (matchRepository.findByStatusOrStatusOrStatusAndPlayerId1(Status.IDLE, Status.EXECUTE_QUEUED, Status.EXECUTING, userId) != null) {
-            simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Previous match has not completed");
-            return;
+        if (!simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.AUTO))) {
+            Long remTime = matchService.getWaitTime(playerId1);
+            if (remTime != 0) {
+                socketService.sendMessage(socketDest + userId, "Please wait for " + remTime + "seconds to initiate next match");
+                return;
+            }
+
+            Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.IDLE) != null;
+            Boolean isExecuteQueuedMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.EXECUTE_QUEUED) != null;
+            Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatus(userId, Status.EXECUTING) != null;
+
+            if (isIdleMatchPresent || isExecuteQueuedMatchPresent || isExecutingMatchPresent) {
+                socketService.sendMessage(socketDest + userId, "Previous match has not completed");
+                return;
+            }
         }
 
         String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
@@ -88,70 +104,78 @@ public class SimulationService {
                 .build();
 
         Match match;
-        ExecuteGameDetails[] executeGames;
+        List<ExecuteGameDetails> executeGames = new ArrayList<>();
+
         switch (MatchMode.valueOf(simulateMatchRequest.getMatchMode())) {
             case SELF: {
-                match = matchService.createMatch(playerId1, playerId2, MatchMode.SELF);
-
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "MapId cannot be null");
+                    socketService.sendMessage(socketDest + userId, "MapId cannot be null");
+                    return;
                 }
+
+                match = matchService.createMatch(playerId1, playerId2, MatchMode.SELF);
 
                 Game newGame = gameService.createGame(match.getId(), mapId);
 
-                executeGames = new ExecuteGameDetails[1];
-                executeGames[0] = ExecuteGameDetails.builder()
+                ExecuteGameDetails executeGameDetails = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(mapId))
                         .build();
+                executeGames.add(executeGameDetails);
                 break;
             }
+
             case AI: {
+                Integer mapId = simulateMatchRequest.getMapId();
+                if (mapId == null) {
+                    socketService.sendMessage(socketDest + userId, "MapId cannot be null");
+                    return;
+                }
+
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.AI);
                 Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
 
-                Integer mapId = simulateMatchRequest.getMapId();
-                if (mapId == null) {
-                    simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "MapId cannot be null");
-                }
-
-                executeGames = new ExecuteGameDetails[1];
-                executeGames[0] = ExecuteGameDetails.builder()
+                ExecuteGameDetails executeGameDetails = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(mapId))
                         .build();
+                executeGames.add(executeGameDetails);
 
                 executeMatchRequest.setDll2(AiDllUtil.getAiDll(playerId2));
                 break;
             }
+
             case MANUAL: {
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.MANUAL);
 
-                executeGames = new ExecuteGameDetails[5];
-                for (int i = 0; i < 5; i++) {
-                    Game newGame = gameService.createGame(match.getId(), i + 1);
-                    executeGames[i] = ExecuteGameDetails.builder()
+                List<Map> maps = mapService.getAllMaps();
+                for (var map : maps) {
+                    Game newGame = gameService.createGame(match.getId(), map.getId());
+                    var executeGameDetails = ExecuteGameDetails.builder()
                             .gameId(newGame.getId())
-                            .map(MapUtil.getMap(i + 1))
+                            .map(MapUtil.getMap(map.getId()))
                             .build();
+                    executeGames.add(executeGameDetails);
                 }
                 break;
             }
+
             case PREV_COMMIT: {
+                Integer mapId = simulateMatchRequest.getMapId();
+                if (mapId == null) {
+                    socketService.sendMessage(socketDest, "MapId cannot be null");
+                    return;
+                }
+
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.PREV_COMMIT);
                 Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
 
-                Integer mapId = simulateMatchRequest.getMapId();
-                if (mapId == null) {
-                    simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "MapId cannot be null");
-                }
-
-                executeGames = new ExecuteGameDetails[1];
-                executeGames[0] = ExecuteGameDetails.builder()
+                ExecuteGameDetails executeGameDetails = ExecuteGameDetails.builder()
                         .gameId(newGame.getId())
                         .map(MapUtil.getMap(mapId))
                         .build();
+                executeGames.add(executeGameDetails);
 
                 executeMatchRequest.setCode2(versionControlService.getCodeByCommitHash(playerId2, simulateMatchRequest.getCommitHash()));
                 break;
@@ -159,18 +183,19 @@ public class SimulationService {
             case AUTO: {
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.AUTO);
 
-                executeGames = new ExecuteGameDetails[5];
-                for (int i = 0; i < 5; i++) {
-                    Game newGame = gameService.createGame(match.getId(), i + 1);
-                    executeGames[i] = ExecuteGameDetails.builder()
+                List<Map> maps = mapService.getAllMaps();
+                for (var map : maps) {
+                    Game newGame = gameService.createGame(match.getId(), map.getId());
+                    var executeGameDetails = ExecuteGameDetails.builder()
                             .gameId(newGame.getId())
-                            .map(MapUtil.getMap(i + 1))
+                            .map(MapUtil.getMap(map.getId()))
                             .build();
+                    executeGames.add(executeGameDetails);
                 }
                 break;
             }
             default: {
-                simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Unexpected MatchMode");
+                socketService.sendMessage(socketDest + userId, "Invalid MatchMode");
                 return;
             }
         }
@@ -180,7 +205,7 @@ public class SimulationService {
 
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
 
-        simpMessagingTemplate.convertAndSend("/simulation/match-response/" + userId, "Match has been added to queue");
+        socketService.sendMessage(socketDest + userId, "Match added to queue");
 
         //set match status to Execute_Queued
         match.setStatus(Status.EXECUTE_QUEUED);
