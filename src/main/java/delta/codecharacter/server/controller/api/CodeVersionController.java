@@ -37,7 +37,7 @@ public class CodeVersionController {
         return new ResponseEntity<>(code, HttpStatus.OK);
     }
 
-    @PutMapping(value = "/save")
+    @PutMapping(value = "")
     @SneakyThrows
     public ResponseEntity<String> saveCode(@RequestBody @Valid String code, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
