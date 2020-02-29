@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @Service
-public class CodeVersionControlService {
+public class VersionControlService {
 
-    private static final Logger LOG = Logger.getLogger(CodeVersionControlService.class.getName());
+    private static final Logger LOG = Logger.getLogger(VersionControlService.class.getName());
 
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
