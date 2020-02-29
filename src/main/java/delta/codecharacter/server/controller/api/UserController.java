@@ -34,7 +34,7 @@ public class UserController {
     @Autowired
     private MatchService matchService;
 
-    @PostMapping(value = "/")
+    @PostMapping(value = "")
     public ResponseEntity<String> registerUser(@RequestBody @Valid RegisterUserRequest user) {
         if (userService.isEmailPresent(user.getEmail()))
             return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
@@ -42,7 +42,7 @@ public class UserController {
         return new ResponseEntity<>("User Registration Successful!", HttpStatus.CREATED);
     }
 
-    @PutMapping(value = "/")
+    @PutMapping(value = "")
     public ResponseEntity<String> updateUser(@RequestBody @Valid UpdateUserRequest updateUserRequest, Authentication authentication) {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
         if (user == null)

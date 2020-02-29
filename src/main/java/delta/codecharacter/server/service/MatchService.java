@@ -78,13 +78,13 @@ public class MatchService {
     /**
      * Return the match statistics of a user
      *
-     * @param userId - userId of the given user
+     * @param userId UserId of the given user
      * @return match statistics of the user
      */
     @SneakyThrows
     public UserMatchStatsResponse getUserMatchStats(@NotEmpty Integer userId) {
         if (userRepository.findByUserId(userId) == null)
-            throw new Exception("Invalid username");
+            throw new Exception("Invalid userID");
 
         List<Match> matches = matchRepository.findAllByPlayerId1OrPlayerId2AndMatchModeOrMatchMode(userId, userId, MatchMode.MANUAL, MatchMode.AUTO);
 
