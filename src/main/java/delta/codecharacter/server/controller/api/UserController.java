@@ -5,12 +5,14 @@ import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
+import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.MatchService;
 import delta.codecharacter.server.service.UserRatingService;
 import delta.codecharacter.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -50,9 +52,10 @@ public class UserController {
         return new ResponseEntity<>(matchService.getUserMatchStats(username), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/wait-time/{username}")
-    public ResponseEntity<Long> getWaitTime(@PathVariable @NotEmpty String username) {
-        return new ResponseEntity<>(matchService.getWaitTime(username), HttpStatus.OK);
+    @GetMapping(value = "/wait-time")
+    public ResponseEntity<Long> getWaitTime(Authentication authentication) {
+        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
+        return new ResponseEntity<>(matchService.getWaitTime(user.getUserId()), HttpStatus.OK);
     }
 
     @PostMapping(value = "/activate")

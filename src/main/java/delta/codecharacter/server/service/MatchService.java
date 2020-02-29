@@ -8,6 +8,7 @@ import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.UserMatchStatData;
 import delta.codecharacter.server.util.enums.MatchMode;
+import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -51,6 +52,7 @@ public class MatchService {
                 .playerId1(playerId1)
                 .playerId2(playerId2)
                 .matchMode(matchMode)
+                .status(Status.IDLE)
                 .build();
 
         matchRepository.save(match);
@@ -137,7 +139,7 @@ public class MatchService {
             }
         }
 
-        Date lastMatchAt = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
+        Date lastMatchAt = getLastInitiatedManualMatchTime(userId);
 
         return UserMatchStatsResponse.builder()
                 .userId(userId)
@@ -150,27 +152,58 @@ public class MatchService {
     }
 
     /**
-     * Return the time(seconds) left for user to be able to attack next
+     * Return the time of last match initiated by a user against another user
      *
-     * @param username - Username of the user
+     * @param userId - User id of the user
+     * @return if user played a Manual match, return time of last manual match played by user
+     * else return time of user account creation
+     */
+    @SneakyThrows
+    public Date getLastInitiatedManualMatchTime(Integer userId) {
+        Match match = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL);
+        if (match == null) {
+            return null;
+        }
+        return match.getCreatedAt();
+    }
+
+    /**
+     * Return the time of last Initiated match of a user
+     * NOTE: Initiated match includes AI, SELF, PREV_COMMIT, MANUAL
+     *
+     * @param userId - User id of the user
+     * @return if user initiated a match, return time of last match initiated by user
+     * else return time of user account creation
+     */
+    public Long getLastInitiatedMatchTime(Integer userId) {
+        Match match = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO);
+        LOG.info("userid: " + userId + " match: " + match);
+        if (match == null) {
+            return (long) 0;
+        }
+        return match.getCreatedAt().getTime();
+    }
+
+    /**
+     * Return the time(seconds) left for user to be able to initiate a match
+     *
+     * @param userId - UserID of the user
      * @return remaining time in seconds
      */
     @SneakyThrows
-    public Long getWaitTime(@NotEmpty String username) {
-        if (userRepository.findByUsername(username) == null)
-            throw new Exception("Invalid username");
+    public Long getWaitTime(@NotEmpty Integer userId) {
+        if (userRepository.findByUserId(userId) == null)
+            throw new Exception("Invalid user ID");
 
-        Integer userId = userRepository.findByUsername(username).getUserId();
         Float minWaitTime = Float.parseFloat(constantRepository.findByKey("MATCH_WAIT_TIME").getValue());
-        Date lastMatchTime = matchRepository.findFirstByPlayerId1AndMatchModeNotOrderByCreatedAtDesc(userId, MatchMode.AUTO).getCreatedAt();
+        Long lastInitiatedMatchTime = getLastInitiatedMatchTime(userId);
         Date currentTime = new Date();
 
         // Seconds passed since last initiated match
-        Long timePassedSeconds = (currentTime.getTime() - lastMatchTime.getTime()) / 1000;
+        Long timePassedSeconds = (currentTime.getTime() - lastInitiatedMatchTime) / 1000;
         if (timePassedSeconds > minWaitTime)
             return (long) 0;
-        else
-            return (long) (minWaitTime - timePassedSeconds);
+        return (long) (minWaitTime - timePassedSeconds);
     }
 
 }

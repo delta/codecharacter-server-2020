@@ -3,6 +3,8 @@ package delta.codecharacter.server.controller.request.Simulation;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class ExecuteMatchRequest {
@@ -18,5 +20,5 @@ public class ExecuteMatchRequest {
 
     String code2;
 
-    ExecuteGameDetails[] games;
+    List<ExecuteGameDetails> games;
 }

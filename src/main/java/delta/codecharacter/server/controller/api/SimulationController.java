@@ -1,7 +1,9 @@
 package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
+import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.SimulationService;
+import delta.codecharacter.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.Authentication;
@@ -19,9 +21,13 @@ public class SimulationController {
     @Autowired
     private SimulationService simulationService;
 
+    @Autowired
+    private UserService userService;
+
     @MessageMapping("/match")
     public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest, Authentication authentication) {
-        simulationService.simulateMatch(simulateMatchRequest, authentication.getName());
+        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
+        simulationService.simulateMatch(simulateMatchRequest, user.getUserId());
     }
 
 }

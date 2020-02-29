@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.*;
+import java.util.Date;
 
 @Data
 @Builder
@@ -57,4 +58,9 @@ public class User {
     @Positive
     @Builder.Default
     private int avatarId = 1;
+
+    @Field("created_at")
+    @NotNull
+    @Builder.Default
+    private Date createdAt = new Date();
 }
