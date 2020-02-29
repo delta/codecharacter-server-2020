@@ -1,8 +1,11 @@
 package delta.codecharacter.server.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
 import delta.codecharacter.server.controller.request.User.PublicUserRequest;
 import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
+import delta.codecharacter.server.controller.response.PragyanApiResponse;
 import delta.codecharacter.server.model.PasswordResetDetails;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.model.UserActivation;
@@ -14,6 +17,8 @@ import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,14 +28,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Service
@@ -54,10 +61,24 @@ public class UserService implements UserDetailsService {
     private LeaderboardService leaderboardService;
 
     @Autowired
+    private VersionControlService versionControlService;
+
+    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
     private JavaMailSender javaMailSender;
+
+    @Value("${pragyan.event-id}")
+    private String pragyanEventId;
+
+    @Value("${pragyan.event-secret}")
+    private String pragyanEventSecret;
+
+    @Value("${pragyan.event-login-url}")
+    private String pragyanEventLoginUrl;
+
+    Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 
     /**
      * Register a new User for AuthType MANUAL
@@ -86,8 +107,36 @@ public class UserService implements UserDetailsService {
         leaderboardService.initializeLeaderboardData(userId);
         // Create initial entry for new user in UserRating table
         userRatingService.initializeUserRating(userId);
+        // Create a code repository
+        versionControlService.createCodeRepository(userId);
 
         sendActivationToken(newUser.getUserId());
+    }
+
+    @Transactional
+    public User registerPragyanUser(String email, String password) {
+        Integer userId = getMaxUserId() + 1;
+        String username = email.split("@")[0];
+
+        User newUser = User.builder()
+                .userId(userId)
+                .email(email)
+                .username(username)
+                .password(bCryptPasswordEncoder.encode(password))
+                .authMethod(AuthMethod.PRAGYAN)
+                .isActivated(true)
+                .build();
+
+        userRepository.save(newUser);
+
+        // Create initial entry for new user in Leaderboard table
+        leaderboardService.initializeLeaderboardData(userId);
+        // Create initial entry for new user in UserRating table
+        userRatingService.initializeUserRating(userId);
+        // Create code repository for new user
+        versionControlService.createCodeRepository(userId);
+
+        return newUser;
     }
 
     /**
@@ -120,6 +169,8 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
         // Create initial entry for new user in Leaderboard table
         leaderboardService.initializeLeaderboardData(userId);
+        // Create a code repository
+        versionControlService.createCodeRepository(userId);
     }
 
     /**
@@ -152,21 +203,60 @@ public class UserService implements UserDetailsService {
     @SneakyThrows
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        //TODO: Check for email in Pragyan DB
 
         User user = userRepository.findByEmail(email);
 
-        if (user == null)
-            throw new UsernameNotFoundException("Email Not Found");
-
-        //Check AuthType
-        if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
-            if (!user.getIsActivated()) throw new Exception("User not activated");
+        // If the user is not present in DB, check if the user is registered with Pragyan.
+        if (user == null) {
+            var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            String password = request.getParameter("password"); // get password from request parameter
+            if (!pragyanUserAuth(email, password)) return null;
+            // Add the user registered with Pragyan to DB
+            user = registerPragyanUser(email, password);
             return new CustomUserDetails(user);
         }
 
-        //AuthType is not PRAGYAN and MANUAL
+        if (user.getAuthMethod().equals(AuthMethod.MANUAL)) {
+            return new CustomUserDetails(user);
+        }
+        if (user.getAuthMethod().equals(AuthMethod.PRAGYAN)) {
+            var request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            String password = request.getParameter("password"); // get password from request parameter
+            if (!pragyanUserAuth(email, password)) return null;
+            return new CustomUserDetails(user);
+        }
+        
+        // AuthType is not PRAGYAN and MANUAL
         throw new Exception("Use Github/Google to Login");
+    }
+
+    @SneakyThrows
+    private boolean pragyanUserAuth(String email, String password) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+
+        map.add("user_email", email);
+        map.add("user_pass", password);
+        map.add("event_id", pragyanEventId);
+        map.add("event_secret", pragyanEventSecret);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, httpHeaders);
+        ResponseEntity<String> result = restTemplate.exchange(pragyanEventLoginUrl, HttpMethod.POST, httpEntity, String.class);
+
+        try {
+            var userDetailsResponse = gson.fromJson(result.getBody(), PragyanApiResponse.class);
+            return userDetailsResponse.getStatusCode().equals(200);
+        }
+        // If credentials are wrong, response will be string instead of type PragyanApiResponse
+        catch (Exception e) {
+            return false;
+        }
     }
 
     /**

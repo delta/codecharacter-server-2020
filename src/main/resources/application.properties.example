@@ -17,6 +17,11 @@ spring.rabbitmq.queue=codechar
 #compilebox
 compilebox.secret-key=<>
 
+#pragyan-api
+pragyan.event-login-url="https://api.pragyan.org/20/event/login"
+pragyan.event-id=<>
+pragyan.event-secret=<>
+
 #mail
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
