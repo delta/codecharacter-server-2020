@@ -2,12 +2,14 @@ package delta.codecharacter.server.controller.request.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 @Data
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RegisterUserRequest {
     @NotEmpty(message = "{constraints.NotEmpty.message}")
