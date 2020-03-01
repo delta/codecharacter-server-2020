@@ -19,7 +19,7 @@ build.properties
 storage
 
 ### Static Files ###
-src/main/resources/static/*
+#src/main/resources/static/*
 
 ### app.prop ###
 src/main/resources/application.properties
