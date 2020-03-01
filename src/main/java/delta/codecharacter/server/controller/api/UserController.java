@@ -55,7 +55,7 @@ public class UserController {
         return new ResponseEntity<>("User Registration Successful!", HttpStatus.CREATED);
     }
 
-    @PutMapping(value = "")
+    @PatchMapping(value = "")
     public ResponseEntity<String> updateUser(@RequestBody @Valid UpdateUserRequest updateUserRequest, Authentication authentication) {
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
         if (user == null)
@@ -93,7 +93,7 @@ public class UserController {
         if (user.getAuthMethod() != AuthMethod.MANUAL)
             return new ResponseEntity<>("Auth type not supported", HttpStatus.FORBIDDEN);
 
-        if (!user.getPassword().matches(bCryptPasswordEncoder.encode(updatePasswordRequest.getOldPassword())))
+        if (!bCryptPasswordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword()))
             return new ResponseEntity<>("Incorrect old password", HttpStatus.UNAUTHORIZED);
 
         userService.updatePassword(user.getEmail(), updatePasswordRequest.getNewPassword());

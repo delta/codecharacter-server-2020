@@ -211,6 +211,10 @@ public class UserService implements UserDetailsService {
                 .username(user.getUsername())
                 .country(user.getCountry())
                 .avatarId(user.getAvatarId())
+                .college(user.getCollege())
+                .fullName(user.getFullName())
+                .userType(user.getUserType())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 
@@ -497,6 +501,9 @@ public class UserService implements UserDetailsService {
                 .college(updateUserRequest.getCollege() == null ? user.getCollege() : updateUserRequest.getCollege())
                 .country(updateUserRequest.getCountry() == null ? user.getCountry() : updateUserRequest.getCountry())
                 .avatarId(updateUserRequest.getAvatarId() == null ? user.getAvatarId() : Integer.parseInt(updateUserRequest.getAvatarId()))
+                .isActivated(user.getIsActivated())
+                .isAdmin(user.getIsAdmin())
+                .createdAt(user.getCreatedAt())
                 .build();
 
         userRepository.save(newUser);
