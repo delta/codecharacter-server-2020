@@ -16,14 +16,12 @@ import delta.codecharacter.server.model.UserActivation;
 import delta.codecharacter.server.repository.PasswordResetDetailsRepository;
 import delta.codecharacter.server.repository.UserActivationRepository;
 import delta.codecharacter.server.repository.UserRepository;
-import delta.codecharacter.server.util.MailTemplate;
 import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -75,7 +73,7 @@ public class UserService implements UserDetailsService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    private JavaMailSender javaMailSender;
+    private SendGridService sendGridService;
 
     @Value("${pragyan.event-id}")
     private String pragyanEventId;
@@ -192,7 +190,7 @@ public class UserService implements UserDetailsService {
     private String getUniqueUsername(String username) {
         if (!isUsernamePresent(username))
             return username;
-        
+
         Integer suffix = 1;
         while (isUsernamePresent(username + suffix))
             suffix++;
@@ -355,7 +353,7 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByUserId(userId);
 
-        javaMailSender.send(MailTemplate.getActivationMessage(user.getUserId(), user.getEmail(), user.getUsername(), newUserActivation.getActivationToken()));
+        sendGridService.sendActivationEmail(user.getUserId(), newUserActivation.getActivationToken());
 
         userActivationRepository.save(newUserActivation);
     }
@@ -379,7 +377,7 @@ public class UserService implements UserDetailsService {
                 .passwordResetToken(UUID.randomUUID().toString())
                 .build();
 
-        javaMailSender.send(MailTemplate.getPasswordResetMessage(user.getEmail(), user.getUsername(), newPasswordResetDetails.getPasswordResetToken()));
+        sendGridService.sendPasswordResetEmail(user.getUserId(), newPasswordResetDetails.getPasswordResetToken());
 
         passwordResetDetailsRepository.save(newPasswordResetDetails);
     }

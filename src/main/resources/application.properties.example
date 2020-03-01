@@ -23,12 +23,8 @@ pragyan.event-id=<>
 pragyan.event-secret=<>
 
 #mail
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=<>
-spring.mail.password=<>
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
+sendgrid.api-key=<>
+sendgrid.sender=<>
 
 #client
 client.request.origin=http://localhost:3000
