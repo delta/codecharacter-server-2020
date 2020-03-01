@@ -56,5 +56,6 @@ public class Match {
 
     @Field("created_at")
     @NotNull
-    private Date createdAt;
+    @Builder.Default
+    private Date createdAt = new Date();
 }

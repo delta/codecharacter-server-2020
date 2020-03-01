@@ -8,9 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.Date;
 
 @Data
 @Builder
@@ -28,7 +26,7 @@ public class CodeStatus {
     @Field("last_saved_at")
     @NotNull
     @Builder.Default
-    private LocalDateTime lastSavedAt = LocalDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
+    private Date lastSavedAt = new Date();
 
     @Field("read_only")
     @NotNull

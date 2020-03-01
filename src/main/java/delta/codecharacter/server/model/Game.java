@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.util.Date;
 
 @Data
 @Builder
@@ -47,4 +48,9 @@ public class Game {
     @NotNull
     @Positive
     private Integer mapId;
+
+    @Field("created_at")
+    @NotNull
+    @Builder.Default
+    private Date createdAt = new Date();
 }
