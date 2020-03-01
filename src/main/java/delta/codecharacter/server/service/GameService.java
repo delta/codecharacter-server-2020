@@ -33,17 +33,13 @@ public class GameService {
         return game;
     }
 
-    public List<Game> findAllGamesByMatchId(Integer matchId) {
-        return gameRepository.findAllByMatchId(matchId);
-    }
-
     /**
      * Get all the games associated with a match
      *
      * @param matchId MatchId for which the games are to be fetched
      * @return List of all the games for the given matchId
      */
-    public List<Game> findAllGames(Integer matchId) {
+    public List<Game> getAllGamesByMatchId(Integer matchId) {
         return gameRepository.findAllByMatchId(matchId);
     }
 

@@ -4,9 +4,7 @@ import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
-import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
-import delta.codecharacter.server.model.TopMatch;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
@@ -17,7 +15,6 @@ import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -83,30 +80,6 @@ public class MatchService {
         return match;
     }
 
-    public List<MatchResponse> getAllMatchesByUserId(Integer userId) {
-        User user1 = userRepository.findByUserId(userId);
-        List<Match> matches = matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.AUTO);
-        matches.addAll(matchRepository.findAllByPlayerId1AndMatchMode(userId, MatchMode.MANUAL));
-        List<MatchResponse> matchResponses = new ArrayList<>();
-        for (var match : matches) {
-            User user2 = userRepository.findByUserId(match.getPlayerId2());
-            MatchResponse matchResponse = MatchResponse.builder()
-                    .username1(user1.getUsername())
-                    .username2(user2.getUsername())
-                    .avatar1(user1.getAvatarId())
-                    .avatar2(user1.getAvatarId())
-                    .score1(match.getScore1())
-                    .score2(match.getScore2())
-                    .verdict(match.getVerdict())
-                    .playedAt(match.getCreatedAt())
-                    .build();
-            List<Game> games = gameService.findAllGamesByMatchId(match.getId());
-            matchResponse.setGames(games);
-            matchResponses.add(matchResponse);
-        }
-        return matchResponses;
-    }
-
     /**
      * Get the details of top matches from topMatch collection
      *
@@ -114,25 +87,25 @@ public class MatchService {
      */
     public List<MatchResponse> getTopMatches(Integer PageNumber, Integer PageSize) {
         Pageable pageable = PageRequest.of(PageNumber - 1, PageSize);
-        Page<TopMatch> topMatchDetails = topMatchRepository.findAllByOrderByCreatedAtDesc(pageable);
+        var topMatches = topMatchRepository.findAllByOrderByCreatedAtDesc(pageable);
         List<MatchResponse> matchResponses = new ArrayList<>();
-        for (var topMatch : topMatchDetails) {
+        for (var topMatch : topMatches) {
             Match match = matchRepository.findFirstById(topMatch.getMatchId());
             User user1 = userRepository.findByUserId(match.getPlayerId1());
             User user2 = userRepository.findByUserId(match.getPlayerId2());
             MatchResponse matchResponse = MatchResponse.builder()
                     .username1(user1.getUsername())
                     .username2(user2.getUsername())
-                    .avatar1(user1.getAvatarId())
-                    .avatar2(user2.getAvatarId())
+                    .avatarId1(user1.getAvatarId())
+                    .avatarId2(user2.getAvatarId())
                     .score1(match.getScore1())
                     .score2(match.getScore2())
                     .verdict(match.getVerdict())
                     .matchMode(match.getMatchMode())
+                    .games(gameService.getAllGamesByMatchId(match.getId()))
                     .playedAt(match.getCreatedAt())
                     .build();
-            List<Game> games = gameService.findAllGamesByMatchId(match.getId());
-            matchResponse.setGames(games);
+
             matchResponses.add(matchResponse);
         }
         return matchResponses;
@@ -176,7 +149,7 @@ public class MatchService {
                     .verdict(match.getVerdict())
                     .playedAt(match.getCreatedAt())
                     .matchMode(match.getMatchMode())
-                    .games(gameService.findAllGames(match.getId()))
+                    .games(gameService.getAllGamesByMatchId(match.getId()))
                     .build();
 
             privateMatchResponse.add(matchResponse);
