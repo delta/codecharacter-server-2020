@@ -218,7 +218,7 @@ public class LeaderboardService {
             // Get list of ratings of the user
             var userRatings = userRatingRepository.findByUserId(userId);
 
-            //get details of the user
+            // Get details of the user
             var user = userRepository.findByUserId(userId);
 
             // Get matches stats of user
