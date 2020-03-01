@@ -39,7 +39,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -282,7 +282,6 @@ public class UserService implements UserDetailsService {
     private PragyanUserDetails pragyanUserAuth(String email, String password) {
 
         RestTemplate restTemplate = new RestTemplate();
-
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 
         map.add("user_email", email);
@@ -292,7 +291,7 @@ public class UserService implements UserDetailsService {
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        httpHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(map, httpHeaders);
         ResponseEntity<String> result = restTemplate.exchange(pragyanEventLoginUrl, HttpMethod.POST, httpEntity, String.class);
@@ -303,6 +302,7 @@ public class UserService implements UserDetailsService {
         }
         // If credentials are wrong, response will be string instead of type PragyanApiResponse
         catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }

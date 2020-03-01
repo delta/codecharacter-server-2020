@@ -1,13 +1,12 @@
 package delta.codecharacter.server.model;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.Date;
 
 @Data
 @Builder
@@ -26,5 +25,5 @@ public class UserRating {
     @Field("valid_from")
     @NotNull
     @Builder.Default
-    private LocalDateTime validFrom = LocalDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
+    private Date validFrom = new Date();
 }

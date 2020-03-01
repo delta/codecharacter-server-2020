@@ -21,8 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -41,7 +41,7 @@ public class VersionControlService {
     private CodeStatusService codeStatusService;
 
     @Autowired
-    CodeStatusRepository codeStatusRepository;
+    private CodeStatusRepository codeStatusRepository;
 
     /**
      * Commit the saved code
@@ -57,7 +57,7 @@ public class VersionControlService {
 
         CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
         codeStatus.setCurrentCommit(commitHash);
-        codeStatus.setLastSavedAt(LocalDateTime.now());
+        codeStatus.setLastSavedAt(new Date());
         codeStatusRepository.save(codeStatus);
 
         return commitHash;

@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.util.Date;
 
 @Data
 @Builder
@@ -38,4 +39,9 @@ public class Notification {
     @NotBlank(message = "Type is mandatory")
     @Builder.Default
     private Type type = Type.INFO;
+
+    @Field("created_at")
+    @NotNull
+    @Builder.Default
+    private Date createdAt = new Date();
 }
