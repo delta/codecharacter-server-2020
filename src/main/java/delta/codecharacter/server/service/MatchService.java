@@ -192,13 +192,27 @@ public class MatchService {
     }
 
     /**
+     * Return the time of the recent match initiated by the user against a user
+     * NOTE: If the user has not played any matches return time of user creation
+     *
+     * @param userId - User id of the user
+     * @return if user played a Manual match, return time of last manual match played by user
+     * else return time of user account creation
+     */
+    public Date getRecentMatchTime(Integer userId) {
+        Match match = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL);
+        if (match == null)
+            return userRepository.findByUserId(userId).getCreatedAt();
+        return match.getCreatedAt();
+    }
+
+    /**
      * Return the time of last match initiated by a user against another user
      *
      * @param userId - User id of the user
      * @return time of last manual match played by user
      * NOTE: return time of user account creation if user has not played any manual match
      */
-    @SneakyThrows
     public Date getLastInitiatedManualMatchTime(Integer userId) {
         Match match = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.MANUAL);
         if (match == null) {

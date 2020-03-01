@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 @Builder
 public class UserRatingsResponse {
 
-    private Integer rating;
+    private Double rating;
+
+    private Double ratingDeviation;
 
     private LocalDateTime validFrom;
 }
