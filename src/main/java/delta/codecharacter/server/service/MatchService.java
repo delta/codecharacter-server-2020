@@ -2,6 +2,7 @@ package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
+import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
@@ -12,18 +13,29 @@ import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Service
 public class MatchService {
 
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
+    
     @Autowired
     private ConstantRepository constantRepository;
 
@@ -32,6 +44,12 @@ public class MatchService {
 
     @Autowired
     private MatchRepository matchRepository;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private GameService gameService;
 
     /**
      * Create a new match for the given players and matchMode
@@ -54,6 +72,53 @@ public class MatchService {
 
         matchRepository.save(match);
         return match;
+    }
+
+    /**
+     * Get a paginated list of Manual and Auto matches played by the user
+     *
+     * @param userId UserId of the player
+     * @return List of paginated manual and auto matches
+     */
+    public List<PrivateMatchResponse> getManualAndAutoMatchesPaginated(Integer userId, Pageable pageable) {
+        Aggregation aggregation = newAggregation(
+                match(
+                        new Criteria().orOperator(
+                                new Criteria().andOperator(Criteria.where("player_id_1").is(userId), new Criteria().orOperator(
+                                        Criteria.where("match_mode").is(MatchMode.MANUAL), Criteria.where("match_mode").is(MatchMode.AUTO)
+                                )),
+                                new Criteria().andOperator(Criteria.where("player_id_2").is(userId), Criteria.where("match_mode").is(MatchMode.MANUAL))
+                        )
+                ),
+                sort(Sort.by("createdAt").descending()),
+                skip((long) pageable.getPageNumber() * pageable.getPageSize()),
+                limit(pageable.getPageSize())
+        );
+
+        var groupResults = mongoTemplate.aggregate(aggregation, Match.class, Match.class);
+        List<Match> matches = groupResults.getMappedResults();
+
+        User user1 = userRepository.findByUserId(userId);
+
+        List<PrivateMatchResponse> privateMatchResponse = new ArrayList<>();
+        for (var match : matches) {
+            User user2 = userRepository.findByUserId(match.getPlayerId2());
+            var matchResponse = PrivateMatchResponse.builder()
+                    .username1(user1.getUsername())
+                    .username2(user2.getUsername())
+                    .avatar1(user1.getAvatarId())
+                    .avatar2(user1.getAvatarId())
+                    .score1(match.getScore1())
+                    .score2(match.getScore2())
+                    .verdict(match.getVerdict())
+                    .playedAt(match.getCreatedAt())
+                    .matchMode(match.getMatchMode())
+                    .games(gameService.findAllGames(match.getId()))
+                    .build();
+
+            privateMatchResponse.add(matchResponse);
+        }
+        return privateMatchResponse;
     }
 
     /**

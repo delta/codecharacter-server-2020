@@ -2,6 +2,7 @@ package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.User.*;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
+import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
@@ -12,6 +13,8 @@ import delta.codecharacter.server.service.UserService;
 import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -151,5 +154,13 @@ public class UserController {
     @GetMapping(value = "/ratings/{username}")
     public ResponseEntity<List<UserRatingsResponse>> getUserRatings(@PathVariable String username) {
         return new ResponseEntity<List<UserRatingsResponse>>(userRatingService.getUserRatings(username), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/match/{pageNo}/{pageSize}")
+    public ResponseEntity<List<PrivateMatchResponse>> getManualAndAutoMatches(@PathVariable Integer pageNo, @PathVariable Integer pageSize, Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
+        return new ResponseEntity<>(matchService.getManualAndAutoMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
     }
 }
