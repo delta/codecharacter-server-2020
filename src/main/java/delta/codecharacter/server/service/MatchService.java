@@ -35,7 +35,7 @@ public class MatchService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
-    
+
     @Autowired
     private ConstantRepository constantRepository;
 
@@ -83,11 +83,9 @@ public class MatchService {
     public List<PrivateMatchResponse> getManualAndAutoMatchesPaginated(Integer userId, Pageable pageable) {
         Aggregation aggregation = newAggregation(
                 match(
-                        new Criteria().orOperator(
-                                new Criteria().andOperator(Criteria.where("player_id_1").is(userId), new Criteria().orOperator(
-                                        Criteria.where("match_mode").is(MatchMode.MANUAL), Criteria.where("match_mode").is(MatchMode.AUTO)
-                                )),
-                                new Criteria().andOperator(Criteria.where("player_id_2").is(userId), Criteria.where("match_mode").is(MatchMode.MANUAL))
+                        new Criteria().andOperator(
+                                new Criteria().orOperator(Criteria.where("player_id_1").is(userId), Criteria.where("player_id_2").is(userId)),
+                                new Criteria().orOperator(Criteria.where("match_mode").is(MatchMode.MANUAL), Criteria.where("match_mode").is(MatchMode.AUTO))
                         )
                 ),
                 sort(Sort.by("createdAt").descending()),
@@ -98,11 +96,12 @@ public class MatchService {
         var groupResults = mongoTemplate.aggregate(aggregation, Match.class, Match.class);
         List<Match> matches = groupResults.getMappedResults();
 
-        User user1 = userRepository.findByUserId(userId);
-
         List<PrivateMatchResponse> privateMatchResponse = new ArrayList<>();
         for (var match : matches) {
+
+            User user1 = userRepository.findByUserId(match.getPlayerId1());
             User user2 = userRepository.findByUserId(match.getPlayerId2());
+
             var matchResponse = PrivateMatchResponse.builder()
                     .username1(user1.getUsername())
                     .username2(user2.getUsername())
