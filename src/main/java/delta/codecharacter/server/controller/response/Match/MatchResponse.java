@@ -1,11 +1,11 @@
 package delta.codecharacter.server.controller.response.Match;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import delta.codecharacter.server.controller.response.Game.GameResponse;
+import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Verdict;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 import java.util.List;
@@ -25,16 +25,13 @@ public class MatchResponse {
 
     private Integer score2;
 
-    private Integer rating1;
-
-    private Integer rating2;
-
     private Verdict verdict;
 
-    @JsonProperty("match_mode")
+    @Field("match_mode")
     private MatchMode matchMode;
 
+    @Field("played_at")
     private Date playedAt;
 
-    private List<GameResponse> games;
+    private List<Game> games;
 }

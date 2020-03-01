@@ -2,21 +2,23 @@ package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
-import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
-import delta.codecharacter.server.controller.response.Game.GameResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
+import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
+import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Match;
-import delta.codecharacter.server.model.TopMatchDetails;
+import delta.codecharacter.server.model.TopMatch;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
-import delta.codecharacter.server.repository.TopMatchDetailsRepository;
+import delta.codecharacter.server.repository.TopMatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.MatchStats;
 import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -50,7 +52,7 @@ public class MatchService {
     private MatchRepository matchRepository;
 
     @Autowired
-    private TopMatchDetailsRepository topMatchDetailsRepository;
+    private TopMatchRepository topMatchRepository;
 
     @Autowired
     private UserService userService;
@@ -98,21 +100,21 @@ public class MatchService {
                     .verdict(match.getVerdict())
                     .playedAt(match.getCreatedAt())
                     .build();
-            List<GameResponse> gameResponses = new ArrayList<>();
-            for (var game : gameService.findAllGamesByMatchId(match.getId())) {
-                gameResponses.add(GameResponse.builder()
-                        .id(game.getId())
-                        .mapId(game.getMapId())
-                        .verdict(game.getVerdict())
-                        .build());
-            }
-            matchResponse.setGames(gameResponses);
+            List<Game> games = gameService.findAllGamesByMatchId(match.getId());
+            matchResponse.setGames(games);
+            matchResponses.add(matchResponse);
         }
         return matchResponses;
     }
 
-    public List<MatchResponse> getAllTopMatches() {
-        List<TopMatchDetails> topMatchDetails = topMatchDetailsRepository.findAll();
+    /**
+     * Get the details of top matches from topMatch collection
+     *
+     * @return list of top matches
+     */
+    public List<MatchResponse> getTopMatches(Integer PageNumber, Integer PageSize) {
+        Pageable pageable = PageRequest.of(PageNumber - 1, PageSize);
+        Page<TopMatch> topMatchDetails = topMatchRepository.findAllByOrderByCreatedAtDesc(pageable);
         List<MatchResponse> matchResponses = new ArrayList<>();
         for (var topMatch : topMatchDetails) {
             Match match = matchRepository.findFirstById(topMatch.getMatchId());
@@ -122,21 +124,16 @@ public class MatchService {
                     .username1(user1.getUsername())
                     .username2(user2.getUsername())
                     .avatar1(user1.getAvatarId())
-                    .avatar2(user1.getAvatarId())
+                    .avatar2(user2.getAvatarId())
                     .score1(match.getScore1())
                     .score2(match.getScore2())
                     .verdict(match.getVerdict())
+                    .matchMode(match.getMatchMode())
                     .playedAt(match.getCreatedAt())
                     .build();
-            List<GameResponse> gameResponses = new ArrayList<>();
-            for (var game : gameService.findAllGamesByMatchId(match.getId())) {
-                gameResponses.add(GameResponse.builder()
-                        .id(game.getId())
-                        .mapId(game.getMapId())
-                        .verdict(game.getVerdict())
-                        .build());
-            }
-            matchResponse.setGames(gameResponses);
+            List<Game> games = gameService.findAllGamesByMatchId(match.getId());
+            matchResponse.setGames(games);
+            matchResponses.add(matchResponse);
         }
         return matchResponses;
     }
