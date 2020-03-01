@@ -3,11 +3,7 @@ package delta.codecharacter.server.service;
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.response.Leaderboard.LeaderboardData;
 import delta.codecharacter.server.controller.response.Leaderboard.PublicLeaderboardResponse;
-import delta.codecharacter.server.controller.response.LeaderboardAggregateResponse;
-import delta.codecharacter.server.controller.response.LeaderboardResponse;
-import delta.codecharacter.server.controller.response.UserMatchStatsResponse;
 import delta.codecharacter.server.model.Leaderboard;
-import delta.codecharacter.server.model.UserRating;
 import delta.codecharacter.server.repository.LeaderboardRepository;
 import delta.codecharacter.server.repository.UserRatingRepository;
 import delta.codecharacter.server.repository.UserRepository;
@@ -222,6 +218,9 @@ public class LeaderboardService {
             // Get list of ratings of the user
             var userRatings = userRatingRepository.findByUserId(userId);
 
+            //get details of the user
+            var user = userRepository.findByUserId(userId);
+
             // Get matches stats of user
             MatchStats matchStats = matchService.getMatchStatsByUsername(userRepository.findByUserId(userId).getUsername());
 
@@ -234,6 +233,10 @@ public class LeaderboardService {
                     .wins(matchStats.getWins())
                     .losses(matchStats.getLosses())
                     .ties(matchStats.getTies())
+                    .country(user.getCountry())
+                    .fullname(user.getFullName())
+                    .userType(user.getUserType())
+                    .avatarId(user.getAvatarId())
                     .build();
             leaderboardResponses.add(leaderboardResponse);
         }
