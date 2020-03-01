@@ -18,12 +18,6 @@ public class LeaderboardData {
 
     private List<Integer> rating;
 
-    private Integer wins;
-
-    private Integer losses;
-
-    private Integer ties;
-
     private Division division;
 
     private Integer rank;
