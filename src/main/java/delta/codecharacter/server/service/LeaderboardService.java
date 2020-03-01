@@ -218,6 +218,9 @@ public class LeaderboardService {
             // Get list of ratings of the user
             var userRatings = userRatingRepository.findByUserId(userId);
 
+            // Get details of the user
+            var user = userRepository.findByUserId(userId);
+
             // Get matches stats of user
             MatchStats matchStats = matchService.getMatchStatsByUsername(userRepository.findByUserId(userId).getUsername());
 
@@ -230,6 +233,10 @@ public class LeaderboardService {
                     .wins(matchStats.getWins())
                     .losses(matchStats.getLosses())
                     .ties(matchStats.getTies())
+                    .country(user.getCountry())
+                    .fullname(user.getFullName())
+                    .userType(user.getUserType())
+                    .avatarId(user.getAvatarId())
                     .build();
             leaderboardResponses.add(leaderboardResponse);
         }
