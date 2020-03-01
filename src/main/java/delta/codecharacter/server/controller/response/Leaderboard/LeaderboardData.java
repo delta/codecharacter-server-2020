@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.util.List;
-
 @Data
 @Builder
 public class LeaderboardData {
@@ -16,7 +14,7 @@ public class LeaderboardData {
 
     private String username;
 
-    private List<Integer> rating;
+    private Integer rating;
 
     private Division division;
 
