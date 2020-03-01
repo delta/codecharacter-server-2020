@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotEmpty;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -69,18 +68,15 @@ public class UserRatingService {
      *
      * @param userId userId of the user
      */
-    @SneakyThrows
     @Transactional
     public void initializeUserRating(@NotEmpty Integer userId) {
         if (userRatingRepository.findByUserId(userId).size() > 0)
-            throw new Exception("User already has ratings in the userRating collection");
+            return;
 
-        LocalDateTime currentDate = LocalDateTime.now();
         UserRating initialUserRating = UserRating.builder()
                 .userId(userId)
                 .rating(1500d)
                 .ratingDeviation(350d)
-                .validFrom(currentDate)
                 .build();
         userRatingRepository.save(initialUserRating);
     }
@@ -93,8 +89,8 @@ public class UserRatingService {
      * @param verdict Verdict of match
      */
     public void calculateMatchRatings(Integer userId1, Integer userId2, Verdict verdict) {
-        UserRating rating1 = userRatingRepository.findOneByUserId(userId1);
-        UserRating rating2 = userRatingRepository.findOneByUserId(userId2);
+        UserRating rating1 = userRatingRepository.findFirstByUserIdOrderByValidFromDesc(userId1);
+        UserRating rating2 = userRatingRepository.findFirstByUserIdOrderByValidFromDesc(userId2);
 
         // Calculate weighted rating deviations for both players
         Double weightedRatingDeviation1 = ratingCalculator.calculateWeightedRatingDeviation(
@@ -162,22 +158,19 @@ public class UserRatingService {
     }
 
     /**
-     * Update user rating details of player in db
+     * Add a new user rating entry of player in UserRating table
      *
      * @param userId          User Id
      * @param rating          Player rating
      * @param ratingDeviation Rating deviation of player
      */
     public void updateUserRating(Integer userId, Double rating, Double ratingDeviation) {
-        UserRating userRating = userRatingRepository.findOneByUserId(userId);
 
-        if (rating != null) {
-            userRating.setRating(rating);
-        }
-
-        if (ratingDeviation != null) {
-            userRating.setRatingDeviation(ratingDeviation);
-        }
+        UserRating userRating = UserRating.builder()
+                .userId(userId)
+                .rating(rating)
+                .ratingDeviation(ratingDeviation)
+                .build();
 
         userRatingRepository.save(userRating);
     }

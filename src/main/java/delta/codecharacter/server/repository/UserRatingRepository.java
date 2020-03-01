@@ -10,5 +10,5 @@ import java.util.List;
 public interface UserRatingRepository extends MongoRepository<UserRating, Integer> {
     List<UserRating> findByUserId(Integer userId);
 
-    UserRating findOneByUserId(Integer userId);
+    UserRating findFirstByUserIdOrderByValidFromDesc(Integer userId);
 }
