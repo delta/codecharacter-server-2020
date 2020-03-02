@@ -99,9 +99,8 @@ public class LogUtil {
     /**
      * Set contents of log file of given gameId
      *
-     * @param gameId GameId of user
-     * @param logId  LogId of the log which is to be set
-     * @param log    Contents of log to be written in the log file
+     * @param gameId     GameId of user
+     * @param logDetails Log details of the game
      */
     public static void setLogDetails(Integer gameId, LogDetails logDetails) {
         String logFileUri = getLogFileUri(gameId, LogId.GAME_LOG);
