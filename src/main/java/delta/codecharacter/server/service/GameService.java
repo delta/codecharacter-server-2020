@@ -48,6 +48,12 @@ public class GameService {
         return gameRepository.findAllByMatchId(matchId);
     }
 
+    /**
+     * Find game by ID
+     *
+     * @param gameId gameId of the game
+     * @return Game details with the given gameId
+     */
     public Game findGameById(Integer gameId) {
         return gameRepository.findFirstById(gameId);
     }
