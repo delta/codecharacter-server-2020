@@ -33,6 +33,12 @@ public class UserRatingService {
     @Autowired
     private MatchService matchService;
 
+    @Autowired
+    private LeaderboardService leaderboardService;
+
+    @Autowired
+    private ConstantService constantService;
+
     private RatingCalculator ratingCalculator;
 
     UserRatingService() {
@@ -72,10 +78,11 @@ public class UserRatingService {
     public void initializeUserRating(@NotEmpty Integer userId) {
         if (userRatingRepository.findByUserId(userId).size() > 0)
             return;
+        var initialRating = Double.valueOf(constantService.getConstantValueByKey("INITIAL_RATING"));
 
         UserRating initialUserRating = UserRating.builder()
                 .userId(userId)
-                .rating(1500d)
+                .rating(initialRating)
                 .ratingDeviation(350d)
                 .build();
         userRatingRepository.save(initialUserRating);
@@ -91,6 +98,9 @@ public class UserRatingService {
     public void calculateMatchRatings(Integer userId1, Integer userId2, Verdict verdict) {
         UserRating rating1 = userRatingRepository.findFirstByUserIdOrderByValidFromDesc(userId1);
         UserRating rating2 = userRatingRepository.findFirstByUserIdOrderByValidFromDesc(userId2);
+
+        // Used to revert back the userRatingDeviation of player 2
+        final Double user2RatingDeviation = rating2.getRatingDeviation();
 
         // Calculate weighted rating deviations for both players
         Double weightedRatingDeviation1 = ratingCalculator.calculateWeightedRatingDeviation(
@@ -132,10 +142,9 @@ public class UserRatingService {
         // Calculate new rating deviation of player 1
         Double newRatingDeviation1 = ratingCalculator.calculateNewRatingDeviation(glickoRating1, opponentRatings1);
 
-        // Player 2 deviation doesn't change since he did not initiate match
-
         updateUserRating(userId1, newRating1, newRatingDeviation1);
-        updateUserRating(userId2, newRating2, null);
+        // Player 2 deviation doesn't change since he did not initiate match
+        updateUserRating(userId2, newRating2, user2RatingDeviation);
     }
 
     private Double getVerdictScore(Verdict verdict, boolean isOpponent) {
@@ -173,5 +182,7 @@ public class UserRatingService {
                 .build();
 
         userRatingRepository.save(userRating);
+
+        leaderboardService.updateLeaderboardData(userId, rating);
     }
 }

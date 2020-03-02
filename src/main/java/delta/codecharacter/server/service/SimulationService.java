@@ -35,8 +35,8 @@ public class SimulationService {
     @Value("${compilebox.secret-key}")
     private String secretKey;
 
-    @Value("/response/")
-    private String socketDest;
+    @Value("/response/alert/")
+    private String socketAlertMessageDest;
 
     @Autowired
     private VersionControlService versionControlService;
@@ -75,7 +75,7 @@ public class SimulationService {
         if (!simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.AUTO))) {
             Long remTime = matchService.getWaitTime(playerId1);
             if (remTime != 0) {
-                socketService.sendMessage(socketDest + userId, "Please wait for " + remTime + "seconds to initiate next match");
+                socketService.sendMessage(socketAlertMessageDest + userId, "Please wait for " + remTime + "seconds to initiate next match");
                 return;
             }
 
@@ -84,7 +84,7 @@ public class SimulationService {
             Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(userId, Status.IDLE, MatchMode.AUTO) != null;
             Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(userId, Status.EXECUTING, MatchMode.AUTO) != null;
             if (isIdleMatchPresent || isExecutingMatchPresent) {
-                socketService.sendMessage(socketDest + userId, "Previous match has not completed");
+                socketService.sendMessage(socketAlertMessageDest + userId, "Previous match has not completed");
                 return;
             }
         }
@@ -110,7 +110,7 @@ public class SimulationService {
             case SELF: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    socketService.sendMessage(socketDest + userId, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + userId, "MapId cannot be null");
                     return;
                 }
 
@@ -128,7 +128,7 @@ public class SimulationService {
             case AI: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    socketService.sendMessage(socketDest + userId, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + userId, "MapId cannot be null");
                     return;
                 }
 
@@ -163,7 +163,7 @@ public class SimulationService {
             case PREV_COMMIT: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    socketService.sendMessage(socketDest, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + userId, "MapId cannot be null");
                     return;
                 }
 
@@ -194,7 +194,7 @@ public class SimulationService {
                 break;
             }
             default: {
-                socketService.sendMessage(socketDest + userId, "Invalid MatchMode");
+                socketService.sendMessage(socketAlertMessageDest + userId, "Invalid MatchMode");
                 return;
             }
         }
@@ -204,7 +204,7 @@ public class SimulationService {
 
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
 
-        socketService.sendMessage(socketDest + userId, "Match is executing");
+        socketService.sendMessage(socketAlertMessageDest + userId, "Match is executing");
 
         // Set match status to EXECUTING
         match.setStatus(Status.EXECUTING);

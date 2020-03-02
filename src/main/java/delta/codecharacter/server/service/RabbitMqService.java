@@ -5,7 +5,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +31,8 @@ public class RabbitMqService {
     }
 
     @SneakyThrows
-    @EventListener(ApplicationReadyEvent.class)
-    public void init() {
+    @EventListener
+    public void init(ContextRefreshedEvent e) {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(host);
         Connection connection = connectionFactory.newConnection();

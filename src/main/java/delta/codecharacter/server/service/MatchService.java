@@ -1,6 +1,9 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.api.UserController;
+import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
+import delta.codecharacter.server.controller.request.UpdateGameDetails;
+import delta.codecharacter.server.controller.request.UpdateMatchRequest;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
@@ -10,11 +13,12 @@ import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.TopMatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
+import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MatchStats;
-import delta.codecharacter.server.util.enums.MatchMode;
-import delta.codecharacter.server.util.enums.Status;
+import delta.codecharacter.server.util.enums.*;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,12 +33,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static delta.codecharacter.server.util.enums.Verdict.*;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Service
 public class MatchService {
 
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
+
+    @Value("/response/alert/")
+    private String socketAlertMessageDest;
+
+    @Value("/response/match/")
+    private String socketMatchResultDest;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -56,6 +67,15 @@ public class MatchService {
 
     @Autowired
     private GameService gameService;
+
+    @Autowired
+    private SocketService socketService;
+
+    @Autowired
+    private UserRatingService userRatingService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     /**
      * Create a new match for the given players and matchMode
@@ -357,4 +377,115 @@ public class MatchService {
         return (long) (minWaitTime - timePassedSeconds);
     }
 
+    /**
+     * Updates the match in DB
+     *
+     * @param updateMatchRequest updateMatchRequest of the match
+     */
+    public void updateMatch(UpdateMatchRequest updateMatchRequest) {
+        Boolean success = updateMatchRequest.getSuccess();
+
+        Integer matchId = updateMatchRequest.getMatchId();
+        Match match = matchRepository.findFirstById(matchId);
+
+        Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+
+        if (match.getMatchMode() != MatchMode.AUTO) {
+            //TODO: Save Logs
+            Integer playerId = match.getPlayerId1();
+            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketMatchResultDest + playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage);
+        }
+        if (match.getMatchMode() == MatchMode.MANUAL) {
+            List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
+            if (success && player1Dlls != null) {
+                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
+                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
+            }
+
+            // If match mode is manual, create a notification for player 2 also.
+            Integer playerId = match.getPlayerId2();
+            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketMatchResultDest + playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage);
+
+            // Add an entry to User rating table
+            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
+            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
+        }
+        if (match.getMatchMode() == MatchMode.AUTO) {
+            // TODO: Find whether an auto match is complete and send socket message
+        }
+    }
+
+    /**
+     * Get result of a match by its verdict with respect to the player
+     *
+     * @param matchId  matchId of the match
+     * @param verdict  verdict of the match
+     * @param playerId userId of the player
+     * @return The result of match with respect to the player
+     */
+    private String getMatchResultByVerdict(Integer matchId, Verdict verdict, Integer playerId) {
+        Match match = matchRepository.findFirstById(matchId);
+        Integer opponentId;
+        boolean isPlayer1 = playerId.equals(match.getPlayerId1());
+
+        if (isPlayer1)
+            opponentId = match.getPlayerId2();
+        else
+            opponentId = match.getPlayerId1();
+
+        String opponentUsername = userRepository.findByUserId(opponentId).getUsername();
+
+        switch (verdict) {
+            case TIE:
+                return "Match tied against " + opponentUsername;
+            case PLAYER_1:
+                if (isPlayer1)
+                    return "Won match against " + opponentUsername;
+                return "Lost match against " + opponentUsername;
+            case PLAYER_2:
+                if (isPlayer1)
+                    return "Lost match against " + opponentUsername;
+                return "Won match against " + opponentUsername;
+        }
+        return "";
+    }
+
+    /**
+     * Create a notification request for the player regarding the match
+     *
+     * @param playerId            userId of the player
+     * @param notificationContent Content of the notification
+     */
+    private void createMatchNotification(Integer playerId, String notificationContent) {
+        CreateNotificationRequest createNotificationRequest = CreateNotificationRequest.builder()
+                .userId(playerId)
+                .title("Match Result")
+                .content(notificationContent)
+                .type(Type.INFO)
+                .build();
+        notificationService.createNotification(createNotificationRequest);
+    }
+
+    /**
+     * Get the verdict of a match
+     *
+     * @param gameDetails List of gameDetails
+     * @return Verdict of the match
+     */
+    public Verdict deduceMatchVerdict(List<UpdateGameDetails> gameDetails) {
+        Integer player1Wins = 0, player2Wins = 0;
+        for (var game : gameDetails) {
+            if (game.getVerdict().equals(PLAYER_1))
+                player1Wins++;
+            if (game.getVerdict().equals(PLAYER_2))
+                player2Wins++;
+        }
+        if (player1Wins > player2Wins) return PLAYER_1;
+        if (player2Wins > player1Wins) return PLAYER_2;
+        return TIE;
+    }
 }

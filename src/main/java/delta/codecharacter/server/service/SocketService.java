@@ -10,7 +10,7 @@ public class SocketService {
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
-    public void sendMessage(String dest, String message) {
-        simpMessagingTemplate.convertAndSend(dest, message);
+    public void sendMessage(String socketDest, String message) {
+        simpMessagingTemplate.convertAndSend(socketDest, message);
     }
 }
