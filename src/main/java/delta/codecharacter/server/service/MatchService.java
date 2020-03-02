@@ -393,9 +393,9 @@ public class MatchService {
         if (match.getMatchMode() != MatchMode.AUTO) {
             //TODO: Save Logs
             Integer playerId = match.getPlayerId1();
-            String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketMatchResultDest + playerId, matchResult);
-            createMatchNotification(playerId, matchResult);
+            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketMatchResultDest + playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage);
         }
         if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
@@ -406,9 +406,9 @@ public class MatchService {
 
             // If match mode is manual, create a notification for player 2 also.
             Integer playerId = match.getPlayerId2();
-            String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketMatchResultDest + playerId, matchResult);
-            createMatchNotification(playerId, matchResult);
+            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketMatchResultDest + playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage);
 
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
