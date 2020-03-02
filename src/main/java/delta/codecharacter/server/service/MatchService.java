@@ -389,21 +389,21 @@ public class MatchService {
         Integer matchId = updateMatchRequest.getMatchId();
         Match match = matchRepository.findFirstById(matchId);
 
+        Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+        String matchResult;
+
         if (match.getMatchMode() != MatchMode.AUTO) {
             //TODO: Send Socket Message to both User
             //TODO: Create Notification for both users
             //TODO: Save Logs
         }
-        if (match.getMatchMode() == MatchMode.MANUAL) {
+        else if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
             if (success && player1Dlls != null) {
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
             }
 
-            Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
-
-            String matchResult;
             matchResult = getVerdictResult(matchVerdict);
             socketService.sendMessage(socketMatchResultDest, matchResult);
 
@@ -411,6 +411,28 @@ public class MatchService {
             CreateNotificationRequest notificationRequestPlayer2;
 
             notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
+            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
+            // Add an entry to User rating table
+            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
+            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
+        }
+        else if (match.getMatchMode() == MatchMode.SELF) {
+            matchResult = getVerdictResult(matchVerdict);
+            socketService.sendMessage(socketMatchResultDest, matchResult);
+
+            CreateNotificationRequest notificationRequestPlayer1;
+
+            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
+            // Add an entry to User rating table
+            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
+            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
+        }
+        else if (match.getMatchMode() == MatchMode.PREV_COMMIT) {
+            matchResult = getVerdictResult(matchVerdict);
+            socketService.sendMessage(socketMatchResultDest, matchResult);
+
+            CreateNotificationRequest notificationRequestPlayer1;
+
             notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
