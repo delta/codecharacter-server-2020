@@ -66,7 +66,7 @@ public class AutoMatchUpService {
                 SimulateMatchRequest simulateMatchRequest = SimulateMatchRequest.builder()
                         .playerId1(player1UserId.toString())
                         .playerId2(player2UserId.toString())
-                        .matchMode(MatchMode.AUTO.toString())
+                        .matchMode(MatchMode.AUTO)
                         .build();
                 simulationService.simulateMatch(simulateMatchRequest);
             }

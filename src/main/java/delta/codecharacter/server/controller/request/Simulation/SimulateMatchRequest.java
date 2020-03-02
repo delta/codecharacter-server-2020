@@ -17,7 +17,7 @@ public class SimulateMatchRequest {
     String playerId2;
 
     @NotEmpty(message = "Match Mode is required")
-    String matchMode;
+    MatchMode matchMode;
 
     String commitHash;
 
