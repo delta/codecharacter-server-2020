@@ -8,6 +8,7 @@ storage.dir=storage
 storage.playercode.dir=storage/codes
 storage.playercode.default.user.id=0
 storage.playercode.filename=main.cpp
+storage.playerLockedCode.filename=locked.cpp
 storage.maps.dir=storage/maps
 storage.matchlog.dir=storage/logs
 

@@ -33,6 +33,11 @@ public class CodeStatus {
     @Builder.Default
     private boolean readOnly = false;
 
+    @Field("is_locked")
+    @NotNull
+    @Builder.Default
+    private boolean isLocked = false;
+
     // null, if head is at latest
     @Field("current_commit")
     private String currentCommit;

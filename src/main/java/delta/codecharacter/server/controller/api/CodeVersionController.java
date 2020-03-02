@@ -2,8 +2,8 @@ package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.Codeversion.CommitResponse;
 import delta.codecharacter.server.model.User;
-import delta.codecharacter.server.service.VersionControlService;
 import delta.codecharacter.server.service.UserService;
+import delta.codecharacter.server.service.VersionControlService;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,6 +44,17 @@ public class CodeVersionController {
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
         if (!versionControlService.setCode(user.getUserId(), code))
+            return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("Saved Code", HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/submit")
+    @SneakyThrows
+    public ResponseEntity<String> lockCode(Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        if (!versionControlService.setLockedCode(user.getUserId()))
             return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
         return new ResponseEntity<>("Saved Code", HttpStatus.OK);
     }

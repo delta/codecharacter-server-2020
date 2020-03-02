@@ -40,6 +40,9 @@ public class VersionControlService {
     @Value("${storage.playercode.filename}")
     private String codeFileName;
 
+    @Value("${storage.playerLockedCode.filename}")
+    private String lockedCodeFileName;
+
     @Autowired
     private CodeStatusService codeStatusService;
 
@@ -138,6 +141,16 @@ public class VersionControlService {
     }
 
     /**
+     * Return the absolute path to the player locked code file of given userId
+     *
+     * @param userId UserId of whose code is to be accessed
+     * @return Path to player locked code file
+     */
+    private String getLockedCodeFileUri(Integer userId) {
+        return getCodeRepositoryUri(userId) + File.separator + lockedCodeFileName;
+    }
+
+    /**
      * Check if code repository exists
      *
      * @param userId UserId of the user
@@ -172,8 +185,7 @@ public class VersionControlService {
 
         // Create code file, add and commit
         FileHandler.createFile(getCodeFileUri(userId));
-        String defaultCode = FileHandler.getFileContents(getCodeFileUri(Integer.valueOf(defaultCodeUserId)));
-        FileHandler.writeFileContents(getCodeFileUri(userId), defaultCode);
+        FileHandler.createFile(getLockedCodeFileUri(userId));
 
         gitAdd(userId);
         commit(userId, "Initial Commit");
@@ -342,6 +354,40 @@ public class VersionControlService {
         var userCodeStatus = codeStatusRepository.findByUserId(userId);
         userCodeStatus.setLastSavedAt(new Date());
         codeStatusRepository.save(userCodeStatus);
+
+        return true;
+    }
+
+    /**
+     * Get locked code of given userId
+     *
+     * @param userId UserId of user
+     * @return Contents of file
+     */
+    public String getLockedCode(Integer userId) {
+        if (!checkCodeRepositoryExists(userId)) return null;
+        String lockedCodeFileUri = getLockedCodeFileUri(userId);
+        return FileHandler.getFileContents(lockedCodeFileUri);
+    }
+
+    /**
+     * Set locked code of given userId
+     *
+     * @param userId UserId of user
+     */
+    @SneakyThrows
+    public boolean setLockedCode(Integer userId) {
+        if (!checkCodeRepositoryExists(userId))
+            throw new Exception("No repository found");
+
+        String lockedCodeFileUri = getLockedCodeFileUri(userId);
+        String code = getCode(userId);
+        FileHandler.writeFileContents(lockedCodeFileUri, code);
+
+        //set isLocked to true in codeStatus table
+        CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
+        codeStatus.setLocked(true);
+        codeStatusRepository.save(codeStatus);
 
         return true;
     }
