@@ -440,6 +440,10 @@ public class VersionControlService {
         if (!checkCodeRepositoryExists(userId))
             throw new Exception("No repository found");
 
+        //Since code changes the dlls become obsolete
+        DllUtil.deleteDllFile(userId, DllId.DLL_1);
+        DllUtil.deleteDllFile(userId, DllId.DLL_2);
+
         String lockedCodeFileUri = getLockedCodeFileUri(userId);
         String code = getCode(userId);
         FileHandler.writeFileContents(lockedCodeFileUri, code);
