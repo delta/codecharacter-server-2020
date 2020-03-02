@@ -390,98 +390,76 @@ public class MatchService {
         Match match = matchRepository.findFirstById(matchId);
 
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
-        String matchResult;
 
+        if (match.getMatchMode() != MatchMode.AUTO) {
+            //TODO: Send Socket Message to both User
+            //TODO: Create Notification for both users
+            //TODO: Save Logs
+            Integer playerId = match.getPlayerId1();
+            String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketMatchResultDest + playerId, matchResult);
+            notificationService.createNotification(createMatchNotificationRequest(playerId, matchResult));
+        }
         if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
             if (success && player1Dlls != null) {
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
             }
+            
+            // If match mode is manual, create a notification for player 2 also.
+            Integer playerId = match.getPlayerId2();
+            String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketMatchResultDest + playerId, matchResult);
+            notificationService.createNotification(createMatchNotificationRequest(playerId, matchResult));
 
-            matchResult = getVerdictResult(matchVerdict);
-            socketService.sendMessage(socketMatchResultDest, matchResult);
-
-            CreateNotificationRequest notificationRequestPlayer1;
-            CreateNotificationRequest notificationRequestPlayer2;
-
-            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
-            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
             userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
-        else if (match.getMatchMode() != MatchMode.AUTO) {
-            matchResult = getVerdictResult(matchVerdict);
-            socketService.sendMessage(socketMatchResultDest, matchResult);
-
-            CreateNotificationRequest notificationRequestPlayer1;
-
-            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
-            // Add an entry to User rating table
-            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
-            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
-        }
-        // AUTO Match mode
-        else {
-
+        if (match.getMatchMode() == MatchMode.AUTO) {
+            // TODO: Find whether an auto match is complete and send socket message
         }
     }
 
-    private String getVerdictResult(Verdict verdict) {
+    private String getMatchResultByVerdict(Integer matchId, Verdict verdict, Integer playerId) {
+        Match match = matchRepository.findFirstById(matchId);
+        Integer opponentId;
+        boolean isPlayerMatchPlayer1 = playerId.equals(match.getPlayerId1());
+
+        if (isPlayerMatchPlayer1)
+            opponentId = match.getPlayerId1();
+        else
+            opponentId = match.getPlayerId2();
+
+        String opponentName = userRepository.findByUserId(opponentId).getUsername();
+        String result = "";
+
         switch (verdict) {
             case TIE:
-                return "Match tied";
+                result = "Match tied against " + opponentName;
+                break;
             case PLAYER_1:
-                return "Player 1 won";
+                if (isPlayerMatchPlayer1)
+                    result = "Won match against " + opponentName;
+                else
+                    result = "Lost match against " + opponentName;
             case PLAYER_2:
-                return "Player 2 won";
-            default:
-                return "No Result";
+                if (isPlayerMatchPlayer1)
+                    result = "Lost match against " + opponentName;
+                else
+                    result = "Won match against " + opponentName;
         }
+        return result;
     }
 
-    private CreateNotificationRequest createMatchResultNotificationRequest(Verdict matchVerdict, Match match) {
-        CreateNotificationRequest createNotificationRequest;
-
-        String playerName1 = userRepository.findByUserId(match.getPlayerId1()).getUsername();
-        String playerName2 = userRepository.findByUserId(match.getPlayerId2()).getUsername();
-
-        switch (matchVerdict) {
-            case TIE:
-                createNotificationRequest = CreateNotificationRequest.builder()
-                        .userId(match.getPlayerId1())
-                        .title("Match Result")
-                        .content("Match tied against " + playerName2)
-                        .type(Type.INFO)
-                        .build();
-                break;
-            case PLAYER_1:
-                createNotificationRequest = CreateNotificationRequest.builder()
-                        .userId(match.getPlayerId1())
-                        .title("Match Result")
-                        .content("You won the match against " + playerName2)
-                        .type(Type.INFO)
-                        .build();
-                break;
-            case PLAYER_2:
-                createNotificationRequest = CreateNotificationRequest.builder()
-                        .userId(match.getPlayerId1())
-                        .title("Match Result")
-                        .content("You lost the match against " + playerName2)
-                        .type(Type.INFO)
-                        .build();
-                break;
-            default:
-                createNotificationRequest = CreateNotificationRequest.builder()
-                        .userId(match.getPlayerId1())
-                        .title("Match Result")
-                        .content("No result for match against " + playerName2)
-                        .type(Type.INFO)
-                        .build();
-                break;
-        }
-        return createNotificationRequest;
+    private CreateNotificationRequest createMatchNotificationRequest(Integer playerId, String matchResult) {
+        return CreateNotificationRequest.builder()
+                .userId(playerId)
+                .title("Match Result")
+                .content(matchResult)
+                .type(Type.INFO)
+                .build();
     }
 
     public Verdict deduceMatchVerdict(List<UpdateGameDetails> gameDetails) {
