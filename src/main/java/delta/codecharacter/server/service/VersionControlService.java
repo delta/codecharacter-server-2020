@@ -343,17 +343,14 @@ public class VersionControlService {
      * @param code   Code to be inside the code file
      */
     public boolean setCode(Integer userId, String code) {
-        // Since code changes the dlls become obsolete
-        DllUtil.deleteDllFile(userId, DllId.DLL_1);
-        DllUtil.deleteDllFile(userId, DllId.DLL_2);
-
         if (!checkCodeRepositoryExists(userId)) createCodeRepository(userId);
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
 
-        var userCodeStatus = codeStatusRepository.findByUserId(userId);
-        userCodeStatus.setLastSavedAt(new Date());
-        codeStatusRepository.save(userCodeStatus);
+        //update lastSavedAt in codeStatus
+        CodeStatus codeStatus = codeStatusRepository.findByUserId(userId);
+        codeStatus.setLastSavedAt(new Date());
+        codeStatusRepository.save(codeStatus);
 
         return true;
     }
@@ -379,6 +376,10 @@ public class VersionControlService {
     public boolean setLockedCode(Integer userId) {
         if (!checkCodeRepositoryExists(userId))
             throw new Exception("No repository found");
+
+        //Since code changes the dlls become obsolete
+        DllUtil.deleteDllFile(userId, DllId.DLL_1);
+        DllUtil.deleteDllFile(userId, DllId.DLL_2);
 
         String lockedCodeFileUri = getLockedCodeFileUri(userId);
         String code = getCode(userId);
