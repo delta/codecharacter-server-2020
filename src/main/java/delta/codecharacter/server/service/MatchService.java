@@ -396,7 +396,7 @@ public class MatchService {
             Integer playerId = match.getPlayerId1();
             String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
             socketService.sendMessage(socketMatchResultDest + playerId, matchResult);
-            notificationService.createNotification(createMatchNotificationRequest(playerId, matchResult));
+            createMatchNotification(playerId, matchResult));
         }
         if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
@@ -409,7 +409,7 @@ public class MatchService {
             Integer playerId = match.getPlayerId2();
             String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
             socketService.sendMessage(socketMatchResultDest + playerId, matchResult);
-            notificationService.createNotification(createMatchNotificationRequest(playerId, matchResult));
+            createMatchNotification(playerId, matchResult);
 
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
@@ -420,44 +420,57 @@ public class MatchService {
         }
     }
 
+    /**
+     * Get result of a match by its verdict with respect to the player
+     *
+     * @param matchId  matchId of the match
+     * @param verdict  verdict of the match
+     * @param playerId userId of the player
+     * @return The result of match with respect to the player
+     */
     private String getMatchResultByVerdict(Integer matchId, Verdict verdict, Integer playerId) {
         Match match = matchRepository.findFirstById(matchId);
         Integer opponentId;
         boolean isPlayerMatchPlayer1 = playerId.equals(match.getPlayerId1());
 
         if (isPlayerMatchPlayer1)
-            opponentId = match.getPlayerId1();
-        else
             opponentId = match.getPlayerId2();
+        else
+            opponentId = match.getPlayerId1();
 
-        String opponentName = userRepository.findByUserId(opponentId).getUsername();
-        String result = "";
+        String opponentUsername = userRepository.findByUserId(opponentId).getUsername();
 
         switch (verdict) {
             case TIE:
-                result = "Match tied against " + opponentName;
-                break;
+                return "Match tied against " + opponentUsername;
             case PLAYER_1:
                 if (isPlayerMatchPlayer1)
-                    result = "Won match against " + opponentName;
+                    return "Won match against " + opponentUsername;
                 else
-                    result = "Lost match against " + opponentName;
+                    return "Lost match against " + opponentUsername;
             case PLAYER_2:
                 if (isPlayerMatchPlayer1)
-                    result = "Lost match against " + opponentName;
+                    return "Lost match against " + opponentUsername;
                 else
-                    result = "Won match against " + opponentName;
+                    return "Won match against " + opponentUsername;
         }
-        return result;
+        return "";
     }
 
-    private CreateNotificationRequest createMatchNotificationRequest(Integer playerId, String matchResult) {
-        return CreateNotificationRequest.builder()
+    /**
+     * Create a notification request for the player regarding the match
+     *
+     * @param playerId    userId of the player
+     * @param notificationContent Content of the notification
+     */
+    private void createMatchNotification(Integer playerId, String notificationContent) {
+        CreateNotificationRequest createNotificationRequest = CreateNotificationRequest.builder()
                 .userId(playerId)
                 .title("Match Result")
-                .content(matchResult)
+                .content(notificationContent)
                 .type(Type.INFO)
                 .build();
+        notificationService.createNotification(createNotificationRequest);
     }
 
     public Verdict deduceMatchVerdict(List<UpdateGameDetails> gameDetails) {
