@@ -87,18 +87,6 @@ public class LogUtil {
     /**
      * Set contents of log file of given gameId
      *
-     * @param gameId GameId of user
-     * @param logId  LogId of the log which is to be set
-     * @param log    Contents of log to be written in the log file
-     */
-    public static void setLog(Integer gameId, LogId logId, String log) {
-        String logFileUri = getLogFileUri(gameId, logId);
-        FileHandler.writeFileContents(logFileUri, log);
-    }
-
-    /**
-     * Set contents of log file of given gameId
-     *
      * @param gameId     GameId of user
      * @param logDetails Log details of the game
      */
@@ -109,26 +97,5 @@ public class LogUtil {
         FileHandler.writeFileContents(logFileUri, logDetails.getGameLog());
         FileHandler.writeFileContents(playerLogFileUri1, logDetails.getPlayer1Log());
         FileHandler.writeFileContents(playerLogFileUri2, logDetails.getPlayer2Log());
-    }
-
-    /**
-     * Delete the log file for the given gameId and logId
-     *
-     * @param gameId GameId of user whose log directory is to be deleted
-     * @param logId  LogId of the file to be deleted
-     */
-    public static void deleteLogFile(Integer gameId, LogId logId) {
-        FileHandler.deleteFile(getLogFileUri(gameId, logId));
-    }
-
-    /**
-     * Delete the log file for the given gameId and logId
-     *
-     * @param gameId GameId of user whose log directory is to be deleted
-     */
-    public static void deleteLog(Integer gameId) {
-        FileHandler.deleteFile(getLogFileUri(gameId, LogId.GAME_LOG));
-        FileHandler.deleteFile(getLogFileUri(gameId, LogId.PLAYER_LOG_1));
-        FileHandler.deleteFile(getLogFileUri(gameId, LogId.PLAYER_LOG_2));
     }
 }

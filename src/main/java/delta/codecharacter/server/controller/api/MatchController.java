@@ -31,10 +31,11 @@ public class MatchController {
     }
 
     @PatchMapping(value = "")
-    public void updateMatch(@RequestBody @Valid UpdateMatchRequest updateMatchRequest) {
+    public ResponseEntity<String> updateMatch(@RequestBody @Valid UpdateMatchRequest updateMatchRequest) {
         if (!updateMatchRequest.getSecretKey().equals(compileboxSecretKey))
-            return;
+            return new ResponseEntity<>("Wrong compile box key", HttpStatus.FORBIDDEN);
         matchService.updateMatch(updateMatchRequest);
+        return new ResponseEntity<>("Match updated successfully", HttpStatus.OK);
     }
 
 }

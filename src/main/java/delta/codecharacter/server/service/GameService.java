@@ -2,6 +2,8 @@ package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.repository.GameRepository;
+import delta.codecharacter.server.util.LogDetails;
+import delta.codecharacter.server.util.LogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,14 +35,21 @@ public class GameService {
         return game;
     }
 
+    public LogDetails getGameLog(Integer gameId) {
+        return LogUtil.getLogDetails(gameId);
+    }
+
     /**
      * Get all the games associated with a match
-     *
      * @param matchId MatchId for which the games are to be fetched
      * @return List of all the games for the given matchId
      */
     public List<Game> getAllGamesByMatchId(Integer matchId) {
         return gameRepository.findAllByMatchId(matchId);
+    }
+
+    public Game findGameById(Integer gameId) {
+        return gameRepository.findFirstById(gameId);
     }
 
     /**
