@@ -57,10 +57,11 @@ public class LeaderboardService {
      */
     @Transactional
     public void initializeLeaderboardData(@NotNull Integer userId) {
+        var initialRating = Double.valueOf(constantService.getConstantValueByKey("INITIAL_RATING"));
         Leaderboard leaderboard = Leaderboard.builder()
                 .userId(userId)
                 .division(Division.DIV_2)
-                .rating(1200d)
+                .rating(initialRating)
                 .build();
 
         leaderboardRepository.save(leaderboard);
