@@ -41,9 +41,6 @@ public class MatchService {
 
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
 
-    @Value("${compilebox.secret-key}")
-    private String compileboxSecretKey;
-
     @Value("/response/alert/")
     private String socketAlertMessageDest;
 
@@ -381,8 +378,6 @@ public class MatchService {
     }
 
     public void updateMatch(UpdateMatchRequest updateMatchRequest) {
-        if (updateMatchRequest.getSecretKey().equals(compileboxSecretKey))
-            return;
         Boolean success = updateMatchRequest.getSuccess();
 
         Integer matchId = updateMatchRequest.getMatchId();
@@ -445,13 +440,11 @@ public class MatchService {
             case PLAYER_1:
                 if (isPlayer1)
                     return "Won match against " + opponentUsername;
-                else
-                    return "Lost match against " + opponentUsername;
+                return "Lost match against " + opponentUsername;
             case PLAYER_2:
                 if (isPlayer1)
                     return "Lost match against " + opponentUsername;
-                else
-                    return "Won match against " + opponentUsername;
+                return "Won match against " + opponentUsername;
         }
         return "";
     }
@@ -472,6 +465,12 @@ public class MatchService {
         notificationService.createNotification(createNotificationRequest);
     }
 
+    /**
+     * Get the verdict of a match
+     *
+     * @param gameDetails List of gameDetails
+     * @return Verdict of the match
+     */
     public Verdict deduceMatchVerdict(List<UpdateGameDetails> gameDetails) {
         Integer player1Wins = 0, player2Wins = 0;
         for (var game : gameDetails) {
