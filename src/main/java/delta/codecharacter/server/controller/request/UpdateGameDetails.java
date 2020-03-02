@@ -1,9 +1,11 @@
 package delta.codecharacter.server.controller.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import delta.codecharacter.server.util.enums.Verdict;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateGameDetails {
     private Boolean success;
 

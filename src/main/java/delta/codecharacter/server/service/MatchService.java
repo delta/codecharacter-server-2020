@@ -1,6 +1,7 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.api.UserController;
+import delta.codecharacter.server.controller.request.UpdateGameDetails;
 import delta.codecharacter.server.controller.request.UpdateMatchRequest;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
@@ -11,9 +12,12 @@ import delta.codecharacter.server.repository.ConstantRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.repository.TopMatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
+import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MatchStats;
+import delta.codecharacter.server.util.enums.DllId;
 import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;
+import delta.codecharacter.server.util.enums.Verdict;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +45,12 @@ public class MatchService {
     @Value("${compilebox.secret-key}")
     private String compileboxSecretKey;
 
+    @Value("/response/alert/")
+    private String socketAlertMessageDest;
+
+    @Value("/response/match/")
+    private String socketMatchResultDest;
+
     @Autowired
     private MongoTemplate mongoTemplate;
 
@@ -64,6 +74,12 @@ public class MatchService {
 
     @Autowired
     private SocketService socketService;
+
+    @Autowired
+    private UserRatingService userRatingService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     /**
      * Create a new match for the given players and matchMode
@@ -370,17 +386,39 @@ public class MatchService {
         if (updateMatchRequest.getSecretKey().equals(compileboxSecretKey))
             return;
         Boolean success = updateMatchRequest.getSuccess();
+
         Integer matchId = updateMatchRequest.getMatchId();
         Match match = matchRepository.findFirstById(matchId);
+
         if (match.getMatchMode() != MatchMode.AUTO) {
-            socketService.sendMessage(match.getPlayerId1(), "Match has been executed");
-            //TODO: Create a notification for the users
-            //TODO: Send Logs back
+            //TODO: Send Socket Message to both User
+            //TODO: Create Notification for both users
+            //TODO: Save Logs
         }
         if (match.getMatchMode() == MatchMode.MANUAL) {
-            //TODO: Save Dlls
-            //TODO: Update Ratings of the users
-            //TODO: Update Leaderboard data
+            List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
+            if (success && player1Dlls != null) {
+                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
+                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
+            }
+
+            Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+            // Add an entry to User rating table
+            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
+            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
+    }
+
+    public Verdict deduceMatchVerdict(List<UpdateGameDetails> gameDetails) {
+        Integer player1Wins = 0, player2Wins = 0;
+        for (var game : gameDetails) {
+            if (game.getVerdict().equals(Verdict.PLAYER_1))
+                player1Wins++;
+            if (game.getVerdict().equals(Verdict.PLAYER_2))
+                player2Wins++;
+        }
+        if (player1Wins > player2Wins) return Verdict.PLAYER_1;
+        if (player2Wins > player1Wins) return Verdict.PLAYER_2;
+        return Verdict.TIE;
     }
 }

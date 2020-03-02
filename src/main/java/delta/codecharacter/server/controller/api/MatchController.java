@@ -7,16 +7,13 @@ import delta.codecharacter.server.util.PageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping(value = "/match")
 public class MatchController {
 
@@ -30,7 +27,7 @@ public class MatchController {
     }
 
     @PatchMapping(value = "")
-    public void updateMatch(UpdateMatchRequest updateMatchRequest){
+    public void updateMatch(@RequestBody @Valid UpdateMatchRequest updateMatchRequest) {
         matchService.updateMatch(updateMatchRequest);
     }
 

@@ -47,6 +47,9 @@ public class LeaderboardService {
     @Autowired
     private LeaderboardRepository leaderboardRepository;
 
+    @Autowired
+    private ConstantService constantService;
+
     /**
      * Initialize leaderboard data for new user
      *
@@ -57,7 +60,7 @@ public class LeaderboardService {
         Leaderboard leaderboard = Leaderboard.builder()
                 .userId(userId)
                 .division(Division.DIV_2)
-                .rating(1200)
+                .rating(1200d)
                 .build();
 
         leaderboardRepository.save(leaderboard);
@@ -241,5 +244,20 @@ public class LeaderboardService {
             leaderboardResponses.add(leaderboardResponse);
         }
         return leaderboardResponses;
+    }
+
+    /**
+     * Update the leaderboard data of the user
+     *  @param userId UserId of the user
+     * @param rating new Rating of the user
+     */
+    public void updateLeaderboardData(Integer userId, Double rating) {
+        Double div1Threshold = Double.valueOf(constantService.getConstantValueByKey("DIV_1_THRESHOLD"));
+        var leaderboard = leaderboardRepository.findFirstByUserId(userId);
+
+        leaderboard.setRating(rating);
+        leaderboard.setDivision(rating > div1Threshold ? Division.DIV_1 : Division.DIV_2);
+
+        leaderboardRepository.save(leaderboard);
     }
 }
