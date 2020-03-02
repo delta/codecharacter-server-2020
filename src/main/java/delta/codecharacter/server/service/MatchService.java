@@ -377,6 +377,11 @@ public class MatchService {
         return (long) (minWaitTime - timePassedSeconds);
     }
 
+    /**
+     * Updates the match in DB
+     *
+     * @param updateMatchRequest updateMatchRequest of the match
+     */
     public void updateMatch(UpdateMatchRequest updateMatchRequest) {
         Boolean success = updateMatchRequest.getSuccess();
 

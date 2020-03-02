@@ -32,7 +32,7 @@ public class MatchController {
 
     @PatchMapping(value = "")
     public void updateMatch(@RequestBody @Valid UpdateMatchRequest updateMatchRequest) {
-        if (updateMatchRequest.getSecretKey().equals(compileboxSecretKey))
+        if (!updateMatchRequest.getSecretKey().equals(compileboxSecretKey))
             return;
         matchService.updateMatch(updateMatchRequest);
     }
