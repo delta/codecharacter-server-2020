@@ -417,4 +417,38 @@ public class VersionControlService {
 
         return true;
     }
+
+    /**
+     * Get locked code of given userId
+     *
+     * @param userId UserId of user
+     * @return Contents of file
+     */
+    public String getLockedCode(Integer userId) {
+        if (!checkCodeRepositoryExists(userId)) return null;
+        String lockedCodeFileUri = getLockedCodeFileUri(userId);
+        return FileHandler.getFileContents(lockedCodeFileUri);
+    }
+
+    /**
+     * Set locked code of given userId
+     *
+     * @param userId UserId of user
+     */
+    @SneakyThrows
+    public boolean setLockedCode(Integer userId) {
+        if (!checkCodeRepositoryExists(userId))
+            throw new Exception("No repository found");
+
+        String lockedCodeFileUri = getLockedCodeFileUri(userId);
+        String code = getCode(userId);
+        FileHandler.writeFileContents(lockedCodeFileUri, code);
+
+        //set isLocked to true in codeStatus table
+        CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
+        codeStatus.setLocked(true);
+        codeStatusRepository.save(codeStatus);
+
+        return true;
+    }
 }
