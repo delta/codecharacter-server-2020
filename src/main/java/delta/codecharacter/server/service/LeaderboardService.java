@@ -248,7 +248,8 @@ public class LeaderboardService {
 
     /**
      * Update the leaderboard data of the user
-     *  @param userId UserId of the user
+     *
+     * @param userId UserId of the user
      * @param rating new Rating of the user
      */
     public void updateLeaderboardData(Integer userId, Double rating) {
