@@ -1,13 +1,10 @@
 package delta.codecharacter.server.util;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import java.io.File;
 
 public class MapUtil {
 
-    @Value("storage/maps")
-    private static String mapStoragePath;
+    private static String mapStoragePath = "storage/maps";
 
     /**
      * Return the absolute path to the map directory
@@ -39,6 +36,7 @@ public class MapUtil {
         try {
             return FileHandler.getFileContents(mapFileUri);
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
