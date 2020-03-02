@@ -36,6 +36,9 @@ public class UserRatingService {
     @Autowired
     private LeaderboardService leaderboardService;
 
+    @Autowired
+    private ConstantService constantService;
+
     private RatingCalculator ratingCalculator;
 
     UserRatingService() {
@@ -75,10 +78,11 @@ public class UserRatingService {
     public void initializeUserRating(@NotEmpty Integer userId) {
         if (userRatingRepository.findByUserId(userId).size() > 0)
             return;
+        var initialRating = Double.valueOf(constantService.getConstantValueByKey("INITIAL_RATING"));
 
         UserRating initialUserRating = UserRating.builder()
                 .userId(userId)
-                .rating(1500d)
+                .rating(initialRating)
                 .ratingDeviation(350d)
                 .build();
         userRatingRepository.save(initialUserRating);
