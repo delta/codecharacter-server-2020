@@ -396,7 +396,7 @@ public class MatchService {
             Integer playerId = match.getPlayerId1();
             String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
             socketService.sendMessage(socketMatchResultDest + playerId, matchResult);
-            createMatchNotification(playerId, matchResult));
+            createMatchNotification(playerId, matchResult);
         }
         if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
@@ -460,7 +460,7 @@ public class MatchService {
     /**
      * Create a notification request for the player regarding the match
      *
-     * @param playerId    userId of the player
+     * @param playerId            userId of the player
      * @param notificationContent Content of the notification
      */
     private void createMatchNotification(Integer playerId, String notificationContent) {
