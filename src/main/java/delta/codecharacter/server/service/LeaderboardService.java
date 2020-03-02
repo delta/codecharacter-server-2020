@@ -87,8 +87,8 @@ public class LeaderboardService {
     public List<PublicLeaderboardResponse> getLeaderboardData(Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
-                lookup("codeStatus", "user_id", "user_id", "joinStatus"),
-                match(Criteria.where("joinStatus.is_locked").is(true)),
+                lookup("codeStatus", "user_id", "user_id", "userCodeStatus"),
+                match(Criteria.where("userCodeStatus.is_locked").is(true)),
                 lookup("user", "user_id", "_id", "join"),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
                 skip((long) pageable.getPageNumber() * pageable.getPageSize()),
@@ -111,8 +111,8 @@ public class LeaderboardService {
     public List<PublicLeaderboardResponse> searchLeaderboardByUsernamePaginated(String username, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
-                lookup("codeStatus", "user_id", "user_id", "joinStatus"),
-                match(Criteria.where("joinStatus.is_locked").is(true)),
+                lookup("codeStatus", "user_id", "user_id", "userCodeStatus"),
+                match(Criteria.where("userCodeStatus.is_locked").is(true)),
                 lookup("user", "user_id", "_id", "join"),
                 match(Criteria.where("join.username").regex(username)),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
@@ -136,8 +136,8 @@ public class LeaderboardService {
     public List<PublicLeaderboardResponse> getLeaderboardDataByDivisionPaginated(Division division, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
-                lookup("codeStatus", "user_id", "user_id", "joinStatus"),
-                match(Criteria.where("joinStatus.is_locked").is(true)),
+                lookup("codeStatus", "user_id", "user_id", "userCodeStatus"),
+                match(Criteria.where("userCodeStatus.is_locked").is(true)),
                 match(Criteria.where("division").is(division)),
                 lookup("user", "user_id", "_id", "join"),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
@@ -158,8 +158,8 @@ public class LeaderboardService {
      */
     public List<LeaderboardData> getLeaderboardDataByDivision(Division division) {
         Aggregation aggregation = newAggregation(
-                lookup("codeStatus", "user_id", "user_id", "joinStatus"),
-                match(Criteria.where("joinStatus.is_locked").is(true)),
+                lookup("codeStatus", "user_id", "user_id", "userCodeStatus"),
+                match(Criteria.where("userCodeStatus.is_locked").is(true)),
                 match(Criteria.where("division").is(division)),
                 lookup("user", "user_id", "_id", "join"),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending()))
@@ -181,8 +181,8 @@ public class LeaderboardService {
     public List<PublicLeaderboardResponse> getLeaderboardDataByUserTypePaginated(UserType userType, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
-                lookup("codeStatus", "user_id", "user_id", "joinStatus"),
-                match(Criteria.where("joinStatus.is_locked").is(true)),
+                lookup("codeStatus", "user_id", "user_id", "userCodeStatus"),
+                match(Criteria.where("userCodeStatus.is_locked").is(true)),
                 lookup("user", "user_id", "_id", "join"),
                 match(Criteria.where("join.user_type").is(userType)),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),
@@ -207,8 +207,8 @@ public class LeaderboardService {
     public List<PublicLeaderboardResponse> getLeaderboardDataByUserTypeAndDivisionPaginated(UserType userType, Division division, Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Aggregation aggregation = newAggregation(
-                lookup("codeStatus", "user_id", "user_id", "joinStatus"),
-                match(Criteria.where("joinStatus.is_locked").is(true)),
+                lookup("codeStatus", "user_id", "user_id", "userCodeStatus"),
+                match(Criteria.where("userCodeStatus.is_locked").is(true)),
                 lookup("user", "user_id", "_id", "join"),
                 match(Criteria.where("join.user_type").is(userType).and("division").is(division)),
                 sort(Sort.by("rating").descending().and(Sort.by("join.username").ascending())),

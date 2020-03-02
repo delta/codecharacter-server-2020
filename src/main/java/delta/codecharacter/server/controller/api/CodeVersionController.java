@@ -50,13 +50,13 @@ public class CodeVersionController {
 
     @PutMapping(value = "/submit")
     @SneakyThrows
-    public ResponseEntity<String> lockCode(Authentication authentication) {
+    public ResponseEntity<String> setLockedCode(Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
         if (!versionControlService.setLockedCode(user.getUserId()))
             return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
-        return new ResponseEntity<>("Saved Code", HttpStatus.OK);
+        return new ResponseEntity<>("Code Submitted", HttpStatus.OK);
     }
 
     @PostMapping(value = "/commit")
