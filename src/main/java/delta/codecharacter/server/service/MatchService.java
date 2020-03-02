@@ -392,8 +392,6 @@ public class MatchService {
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
 
         if (match.getMatchMode() != MatchMode.AUTO) {
-            //TODO: Send Socket Message to both User
-            //TODO: Create Notification for both users
             //TODO: Save Logs
             Integer playerId = match.getPlayerId1();
             String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
@@ -406,7 +404,7 @@ public class MatchService {
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
             }
-            
+
             // If match mode is manual, create a notification for player 2 also.
             Integer playerId = match.getPlayerId2();
             String matchResult = getMatchResultByVerdict(matchId, matchVerdict, playerId);
