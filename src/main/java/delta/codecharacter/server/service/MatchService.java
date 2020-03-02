@@ -1,6 +1,7 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.api.UserController;
+import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
 import delta.codecharacter.server.controller.request.UpdateGameDetails;
 import delta.codecharacter.server.controller.request.UpdateMatchRequest;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
@@ -14,10 +15,7 @@ import delta.codecharacter.server.repository.TopMatchRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MatchStats;
-import delta.codecharacter.server.util.enums.DllId;
-import delta.codecharacter.server.util.enums.MatchMode;
-import delta.codecharacter.server.util.enums.Status;
-import delta.codecharacter.server.util.enums.Verdict;
+import delta.codecharacter.server.util.enums.*;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static delta.codecharacter.server.util.enums.Verdict.*;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 @Service
@@ -403,22 +402,88 @@ public class MatchService {
             }
 
             Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+
+            String matchResult;
+            matchResult = getVerdictResult(matchVerdict);
+            socketService.sendMessage(socketMatchResultDest, matchResult);
+
+            CreateNotificationRequest notificationRequestPlayer1;
+            CreateNotificationRequest notificationRequestPlayer2;
+
+            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
+            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
             userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
     }
 
+    private String getVerdictResult(Verdict verdict) {
+        switch (verdict) {
+            case TIE:
+                return "Match tied";
+            case PLAYER_1:
+                return "Player 1 won";
+            case PLAYER_2:
+                return "Player 2 won";
+            default:
+                return "No Result";
+        }
+    }
+
+    private CreateNotificationRequest createMatchResultNotificationRequest(Verdict matchVerdict, Match match) {
+        CreateNotificationRequest createNotificationRequest;
+
+        String playerName1 = userRepository.findByUserId(match.getPlayerId1()).getUsername();
+        String playerName2 = userRepository.findByUserId(match.getPlayerId2()).getUsername();
+
+        switch (matchVerdict) {
+            case TIE:
+                createNotificationRequest = CreateNotificationRequest.builder()
+                        .userId(match.getPlayerId1())
+                        .title("Match Result")
+                        .content("Match tied against " + playerName2)
+                        .type(Type.INFO)
+                        .build();
+                break;
+            case PLAYER_1:
+                createNotificationRequest = CreateNotificationRequest.builder()
+                        .userId(match.getPlayerId1())
+                        .title("Match Result")
+                        .content("You won the match against " + playerName2)
+                        .type(Type.INFO)
+                        .build();
+                break;
+            case PLAYER_2:
+                createNotificationRequest = CreateNotificationRequest.builder()
+                        .userId(match.getPlayerId1())
+                        .title("Match Result")
+                        .content("You lost the match against " + playerName2)
+                        .type(Type.INFO)
+                        .build();
+                break;
+            default:
+                createNotificationRequest = CreateNotificationRequest.builder()
+                        .userId(match.getPlayerId1())
+                        .title("Match Result")
+                        .content("No result for match against " + playerName2)
+                        .type(Type.INFO)
+                        .build();
+                break;
+        }
+        return createNotificationRequest;
+    }
+
     public Verdict deduceMatchVerdict(List<UpdateGameDetails> gameDetails) {
         Integer player1Wins = 0, player2Wins = 0;
         for (var game : gameDetails) {
-            if (game.getVerdict().equals(Verdict.PLAYER_1))
+            if (game.getVerdict().equals(PLAYER_1))
                 player1Wins++;
-            if (game.getVerdict().equals(Verdict.PLAYER_2))
+            if (game.getVerdict().equals(PLAYER_2))
                 player2Wins++;
         }
-        if (player1Wins > player2Wins) return Verdict.PLAYER_1;
-        if (player2Wins > player1Wins) return Verdict.PLAYER_2;
-        return Verdict.TIE;
+        if (player1Wins > player2Wins) return PLAYER_1;
+        if (player2Wins > player1Wins) return PLAYER_2;
+        return TIE;
     }
 }
