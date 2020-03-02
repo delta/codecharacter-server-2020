@@ -381,7 +381,6 @@ public class MatchService {
     }
 
     public void updateMatch(UpdateMatchRequest updateMatchRequest) {
-        LOG.info(updateMatchRequest.toString());
         if (updateMatchRequest.getSecretKey().equals(compileboxSecretKey))
             return;
         Boolean success = updateMatchRequest.getSuccess();
@@ -431,9 +430,9 @@ public class MatchService {
     private String getMatchResultByVerdict(Integer matchId, Verdict verdict, Integer playerId) {
         Match match = matchRepository.findFirstById(matchId);
         Integer opponentId;
-        boolean isPlayerMatchPlayer1 = playerId.equals(match.getPlayerId1());
+        boolean isPlayer1 = playerId.equals(match.getPlayerId1());
 
-        if (isPlayerMatchPlayer1)
+        if (isPlayer1)
             opponentId = match.getPlayerId2();
         else
             opponentId = match.getPlayerId1();
@@ -444,12 +443,12 @@ public class MatchService {
             case TIE:
                 return "Match tied against " + opponentUsername;
             case PLAYER_1:
-                if (isPlayerMatchPlayer1)
+                if (isPlayer1)
                     return "Won match against " + opponentUsername;
                 else
                     return "Lost match against " + opponentUsername;
             case PLAYER_2:
-                if (isPlayerMatchPlayer1)
+                if (isPlayer1)
                     return "Lost match against " + opponentUsername;
                 else
                     return "Won match against " + opponentUsername;
