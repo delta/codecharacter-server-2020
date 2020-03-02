@@ -392,12 +392,7 @@ public class MatchService {
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
         String matchResult;
 
-        if (match.getMatchMode() != MatchMode.AUTO) {
-            //TODO: Send Socket Message to both User
-            //TODO: Create Notification for both users
-            //TODO: Save Logs
-        }
-        else if (match.getMatchMode() == MatchMode.MANUAL) {
+        if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
             if (success && player1Dlls != null) {
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
@@ -416,7 +411,7 @@ public class MatchService {
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
             userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
-        else if (match.getMatchMode() == MatchMode.SELF) {
+        else if (match.getMatchMode() != MatchMode.AUTO) {
             matchResult = getVerdictResult(matchVerdict);
             socketService.sendMessage(socketMatchResultDest, matchResult);
 
@@ -427,16 +422,9 @@ public class MatchService {
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
             userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
-        else if (match.getMatchMode() == MatchMode.PREV_COMMIT) {
-            matchResult = getVerdictResult(matchVerdict);
-            socketService.sendMessage(socketMatchResultDest, matchResult);
+        // AUTO Match mode
+        else {
 
-            CreateNotificationRequest notificationRequestPlayer1;
-
-            notificationService.createNotification(createMatchResultNotificationRequest(matchVerdict, match));
-            // Add an entry to User rating table
-            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
-            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
     }
 
