@@ -1,6 +1,7 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.api.UserController;
+import delta.codecharacter.server.controller.request.UpdateMatchRequest;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
@@ -15,6 +16,7 @@ import delta.codecharacter.server.util.enums.MatchMode;
 import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,6 +38,9 @@ public class MatchService {
 
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
 
+    @Value("${compilebox.secret-key}")
+    private String compileboxSecretKey;
+
     @Autowired
     private MongoTemplate mongoTemplate;
 
@@ -56,6 +61,9 @@ public class MatchService {
 
     @Autowired
     private GameService gameService;
+
+    @Autowired
+    private SocketService socketService;
 
     /**
      * Create a new match for the given players and matchMode
@@ -357,4 +365,22 @@ public class MatchService {
         return (long) (minWaitTime - timePassedSeconds);
     }
 
+    public void updateMatch(UpdateMatchRequest updateMatchRequest) {
+        LOG.info(updateMatchRequest.toString());
+        if (updateMatchRequest.getSecretKey().equals(compileboxSecretKey))
+            return;
+        Boolean success = updateMatchRequest.getSuccess();
+        Integer matchId = updateMatchRequest.getMatchId();
+        Match match = matchRepository.findFirstById(matchId);
+        if (match.getMatchMode() != MatchMode.AUTO) {
+            socketService.sendMessage(match.getPlayerId1(), "Match has been executed");
+            //TODO: Create a notification for the users
+            //TODO: Send Logs back
+        }
+        if (match.getMatchMode() == MatchMode.MANUAL) {
+            //TODO: Save Dlls
+            //TODO: Update Ratings of the users
+            //TODO: Update Leaderboard data
+        }
+    }
 }

@@ -1,0 +1,28 @@
+package delta.codecharacter.server.controller.request;
+
+import delta.codecharacter.server.util.enums.Verdict;
+import lombok.Data;
+
+@Data
+public class UpdateGameDetails {
+    private Boolean success;
+
+    private Integer id;
+
+    private String log;
+
+    private Integer interestingness;
+
+    private Verdict verdict;
+
+    private Integer matchId;
+
+    private Integer points1;
+
+    private Integer points2;
+
+    private String player1LogCompressed;
+
+    private String player2LogCompressed;
+}
+
