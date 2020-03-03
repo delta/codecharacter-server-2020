@@ -3,6 +3,8 @@ package delta.codecharacter.server.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.User.ActivateUserRequest;
+import delta.codecharacter.server.controller.request.User.PasswordResetRequest;
+import delta.codecharacter.server.controller.request.User.RegisterUserRequest;
 import delta.codecharacter.server.controller.request.User.UpdateUserRequest;
 import delta.codecharacter.server.controller.response.User.PragyanApiResponse;
 import delta.codecharacter.server.controller.response.User.PragyanUserDetails;
@@ -203,7 +205,6 @@ public class UserService implements UserDetailsService {
                 .avatarId(user.getAvatarId())
                 .college(user.getCollege())
                 .fullName(user.getFullName())
-                .email(user.getEmail())
                 .college(user.getCollege())
                 .country(user.getCountry())
                 .userType(user.getUserType())
