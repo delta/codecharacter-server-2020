@@ -369,6 +369,11 @@ public class UserService implements UserDetailsService {
         if (user == null)
             throw new Exception("Invalid email");
 
+        //check if email is already sent
+        PasswordResetDetails passwordResetDetails = passwordResetDetailsRepository.findByUserId(user.getUserId());
+        if (passwordResetDetails != null)
+            throw new Exception("Email already sent");
+
         PasswordResetDetails newPasswordResetDetails = PasswordResetDetails.builder()
                 .userId(user.getUserId())
                 .tokenExpiry(LocalDateTime.now(ZoneId.of("Asia/Kolkata")).plusDays(1))
@@ -416,7 +421,7 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findFirstByOrderByUserIdDesc();
         System.out.println(user);
         if (user == null) {
-            return 1;
+            return 0;
         }
         return user.getUserId();
     }
