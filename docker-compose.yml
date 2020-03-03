@@ -1,0 +1,23 @@
+version: "3.1"
+services:
+  core:
+    build: .
+    ports:
+      - 8086:8080
+    depends_on:
+      - db
+      - rabbit
+    volumes:
+      - /home/code/Server/codecharacter-server-2020/storage:/app/storage
+      - /home/code/.m2:/root/.m2
+
+  db:
+    image: mongo:latest
+    ports:
+      - 27013:27017
+
+  rabbit:
+    image: rabbitmq:3.5.3-management
+    ports:
+      - 5670:5672
+      - 15670:15672
