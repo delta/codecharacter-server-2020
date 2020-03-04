@@ -13,8 +13,6 @@ public class UpdateGameDetails {
 
     private String log;
 
-    private Integer interestingness;
-
     private Verdict verdict;
 
     private Integer matchId;

@@ -18,7 +18,7 @@ public class UpdateMatchRequest {
 
     private List<String> player1DLLs;
 
-    private List<String> player2Dlls;
+    private List<String> player2DLLs;
 
     private String error;
 

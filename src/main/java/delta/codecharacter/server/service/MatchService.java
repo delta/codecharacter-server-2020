@@ -10,11 +10,9 @@ import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.model.User;
-import delta.codecharacter.server.repository.ConstantRepository;
-import delta.codecharacter.server.repository.MatchRepository;
-import delta.codecharacter.server.repository.TopMatchRepository;
-import delta.codecharacter.server.repository.UserRepository;
+import delta.codecharacter.server.repository.*;
 import delta.codecharacter.server.util.DllUtil;
+import delta.codecharacter.server.util.LogUtil;
 import delta.codecharacter.server.util.MatchStats;
 import delta.codecharacter.server.util.enums.*;
 import lombok.SneakyThrows;
@@ -62,6 +60,9 @@ public class MatchService {
 
     @Autowired
     private TopMatchRepository topMatchRepository;
+
+    @Autowired
+    private GameRepository gameRepository;
 
     @Autowired
     private UserService userService;
@@ -119,8 +120,6 @@ public class MatchService {
                     .username2(user2.getUsername())
                     .avatarId1(user1.getAvatarId())
                     .avatarId2(user2.getAvatarId())
-                    .score1(match.getScore1())
-                    .score2(match.getScore2())
                     .verdict(match.getVerdict())
                     .matchMode(match.getMatchMode())
                     .games(gameService.getAllGamesByMatchId(match.getId()))
@@ -165,8 +164,6 @@ public class MatchService {
                     .username2(user2.getUsername())
                     .avatar1(user1.getAvatarId())
                     .avatar2(user1.getAvatarId())
-                    .score1(match.getScore1())
-                    .score2(match.getScore2())
                     .verdict(match.getVerdict())
                     .playedAt(match.getCreatedAt())
                     .matchMode(match.getMatchMode())
@@ -385,7 +382,6 @@ public class MatchService {
      */
     public void updateMatch(UpdateMatchRequest updateMatchRequest) {
         Boolean success = updateMatchRequest.getSuccess();
-
         Integer matchId = updateMatchRequest.getMatchId();
         Match match = matchRepository.findFirstById(matchId);
 
@@ -399,13 +395,11 @@ public class MatchService {
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
 
         List<GameLogs> gameLogsList = new ArrayList<>();
+        var gameResults = updateMatchRequest.getGameResults();
         if (match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
-            //TODO: Save Logs
-
-            var gameResults = updateMatchRequest.getGameResults();
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
-                        .isPlayer1(true)
+                        .playerId1(match.getPlayerId1())
                         .gameLog(game.getLog())
                         .player1Log(game.getPlayer1LogCompressed())
                         .player2Log(game.getPlayer2LogCompressed())
@@ -416,10 +410,10 @@ public class MatchService {
             Integer playerId = match.getPlayerId1();
             socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
             String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-
             socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
             createMatchNotification(playerId, matchMessage);
         }
+
         if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
             if (player1Dlls != null) {
@@ -437,9 +431,45 @@ public class MatchService {
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
             userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
+
         if (match.getMatchMode() == MatchMode.AUTO) {
             // TODO: Find whether an auto match is complete and send socket message
         }
+
+        for (var gameResult : gameResults) {
+            var game = gameRepository.findFirstById(gameResult.getId());
+            game.setPoints1(gameResult.getPoints1());
+            game.setPoints2(gameResult.getPoints2());
+            game.setVerdict(gameResult.getVerdict());
+            gameRepository.save(game);
+
+            Integer gameId = gameResult.getId();
+            LogUtil.createLogRepository(gameId);
+            var gameLogs = GameLogs.builder()
+                    .gameLog(gameResult.getLog())
+                    .player1Log(gameResult.getPlayer1LogCompressed())
+                    .player2Log(gameResult.getPlayer2LogCompressed())
+                    .build();
+            LogUtil.setLogs(gameId, gameLogs);
+        }
+
+        match.setStatus(Status.EXECUTED);
+        match.setVerdict(matchVerdict);
+        updateMatchScore(match, updateMatchRequest.getGameResults());
+        matchRepository.save(match);
+    }
+
+    private void updateMatchScore(Match match, List<UpdateGameDetails> gameDetails) {
+        Integer player1Wins = 0, player2Wins = 0;
+        for (var game : gameDetails) {
+            if (game.getVerdict().equals(PLAYER_1))
+                player1Wins++;
+            if (game.getVerdict().equals(PLAYER_2))
+                player2Wins++;
+        }
+
+        match.setScore1(player1Wins);
+        match.setScore2(player2Wins);
     }
 
     /**
@@ -452,13 +482,11 @@ public class MatchService {
      */
     private String getMatchResultByVerdict(Integer matchId, Verdict verdict, Integer playerId) {
         Match match = matchRepository.findFirstById(matchId);
-        Integer opponentId;
         boolean isPlayer1 = playerId.equals(match.getPlayerId1());
 
+        Integer opponentId = match.getPlayerId1();
         if (isPlayer1)
             opponentId = match.getPlayerId2();
-        else
-            opponentId = match.getPlayerId1();
 
         String opponentUsername = userRepository.findByUserId(opponentId).getUsername();
 
@@ -507,6 +535,7 @@ public class MatchService {
             if (game.getVerdict().equals(PLAYER_2))
                 player2Wins++;
         }
+
         if (player1Wins > player2Wins) return PLAYER_1;
         if (player2Wins > player1Wins) return PLAYER_2;
         return TIE;

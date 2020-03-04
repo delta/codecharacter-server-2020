@@ -11,4 +11,6 @@ public interface GameRepository extends MongoRepository<Game, Integer> {
     Game findFirstByOrderByIdDesc();
 
     List<Game> findAllByMatchId(Integer matchId);
+
+    Game findFirstById(Integer gameId);
 }
