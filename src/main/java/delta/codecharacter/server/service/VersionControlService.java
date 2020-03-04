@@ -34,6 +34,9 @@ public class VersionControlService {
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
 
+    @Value("${storage.playercode.default.user.id}")
+    private String defaultCodeUserId;
+
     @Value("${storage.playercode.filename}")
     private String codeFileName;
 
@@ -169,6 +172,8 @@ public class VersionControlService {
 
         // Create code file, add and commit
         FileHandler.createFile(getCodeFileUri(userId));
+        String defaultCode = FileHandler.getFileContents(getCodeFileUri(Integer.valueOf(defaultCodeUserId)));
+        FileHandler.writeFileContents(getCodeFileUri(userId), defaultCode);
 
         gitAdd(userId);
         commit(userId, "Initial Commit");
