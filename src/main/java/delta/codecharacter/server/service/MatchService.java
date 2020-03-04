@@ -4,6 +4,7 @@ import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
 import delta.codecharacter.server.controller.request.UpdateGameDetails;
 import delta.codecharacter.server.controller.request.UpdateMatchRequest;
+import delta.codecharacter.server.controller.response.GameLogs;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
@@ -41,10 +42,10 @@ public class MatchService {
 
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
 
-    @Value("/response/alert/")
+    @Value("/socket/response/alert/")
     private String socketAlertMessageDest;
 
-    @Value("/response/match/")
+    @Value("/socket/response/match/")
     private String socketMatchResultDest;
 
     @Autowired
@@ -388,13 +389,34 @@ public class MatchService {
         Integer matchId = updateMatchRequest.getMatchId();
         Match match = matchRepository.findFirstById(matchId);
 
+        if (!success) {
+            match.setStatus(Status.EXECUTE_ERROR);
+            matchRepository.save(match);
+
+            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
+            return;
+        }
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
 
+        List<GameLogs> gameLogsList = new ArrayList<>();
         if (match.getMatchMode() != MatchMode.AUTO) {
             //TODO: Save Logs
+
+            var gameResults = updateMatchRequest.getGameResults();
+            for (var game : gameResults) {
+                var gameLogs = GameLogs.builder()
+                        .gameLog(game.getLog())
+                        .player1Log(game.getPlayer1LogCompressed())
+                        .player2Log(game.getPlayer2LogCompressed())
+                        .build();
+                gameLogsList.add(gameLogs);
+            }
+
             Integer playerId = match.getPlayerId1();
+            socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
             String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketMatchResultDest + playerId, matchMessage);
+
+            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
             createMatchNotification(playerId, matchMessage);
         }
         if (match.getMatchMode() == MatchMode.MANUAL) {
@@ -407,7 +429,7 @@ public class MatchService {
             // If match mode is manual, create a notification for player 2 also.
             Integer playerId = match.getPlayerId2();
             String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketMatchResultDest + playerId, matchMessage);
+            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
             createMatchNotification(playerId, matchMessage);
 
             // Add an entry to User rating table

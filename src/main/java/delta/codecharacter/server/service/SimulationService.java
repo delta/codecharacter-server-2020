@@ -35,7 +35,7 @@ public class SimulationService {
     @Value("${compilebox.secret-key}")
     private String secretKey;
 
-    @Value("/response/alert/")
+    @Value("/socket/response/alert/")
     private String socketAlertMessageDest;
 
     @Autowired

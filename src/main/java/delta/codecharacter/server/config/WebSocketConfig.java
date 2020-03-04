@@ -13,16 +13,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Destination prefix to carry the messages back to the client.
-        config.enableSimpleBroker("/response");
+        config.enableSimpleBroker("/socket/response");
 
         // Prefix for messages from client bound to methods annotated with @MessageMapping
-        config.setApplicationDestinationPrefixes("/request");
+        config.setApplicationDestinationPrefixes("/socket/request");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // End-Point for the socket to connect.
-        registry.addEndpoint("/socket").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint("/socket/connect").setAllowedOrigins("*").withSockJS();
     }
 
 }
