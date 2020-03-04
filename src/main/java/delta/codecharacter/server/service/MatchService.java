@@ -10,11 +10,9 @@ import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.model.User;
-import delta.codecharacter.server.repository.ConstantRepository;
-import delta.codecharacter.server.repository.MatchRepository;
-import delta.codecharacter.server.repository.TopMatchRepository;
-import delta.codecharacter.server.repository.UserRepository;
+import delta.codecharacter.server.repository.*;
 import delta.codecharacter.server.util.DllUtil;
+import delta.codecharacter.server.util.LogUtil;
 import delta.codecharacter.server.util.MatchStats;
 import delta.codecharacter.server.util.enums.*;
 import lombok.SneakyThrows;
@@ -62,6 +60,9 @@ public class MatchService {
 
     @Autowired
     private TopMatchRepository topMatchRepository;
+
+    @Autowired
+    private GameRepository gameRepository;
 
     @Autowired
     private UserService userService;
@@ -394,10 +395,8 @@ public class MatchService {
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
 
         List<GameLogs> gameLogsList = new ArrayList<>();
+        var gameResults = updateMatchRequest.getGameResults();
         if (match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
-            //TODO: Save Logs
-
-            var gameResults = updateMatchRequest.getGameResults();
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
                         .playerId1(match.getPlayerId1())
@@ -406,41 +405,71 @@ public class MatchService {
                         .player2Log(game.getPlayer2LogCompressed())
                         .build();
                 gameLogsList.add(gameLogs);
-
-                Integer playerId = match.getPlayerId1();
-                socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
-                String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-
-                socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-                createMatchNotification(playerId, matchMessage);
-            }
-            if (match.getMatchMode() == MatchMode.MANUAL) {
-                List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
-                if (player1Dlls != null) {
-                    DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
-                    DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
-                }
-
-                // If match mode is manual, create a notification for player 2 also.
-                Integer playerId = match.getPlayerId2();
-                String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-                socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-                createMatchNotification(playerId, matchMessage);
-
-                // Add an entry to User rating table
-                // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
-                userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
-            }
-            if (match.getMatchMode() == MatchMode.AUTO) {
-                // TODO: Find whether an auto match is complete and send socket message
             }
 
-            match.setStatus(Status.EXECUTED);
-            match.setVerdict(matchVerdict);
-
-            matchRepository.save(match);
-
+            Integer playerId = match.getPlayerId1();
+            socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
+            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage);
         }
+
+        if (match.getMatchMode() == MatchMode.MANUAL) {
+            List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
+            if (player1Dlls != null) {
+                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
+                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
+            }
+
+            // If match mode is manual, create a notification for player 2 also.
+            Integer playerId = match.getPlayerId2();
+            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage);
+
+            // Add an entry to User rating table
+            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
+            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
+        }
+
+        if (match.getMatchMode() == MatchMode.AUTO) {
+            // TODO: Find whether an auto match is complete and send socket message
+        }
+
+        for (var gameResult : gameResults) {
+            var game = gameRepository.findFirstById(gameResult.getId());
+            game.setPoints1(gameResult.getPoints1());
+            game.setPoints2(gameResult.getPoints2());
+            game.setVerdict(gameResult.getVerdict());
+            gameRepository.save(game);
+
+            Integer gameId = gameResult.getId();
+            LogUtil.createLogRepository(gameId);
+            var gameLogs = GameLogs.builder()
+                    .gameLog(gameResult.getLog())
+                    .player1Log(gameResult.getPlayer1LogCompressed())
+                    .player2Log(gameResult.getPlayer2LogCompressed())
+                    .build();
+            LogUtil.setLogs(gameId, gameLogs);
+        }
+
+        match.setStatus(Status.EXECUTED);
+        match.setVerdict(matchVerdict);
+        updateMatchScore(match, updateMatchRequest.getGameResults());
+        matchRepository.save(match);
+    }
+
+    private void updateMatchScore(Match match, List<UpdateGameDetails> gameDetails) {
+        Integer player1Wins = 0, player2Wins = 0;
+        for (var game : gameDetails) {
+            if (game.getVerdict().equals(PLAYER_1))
+                player1Wins++;
+            if (game.getVerdict().equals(PLAYER_2))
+                player2Wins++;
+        }
+
+        match.setScore1(player1Wins);
+        match.setScore2(player2Wins);
     }
 
     /**
@@ -506,6 +535,7 @@ public class MatchService {
             if (game.getVerdict().equals(PLAYER_2))
                 player2Wins++;
         }
+
         if (player1Wins > player2Wins) return PLAYER_1;
         if (player2Wins > player1Wins) return PLAYER_2;
         return TIE;

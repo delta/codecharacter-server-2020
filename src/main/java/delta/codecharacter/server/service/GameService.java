@@ -46,7 +46,7 @@ public class GameService {
      * @return game log, player1 log and player2 log of the game
      */
     public GameLogs getGameLog(Integer gameId) {
-        var gameLogs = LogUtil.getLogDetails(gameId);
+        var gameLogs = LogUtil.getLogs(gameId);
         if (gameLogs == null)
             return null;
 

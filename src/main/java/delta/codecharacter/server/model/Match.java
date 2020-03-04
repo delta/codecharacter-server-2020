@@ -41,6 +41,14 @@ public class Match {
     @Builder.Default
     private Status status = Status.IDLE;
 
+    @Field("score_1")
+    @Builder.Default
+    private Integer score1 = 0;
+
+    @Field("score_2")
+    @Builder.Default
+    private Integer score2 = 0;
+
     @Field("match_mode")
     @NotNull
     @Builder.Default

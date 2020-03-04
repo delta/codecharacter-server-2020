@@ -71,7 +71,7 @@ public class LogUtil {
      * @param gameId GameId of user
      * @return Contents of the required log file
      */
-    public static GameLogs getLogDetails(Integer gameId) {
+    public static GameLogs getLogs(Integer gameId) {
         String gameLogFileUri = getLogFileUri(gameId, LogId.GAME_LOG);
         String playerLogFileUri = getLogFileUri(gameId, LogId.PLAYER_LOG_1);
         String playerLogFileUri2 = getLogFileUri(gameId, LogId.PLAYER_LOG_2);
@@ -92,7 +92,7 @@ public class LogUtil {
      * @param gameId   GameId of user
      * @param gameLogs Log details of the game
      */
-    public static void setLogDetails(Integer gameId, GameLogs gameLogs) {
+    public static void setLogs(Integer gameId, GameLogs gameLogs) {
         String logFileUri = getLogFileUri(gameId, LogId.GAME_LOG);
         String playerLogFileUri1 = getLogFileUri(gameId, LogId.PLAYER_LOG_1);
         String playerLogFileUri2 = getLogFileUri(gameId, LogId.PLAYER_LOG_2);
