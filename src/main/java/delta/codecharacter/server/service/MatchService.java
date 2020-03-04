@@ -399,12 +399,13 @@ public class MatchService {
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
 
         List<GameLogs> gameLogsList = new ArrayList<>();
-        if (match.getMatchMode() != MatchMode.AUTO) {
+        if (match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
             //TODO: Save Logs
 
             var gameResults = updateMatchRequest.getGameResults();
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
+                        .isPlayer1(true)
                         .gameLog(game.getLog())
                         .player1Log(game.getPlayer1LogCompressed())
                         .player2Log(game.getPlayer2LogCompressed())
@@ -421,7 +422,7 @@ public class MatchService {
         }
         if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
-            if (success && player1Dlls != null) {
+            if (player1Dlls != null) {
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
             }
