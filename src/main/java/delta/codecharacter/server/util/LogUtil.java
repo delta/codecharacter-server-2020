@@ -1,5 +1,7 @@
 package delta.codecharacter.server.util;
 
+import delta.codecharacter.server.controller.response.GameLogs;
+import delta.codecharacter.server.util.enums.LogId;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -69,12 +71,12 @@ public class LogUtil {
      * @param gameId GameId of user
      * @return Contents of the required log file
      */
-    public static LogDetails getLogDetails(Integer gameId) {
+    public static GameLogs getLogDetails(Integer gameId) {
         String gameLogFileUri = getLogFileUri(gameId, LogId.GAME_LOG);
         String playerLogFileUri = getLogFileUri(gameId, LogId.PLAYER_LOG_1);
         String playerLogFileUri2 = getLogFileUri(gameId, LogId.PLAYER_LOG_2);
         try {
-            return LogDetails.builder()
+            return GameLogs.builder()
                     .gameLog(FileHandler.getFileContents(gameLogFileUri))
                     .player1Log(FileHandler.getFileContents(playerLogFileUri))
                     .player2Log(FileHandler.getFileContents(playerLogFileUri2))
@@ -87,15 +89,15 @@ public class LogUtil {
     /**
      * Set contents of log file of given gameId
      *
-     * @param gameId     GameId of user
-     * @param logDetails Log details of the game
+     * @param gameId   GameId of user
+     * @param gameLogs Log details of the game
      */
-    public static void setLogDetails(Integer gameId, LogDetails logDetails) {
+    public static void setLogDetails(Integer gameId, GameLogs gameLogs) {
         String logFileUri = getLogFileUri(gameId, LogId.GAME_LOG);
         String playerLogFileUri1 = getLogFileUri(gameId, LogId.PLAYER_LOG_1);
         String playerLogFileUri2 = getLogFileUri(gameId, LogId.PLAYER_LOG_2);
-        FileHandler.writeFileContents(logFileUri, logDetails.getGameLog());
-        FileHandler.writeFileContents(playerLogFileUri1, logDetails.getPlayer1Log());
-        FileHandler.writeFileContents(playerLogFileUri2, logDetails.getPlayer2Log());
+        FileHandler.writeFileContents(logFileUri, gameLogs.getGameLog());
+        FileHandler.writeFileContents(playerLogFileUri1, gameLogs.getPlayer1Log());
+        FileHandler.writeFileContents(playerLogFileUri2, gameLogs.getPlayer2Log());
     }
 }

@@ -32,18 +32,6 @@ public class Game {
     @Builder.Default
     private Verdict verdict = Verdict.TIE;
 
-    @NotNull
-    @Builder.Default
-    private Integer interestingness = 0;
-
-    @Field("points_1")
-    @Builder.Default
-    private Integer points1 = 0;
-
-    @Field("points_2")
-    @Builder.Default
-    private Integer points2 = 0;
-
     @Field("map_id")
     @NotNull
     @Positive

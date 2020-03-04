@@ -119,8 +119,6 @@ public class MatchService {
                     .username2(user2.getUsername())
                     .avatarId1(user1.getAvatarId())
                     .avatarId2(user2.getAvatarId())
-                    .score1(match.getScore1())
-                    .score2(match.getScore2())
                     .verdict(match.getVerdict())
                     .matchMode(match.getMatchMode())
                     .games(gameService.getAllGamesByMatchId(match.getId()))
@@ -165,8 +163,6 @@ public class MatchService {
                     .username2(user2.getUsername())
                     .avatar1(user1.getAvatarId())
                     .avatar2(user1.getAvatarId())
-                    .score1(match.getScore1())
-                    .score2(match.getScore2())
                     .verdict(match.getVerdict())
                     .playedAt(match.getCreatedAt())
                     .matchMode(match.getMatchMode())
@@ -404,40 +400,46 @@ public class MatchService {
             var gameResults = updateMatchRequest.getGameResults();
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
-                        .isPlayer1(true)
+                        .playerId1(match.getPlayerId1())
                         .gameLog(game.getLog())
                         .player1Log(game.getPlayer1LogCompressed())
                         .player2Log(game.getPlayer2LogCompressed())
                         .build();
                 gameLogsList.add(gameLogs);
+
+                Integer playerId = match.getPlayerId1();
+                socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
+                String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+
+                socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
+                createMatchNotification(playerId, matchMessage);
+            }
+            if (match.getMatchMode() == MatchMode.MANUAL) {
+                List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
+                if (player1Dlls != null) {
+                    DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
+                    DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
+                }
+
+                // If match mode is manual, create a notification for player 2 also.
+                Integer playerId = match.getPlayerId2();
+                String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+                socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
+                createMatchNotification(playerId, matchMessage);
+
+                // Add an entry to User rating table
+                // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
+                userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
+            }
+            if (match.getMatchMode() == MatchMode.AUTO) {
+                // TODO: Find whether an auto match is complete and send socket message
             }
 
-            Integer playerId = match.getPlayerId1();
-            socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            match.setStatus(Status.EXECUTED);
+            match.setVerdict(matchVerdict);
 
-            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-            createMatchNotification(playerId, matchMessage);
-        }
-        if (match.getMatchMode() == MatchMode.MANUAL) {
-            List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
-            if (player1Dlls != null) {
-                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
-                DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
-            }
+            matchRepository.save(match);
 
-            // If match mode is manual, create a notification for player 2 also.
-            Integer playerId = match.getPlayerId2();
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-            createMatchNotification(playerId, matchMessage);
-
-            // Add an entry to User rating table
-            // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
-            userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
-        }
-        if (match.getMatchMode() == MatchMode.AUTO) {
-            // TODO: Find whether an auto match is complete and send socket message
         }
     }
 
@@ -451,13 +453,11 @@ public class MatchService {
      */
     private String getMatchResultByVerdict(Integer matchId, Verdict verdict, Integer playerId) {
         Match match = matchRepository.findFirstById(matchId);
-        Integer opponentId;
         boolean isPlayer1 = playerId.equals(match.getPlayerId1());
 
+        Integer opponentId = match.getPlayerId1();
         if (isPlayer1)
             opponentId = match.getPlayerId2();
-        else
-            opponentId = match.getPlayerId1();
 
         String opponentUsername = userRepository.findByUserId(opponentId).getUsername();
 

@@ -1,12 +1,14 @@
 package delta.codecharacter.server.controller.response;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.ToString;
 
-@Getter
+@Data
 @Builder
+@ToString(includeFieldNames = false)
 public class GameLogs {
-    private Boolean isPlayer1;
+    private Integer playerId1;
 
     private String gameLog;
 

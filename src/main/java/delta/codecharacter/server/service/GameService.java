@@ -1,8 +1,9 @@
 package delta.codecharacter.server.service;
 
+import delta.codecharacter.server.controller.response.GameLogs;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.repository.GameRepository;
-import delta.codecharacter.server.util.LogDetails;
+import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.util.LogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,9 @@ public class GameService {
 
     @Autowired
     private GameRepository gameRepository;
+
+    @Autowired
+    private MatchRepository matchRepository;
 
     /**
      * Create a new game for the given matchId
@@ -35,12 +39,27 @@ public class GameService {
         return game;
     }
 
-    public LogDetails getGameLog(Integer gameId) {
-        return LogUtil.getLogDetails(gameId);
+    /**
+     * Return the game logs and player1Id for the given game id
+     *
+     * @param gameId Game Id of the game
+     * @return game log, player1 log and player2 log of the game
+     */
+    public GameLogs getGameLog(Integer gameId) {
+        var gameLogs = LogUtil.getLogDetails(gameId);
+        if (gameLogs == null)
+            return null;
+
+        var game = gameRepository.findFirstById(gameId);
+        var match = matchRepository.findFirstById(game.getMatchId());
+        gameLogs.setPlayerId1(match.getPlayerId1());
+
+        return gameLogs;
     }
 
     /**
      * Get all the games associated with a match
+     *
      * @param matchId MatchId for which the games are to be fetched
      * @return List of all the games for the given matchId
      */

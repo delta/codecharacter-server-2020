@@ -162,10 +162,17 @@ public class SimulationService {
 
             case PREV_COMMIT: {
                 Integer mapId = simulateMatchRequest.getMapId();
+                String commitHash = simulateMatchRequest.getCommitHash();
+
                 if (mapId == null) {
                     socketService.sendMessage(socketAlertMessageDest + userId, "MapId cannot be null");
                     return;
                 }
+                if (commitHash == null) {
+                    socketService.sendMessage(socketAlertMessageDest + userId, "CommitHash cannot be null");
+                    return;
+                }
+
 
                 match = matchService.createMatch(playerId1, playerId2, MatchMode.PREV_COMMIT);
                 Game newGame = gameService.createGame(match.getId(), simulateMatchRequest.getMapId());
@@ -176,7 +183,7 @@ public class SimulationService {
                         .build();
                 executeGames.add(executeGameDetails);
 
-                executeMatchRequest.setCode2(versionControlService.getCodeByCommitHash(playerId2, simulateMatchRequest.getCommitHash()));
+                executeMatchRequest.setCode2(versionControlService.getCodeByCommitHash(playerId2, commitHash));
                 break;
             }
             case AUTO: {
