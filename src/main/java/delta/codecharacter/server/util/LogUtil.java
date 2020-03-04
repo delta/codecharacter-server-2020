@@ -9,8 +9,7 @@ import java.io.File;
 
 public class LogUtil {
 
-    @Value("storage/logs")
-    private static String logStoragePath;
+    private static String logStoragePath = "storage/logs";
 
     /**
      * Return the absolute path to the log files directory of given gameId
