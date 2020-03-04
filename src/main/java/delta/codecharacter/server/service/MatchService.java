@@ -385,7 +385,6 @@ public class MatchService {
      */
     public void updateMatch(UpdateMatchRequest updateMatchRequest) {
         Boolean success = updateMatchRequest.getSuccess();
-
         Integer matchId = updateMatchRequest.getMatchId();
         Match match = matchRepository.findFirstById(matchId);
 
