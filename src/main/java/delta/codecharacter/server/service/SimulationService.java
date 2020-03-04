@@ -81,7 +81,7 @@ public class SimulationService {
         if (!simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.AUTO))) {
             Long remTime = matchService.getWaitTime(playerId1);
             if (remTime != 0) {
-                socketService.sendMessage(socketDest + socketListenerId, "Please wait for " + remTime + "seconds to initiate next match");
+                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Please wait for " + remTime + " seconds to initiate next match");
                 return;
             }
 
@@ -90,7 +90,7 @@ public class SimulationService {
             Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(playerId1, Status.IDLE, MatchMode.AUTO) != null;
             Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(playerId1, Status.EXECUTING, MatchMode.AUTO) != null;
             if (isIdleMatchPresent || isExecutingMatchPresent) {
-                socketService.sendMessage(socketDest + socketListenerId, "Previous match has not completed");
+                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Previous match has not completed");
                 return;
             }
         }
@@ -102,14 +102,18 @@ public class SimulationService {
             dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
             if (dll1 == null) {
                 CodeStatus codeStatus = codeStatusRepository.findByUserId(playerId1);
-                if (!codeStatus.isLocked())
-                    socketService.sendMessage(socketDest + socketListenerId, "You have not submitted any code");
+                if (!codeStatus.isLocked()) {
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "You have not submitted any code");
+                    return;
+                }
                 player1Code = versionControlService.getLockedCode(playerId1);
             }
             if (dll2 == null) {
                 CodeStatus codeStatus = codeStatusRepository.findByUserId(playerId2);
-                if (!codeStatus.isLocked())
-                    socketService.sendMessage(socketDest + socketListenerId, "Player2 has not submitted any code");
+                if (!codeStatus.isLocked()) {
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Player2 has not submitted any code");
+                    return;
+                }
                 player2Code = versionControlService.getLockedCode(playerId2);
             }
         } else {
@@ -131,7 +135,7 @@ public class SimulationService {
             case SELF: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    socketService.sendMessage(socketDest + socketListenerId, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "MapId cannot be null");
                     return;
                 }
 
@@ -149,7 +153,7 @@ public class SimulationService {
             case AI: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    socketService.sendMessage(socketDest + socketListenerId, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "MapId cannot be null");
                     return;
                 }
 
@@ -186,11 +190,11 @@ public class SimulationService {
                 String commitHash = simulateMatchRequest.getCommitHash();
 
                 if (mapId == null) {
-                    socketService.sendMessage(socketDest, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest, "MapId cannot be null");
                     return;
                 }
                 if (commitHash == null) {
-                    socketService.sendMessage(socketAlertMessageDest + userId, "CommitHash cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest, "CommitHash cannot be null");
                     return;
                 }
 
@@ -222,7 +226,7 @@ public class SimulationService {
                 break;
             }
             default: {
-                socketService.sendMessage(socketDest + socketListenerId, "Invalid MatchMode");
+                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Invalid MatchMode");
                 return;
             }
         }
@@ -232,7 +236,7 @@ public class SimulationService {
 
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
 
-        socketService.sendMessage(socketDest + socketListenerId, "Match is executing");
+        socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Match is executing");
 
         // Set match status to EXECUTING
         match.setStatus(Status.EXECUTING);
