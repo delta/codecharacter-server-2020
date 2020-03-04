@@ -85,7 +85,7 @@ public class AutoMatchUpService {
         return (nextMatchUpTime - secondsSinceMidnight);
     }
 
-    @EventListener(ApplicationReadyEvent.class)
+ //   @EventListener(ApplicationReadyEvent.class)
     public void init() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         LOG.info("Starting auto match-up service...");
