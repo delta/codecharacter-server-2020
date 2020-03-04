@@ -34,6 +34,9 @@ public class VersionControlService {
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
 
+    @Value("${storage.playercode.default.user.id}")
+    private String defaultCodeUserId;
+
     @Value("${storage.playercode.filename}")
     private String codeFileName;
 
@@ -169,6 +172,8 @@ public class VersionControlService {
 
         // Create code file, add and commit
         FileHandler.createFile(getCodeFileUri(userId));
+        String defaultCode = FileHandler.getFileContents(getCodeFileUri(Integer.valueOf(defaultCodeUserId)));
+        FileHandler.writeFileContents(getCodeFileUri(userId), defaultCode);
 
         gitAdd(userId);
         commit(userId, "Initial Commit");
@@ -326,13 +331,18 @@ public class VersionControlService {
      * @param code   Code to be inside the code file
      */
     public boolean setCode(Integer userId, String code) {
-        //Since code changes the dlls become obsolete
+        // Since code changes the dlls become obsolete
         DllUtil.deleteDllFile(userId, DllId.DLL_1);
         DllUtil.deleteDllFile(userId, DllId.DLL_2);
 
         if (!checkCodeRepositoryExists(userId)) createCodeRepository(userId);
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
+
+        var userCodeStatus = codeStatusRepository.findByUserId(userId);
+        userCodeStatus.setLastSavedAt(new Date());
+        codeStatusRepository.save(userCodeStatus);
+
         return true;
     }
 }
