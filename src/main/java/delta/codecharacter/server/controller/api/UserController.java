@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 @RequestMapping(value = "/user")
 public class UserController {
 
+
     private final Logger LOG = Logger.getLogger(UserController.class.getName());
 
     @Autowired

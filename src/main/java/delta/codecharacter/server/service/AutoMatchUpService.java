@@ -6,6 +6,7 @@ import delta.codecharacter.server.util.enums.Division;
 import delta.codecharacter.server.util.enums.MatchMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -85,8 +86,7 @@ public class AutoMatchUpService {
         return (nextMatchUpTime - secondsSinceMidnight);
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void init() {
+    public void init(ContextRefreshedEvent ce) {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         LOG.info("Starting auto match-up service...");
 
