@@ -6,7 +6,7 @@ spring.data.mongodb.database=codecharacter-2020
 #storage
 storage.dir=storage
 storage.playercode.dir=storage/codes
-storage.playercode.default.code=storage/default_code.cpp
+storage.playercode.default.user.id=0
 storage.playercode.filename=main.cpp
 storage.maps.dir=storage/maps
 storage.matchlog.dir=storage/logs

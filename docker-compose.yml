@@ -23,7 +23,7 @@ services:
   rabbit:
     image: rabbitmq:3.5.3-management
     ports:
-      - 5670:5672
+      - 5672:5672
       - 15670:15672
 
 volumes:
