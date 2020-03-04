@@ -14,7 +14,7 @@
         <delete verbose='true' dir='${tomcat.dir}/webapps/server' failonerror="false"/>
         <delete verbose='true' dir='${tomcat.dir}/webapps/server.war' failonerror="false"/>
         <copy
-                tofile='${tomcat.dir}/webapps/${app.name}.war'
+		tofile='${tomcat.dir}/webapps/ROOT.war'
                 file='target/server-0.0.1-SNAPSHOT.war'
         />
     </target>
