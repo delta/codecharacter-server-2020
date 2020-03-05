@@ -1,5 +1,6 @@
 package delta.codecharacter.server.controller.request.Simulation;
 
+import delta.codecharacter.server.util.enums.MatchMode;
 import lombok.Builder;
 import lombok.Data;
 

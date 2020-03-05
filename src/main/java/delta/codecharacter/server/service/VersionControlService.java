@@ -34,11 +34,14 @@ public class VersionControlService {
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
 
-    @Value("${storage.playercode.default.user.id}")
-    private String defaultCodeUserId;
+    @Value("${storage.playerLockedcode.dir}")
+    private String lockedCodeStoragePath;
 
     @Value("${storage.playercode.filename}")
     private String codeFileName;
+
+    @Value("${storage.playerLockedCode.filename}")
+    private String lockedCodeFileName;
 
     @Autowired
     private CodeStatusService codeStatusService;
@@ -128,6 +131,16 @@ public class VersionControlService {
     }
 
     /**
+     * Return the absolute path to the locked codes directory of given userId
+     *
+     * @param userId UserId of whose directory is to be accessed
+     * @return Path to codes directory
+     */
+    private String getLockedCodeRepositoryUri(Integer userId) {
+        return System.getProperty("user.dir") + File.separator + lockedCodeStoragePath + File.separator + userId;
+    }
+
+    /**
      * Return the absolute path to the player code file of given userId
      *
      * @param userId UserId of whose code is to be accessed
@@ -135,6 +148,16 @@ public class VersionControlService {
      */
     private String getCodeFileUri(Integer userId) {
         return getCodeRepositoryUri(userId) + File.separator + codeFileName;
+    }
+
+    /**
+     * Return the absolute path to the player locked code file of given userId
+     *
+     * @param userId UserId of whose code is to be accessed
+     * @return Path to player locked code file
+     */
+    private String getLockedCodeFileUri(Integer userId) {
+        return getLockedCodeRepositoryUri(userId) + File.separator + lockedCodeFileName;
     }
 
     /**
@@ -149,6 +172,17 @@ public class VersionControlService {
     }
 
     /**
+     * Check if locked code repository exists
+     *
+     * @param userId UserId of the user
+     * @return True if code repository exists, False otherwise
+     */
+    public boolean checkLockedCodeRepositoryExists(Integer userId) {
+        String lockedCodeRepositoryUri = getLockedCodeRepositoryUri(userId);
+        return FileHandler.checkFileExists(lockedCodeRepositoryUri);
+    }
+
+    /**
      * Create a new code repository with git initialized for given userId
      *
      * @param userId UserId of the user
@@ -156,9 +190,13 @@ public class VersionControlService {
     @SneakyThrows
     public void createCodeRepository(Integer userId) {
         String codeRepositoryUri = getCodeRepositoryUri(userId);
+        String lockedCodeRepositoryUri = getLockedCodeRepositoryUri(userId);
 
         if (!FileHandler.checkFileExists(codeRepositoryUri)) {
             boolean dirCreated = FileHandler.createDirectory(codeRepositoryUri);
+        }
+        if (!FileHandler.checkFileExists(lockedCodeRepositoryUri)) {
+            boolean dirCreated = FileHandler.createDirectory(lockedCodeRepositoryUri);
         }
 
         // git init
@@ -172,8 +210,7 @@ public class VersionControlService {
 
         // Create code file, add and commit
         FileHandler.createFile(getCodeFileUri(userId));
-        String defaultCode = FileHandler.getFileContents(getCodeFileUri(Integer.valueOf(defaultCodeUserId)));
-        FileHandler.writeFileContents(getCodeFileUri(userId), defaultCode);
+        FileHandler.createFile(getLockedCodeFileUri(userId));
 
         gitAdd(userId);
         commit(userId, "Initial Commit");
@@ -331,17 +368,52 @@ public class VersionControlService {
      * @param code   Code to be inside the code file
      */
     public boolean setCode(Integer userId, String code) {
-        // Since code changes the dlls become obsolete
-        DllUtil.deleteDllFile(userId, DllId.DLL_1);
-        DllUtil.deleteDllFile(userId, DllId.DLL_2);
-
         if (!checkCodeRepositoryExists(userId)) createCodeRepository(userId);
         String codeFileUri = getCodeFileUri(userId);
         FileHandler.writeFileContents(codeFileUri, code);
 
-        var userCodeStatus = codeStatusRepository.findByUserId(userId);
-        userCodeStatus.setLastSavedAt(new Date());
-        codeStatusRepository.save(userCodeStatus);
+        //update lastSavedAt in codeStatus
+        CodeStatus codeStatus = codeStatusRepository.findByUserId(userId);
+        codeStatus.setLastSavedAt(new Date());
+        codeStatusRepository.save(codeStatus);
+
+        return true;
+    }
+
+    /**
+     * Get locked code of given userId
+     *
+     * @param userId UserId of user
+     * @return Contents of file
+     */
+    public String getLockedCode(Integer userId) {
+        if (!checkLockedCodeRepositoryExists(userId)) return null;
+        String lockedCodeFileUri = getLockedCodeFileUri(userId);
+        return FileHandler.getFileContents(lockedCodeFileUri);
+    }
+
+    /**
+     * Set locked code of given userId
+     *
+     * @param userId UserId of user
+     */
+    @SneakyThrows
+    public boolean setLockedCode(Integer userId) {
+        if (!checkLockedCodeRepositoryExists(userId))
+            throw new Exception("No repository found");
+
+        //Since code changes the dlls become obsolete
+        DllUtil.deleteDllFile(userId, DllId.DLL_1);
+        DllUtil.deleteDllFile(userId, DllId.DLL_2);
+
+        String lockedCodeFileUri = getLockedCodeFileUri(userId);
+        String code = getCode(userId);
+        FileHandler.writeFileContents(lockedCodeFileUri, code);
+
+        //set isLocked to true in codeStatus table
+        CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
+        codeStatus.setLocked(true);
+        codeStatusRepository.save(codeStatus);
 
         return true;
     }

@@ -1,9 +1,9 @@
 package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
-import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.SimulationService;
 import delta.codecharacter.server.service.UserService;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.Authentication;
@@ -24,10 +24,12 @@ public class SimulationController {
     @Autowired
     private UserService userService;
 
+    @SneakyThrows
     @MessageMapping("/match")
     public void simulateMatch(@RequestBody @Valid SimulateMatchRequest simulateMatchRequest, Authentication authentication) {
-        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
-        simulationService.simulateMatch(simulateMatchRequest, user.getUserId());
+        if (!userService.isEmailPresent(userService.getEmailFromAuthentication(authentication)))
+            throw new Exception("Invalid Login");
+        simulationService.simulateMatch(simulateMatchRequest);
     }
 
 }

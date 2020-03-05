@@ -5,9 +5,11 @@ import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.Simulation.ExecuteGameDetails;
 import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequest;
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
+import delta.codecharacter.server.model.CodeStatus;
 import delta.codecharacter.server.model.Game;
 import delta.codecharacter.server.model.Map;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.repository.CodeStatusRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.util.AiDllUtil;
 import delta.codecharacter.server.util.DllUtil;
@@ -18,7 +20,6 @@ import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -59,42 +60,64 @@ public class SimulationService {
     @Autowired
     private MapService mapService;
 
+    @Autowired
+    private CodeStatusRepository codeStatusRepository;
+
     /**
      * Send an execute match request to compile-box
      *
      * @param simulateMatchRequest Details of the match to be simulated
-     * @param userId               UserId of the User to whom socket messages are to be sent
-     *                             NOTE: userId is null if matchMode is AUTO
      */
     @SneakyThrows
-    public void simulateMatch(SimulateMatchRequest simulateMatchRequest, @Nullable Integer userId) {
+    public void simulateMatch(SimulateMatchRequest simulateMatchRequest) {
 
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
+        Integer socketListenerId = null;
 
         if (!simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.AUTO))) {
+            socketListenerId = playerId1;
             Long remTime = matchService.getWaitTime(playerId1);
             if (remTime != 0) {
-                socketService.sendMessage(socketAlertMessageDest + userId, "Please wait for " + remTime + "seconds to initiate next match");
+                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Please wait for " + remTime + " seconds to initiate next match");
                 return;
             }
 
             // Check if the User has any matches that are not yet completed
             // NOTE: IDLE, EXECUTING are the statuses indicating unfinished matches
-            Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(userId, Status.IDLE, MatchMode.AUTO) != null;
-            Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(userId, Status.EXECUTING, MatchMode.AUTO) != null;
+            Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(playerId1, Status.IDLE, MatchMode.AUTO) != null;
+            Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(playerId1, Status.EXECUTING, MatchMode.AUTO) != null;
             if (isIdleMatchPresent || isExecutingMatchPresent) {
-                socketService.sendMessage(socketAlertMessageDest + userId, "Previous match has not completed");
+                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Previous match has not completed");
                 return;
             }
         }
+        String dll1 = null, dll2 = null;
+        String player1Code = null, player2Code = null;
 
-        String dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
-        String dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
-        String player1Code = null;
-        String player2Code = null;
-        if (dll1 == null) player1Code = versionControlService.getCode(playerId1);
-        if (dll2 == null) player2Code = versionControlService.getCode(playerId2);
+        if (simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.MANUAL)) || simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.AUTO))) {
+            dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
+            dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
+            if (dll1 == null) {
+                CodeStatus codeStatus = codeStatusRepository.findByUserId(playerId1);
+                if (!codeStatus.isLocked()) {
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "You have not submitted any code");
+                    return;
+                }
+                player1Code = versionControlService.getLockedCode(playerId1);
+            }
+            if (dll2 == null) {
+                CodeStatus codeStatus = codeStatusRepository.findByUserId(playerId2);
+                if (!codeStatus.isLocked()) {
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Player2 has not submitted any code");
+                    return;
+                }
+                player2Code = versionControlService.getLockedCode(playerId2);
+            }
+        } else {
+            player1Code = versionControlService.getCode(playerId1);
+            player2Code = versionControlService.getCode(playerId2);
+        }
 
         ExecuteMatchRequest executeMatchRequest = ExecuteMatchRequest.builder()
                 .dll1(dll1)
@@ -110,7 +133,7 @@ public class SimulationService {
             case SELF: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    socketService.sendMessage(socketAlertMessageDest + userId, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "MapId cannot be null");
                     return;
                 }
 
@@ -128,7 +151,7 @@ public class SimulationService {
             case AI: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
-                    socketService.sendMessage(socketAlertMessageDest + userId, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "MapId cannot be null");
                     return;
                 }
 
@@ -165,11 +188,11 @@ public class SimulationService {
                 String commitHash = simulateMatchRequest.getCommitHash();
 
                 if (mapId == null) {
-                    socketService.sendMessage(socketAlertMessageDest + userId, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "MapId cannot be null");
                     return;
                 }
                 if (commitHash == null) {
-                    socketService.sendMessage(socketAlertMessageDest + userId, "CommitHash cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "CommitHash cannot be null");
                     return;
                 }
 
@@ -201,7 +224,7 @@ public class SimulationService {
                 break;
             }
             default: {
-                socketService.sendMessage(socketAlertMessageDest + userId, "Invalid MatchMode");
+                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Invalid MatchMode");
                 return;
             }
         }
@@ -211,7 +234,7 @@ public class SimulationService {
 
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
 
-        socketService.sendMessage(socketAlertMessageDest + userId, "Match is executing");
+        socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Match is executing");
 
         // Set match status to EXECUTING
         match.setStatus(Status.EXECUTING);
