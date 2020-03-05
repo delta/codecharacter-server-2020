@@ -56,31 +56,34 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private UserActivationRepository userActivationRepository;
-    
+
     @Autowired
     private PasswordResetDetailsRepository passwordResetDetailsRepository;
-    
+
     @Autowired
     private LeaderboardService leaderboardService;
-    
+
     @Autowired
     private VersionControlService versionControlService;
-    
+
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-    
+
     @Autowired
     private SendGridService sendGridService;
 
+    @Autowired
+    private CodeStatusService codeStatusService;
+
     @Value("${pragyan.event-id}")
     private String pragyanEventId;
-    
+
     @Value("${pragyan.event-secret}")
     private String pragyanEventSecret;
-    
+
     @Value("${pragyan.event-login-url}")
     private String pragyanEventLoginUrl;
 
@@ -107,12 +110,7 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(newUser);
 
-        // Create initial entry for new user in Leaderboard table
-        leaderboardService.initializeLeaderboardData(userId);
-        // Create initial entry for new user in UserRating table
-        userRatingService.initializeUserRating(userId);
-        // Create code repository for the new user
-        versionControlService.createCodeRepository(userId);
+        initializeUserData(userId);
 
         sendActivationToken(newUser.getUserId());
     }
@@ -135,12 +133,7 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(newUser);
 
-        // Create initial entry for new user in Leaderboard table
-        leaderboardService.initializeLeaderboardData(userId);
-        // Create initial entry for new user in UserRating table
-        userRatingService.initializeUserRating(userId);
-        // Create code repository for new user
-        versionControlService.createCodeRepository(userId);
+        initializeUserData(userId);
 
         return newUser;
     }
@@ -173,12 +166,18 @@ public class UserService implements UserDetailsService {
 
         userRepository.save(newUser);
 
-        // Create initial entry for new user in UserRating table
-        userRatingService.initializeUserRating(userId);
+        initializeUserData(userId);
+    }
+
+    private void initializeUserData(Integer userId) {
         // Create initial entry for new user in Leaderboard table
         leaderboardService.initializeLeaderboardData(userId);
+        // Create initial entry for new user in UserRating table
+        userRatingService.initializeUserRating(userId);
         // Create code repository for the new user
         versionControlService.createCodeRepository(userId);
+
+        codeStatusService.initializeCodeStatusData(userId);
     }
 
     /**

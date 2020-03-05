@@ -26,4 +26,12 @@ public class CodeStatusService {
         }
         return codeStatus;
     }
+
+    public void initializeCodeStatusData(Integer userId) {
+        var codeStatus = CodeStatus.builder()
+                .userId(userId)
+                .build();
+
+        codeStatusRepository.save(codeStatus);
+    }
 }
