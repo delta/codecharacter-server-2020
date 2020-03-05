@@ -73,8 +73,16 @@ public class LeaderboardService {
      * @param rating rating of user
      * @return rank of user
      */
-    Integer getRank(Integer rating) {
-        return leaderboardRepository.countByRatingGreaterThan(rating) + 1;
+    Integer getRank(Double rating) {
+        Aggregation aggregation = newAggregation(
+                lookup("codeStatus", "user_id", "user_id", "userCodeStatus"),
+                match(Criteria.where("userCodeStatus.is_locked").is(true)),
+                match(Criteria.where("rating").gt(rating))
+        );
+
+        var groupResults = mongoTemplate.aggregate(aggregation, Leaderboard.class, LeaderboardData.class);
+
+        return groupResults.getMappedResults().size() + 1;
     }
 
     /**
@@ -246,7 +254,7 @@ public class LeaderboardService {
                     .username(userRepository.findByUserId(userId).getUsername())
                     .division(leaderboardItem.getDivision())
                     .rating(userRatings)
-                    .rank(getRank(userId))
+                    .rank(getRank(leaderboardItem.getRating()))
                     .wins(matchStats.getWins())
                     .losses(matchStats.getLosses())
                     .ties(matchStats.getTies())
