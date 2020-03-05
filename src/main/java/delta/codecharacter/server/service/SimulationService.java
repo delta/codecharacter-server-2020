@@ -188,11 +188,11 @@ public class SimulationService {
                 String commitHash = simulateMatchRequest.getCommitHash();
 
                 if (mapId == null) {
-                    socketService.sendMessage(socketAlertMessageDest, "MapId cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "MapId cannot be null");
                     return;
                 }
                 if (commitHash == null) {
-                    socketService.sendMessage(socketAlertMessageDest, "CommitHash cannot be null");
+                    socketService.sendMessage(socketAlertMessageDest + socketListenerId, "CommitHash cannot be null");
                     return;
                 }
 
