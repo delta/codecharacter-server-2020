@@ -27,7 +27,6 @@ public class RabbitMqService {
     @SneakyThrows
     public void sendMessageToQueue(String message) {
         channel.basicPublish("", queue, null, message.getBytes(StandardCharsets.UTF_8));
-        LOG.info("Sent " + message);
     }
 
     @SneakyThrows

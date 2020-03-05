@@ -14,4 +14,6 @@ public interface CodeStatusRepository extends MongoRepository<CodeStatus, Intege
     List<CodeStatus> findAllByStatus(Status status);
 
     List<CodeStatus> findAllByOrderByLastSavedAtDesc();
+
+    CodeStatus findFirstByOrderByIdDesc();
 }
