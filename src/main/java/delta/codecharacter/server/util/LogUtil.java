@@ -95,6 +95,9 @@ public class LogUtil {
         String logFileUri = getLogFileUri(gameId, LogId.GAME_LOG);
         String playerLogFileUri1 = getLogFileUri(gameId, LogId.PLAYER_LOG_1);
         String playerLogFileUri2 = getLogFileUri(gameId, LogId.PLAYER_LOG_2);
+        FileHandler.createFile(logFileUri);
+        FileHandler.createFile(playerLogFileUri1);
+        FileHandler.createFile(playerLogFileUri2);
         FileHandler.writeFileContents(logFileUri, gameLogs.getGameLog());
         FileHandler.writeFileContents(playerLogFileUri1, gameLogs.getPlayer1Log());
         FileHandler.writeFileContents(playerLogFileUri2, gameLogs.getPlayer2Log());

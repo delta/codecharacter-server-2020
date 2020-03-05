@@ -211,10 +211,10 @@ public class MatchService {
             if (match.getMatchMode() == MatchMode.AUTO) {
                 if (match.getPlayerId1() == userId) {
                     switch (match.getVerdict()) {
-                        case PLAYER_1:
+                        case PLAYER1:
                             auto.setWins(auto.getWins() + 1);
                             break;
-                        case PLAYER_2:
+                        case PLAYER2:
                             auto.setLosses(auto.getLosses() + 1);
                             break;
                         default:
@@ -222,10 +222,10 @@ public class MatchService {
                     }
                 } else if (match.getPlayerId2() == userId) {
                     switch (match.getVerdict()) {
-                        case PLAYER_1:
+                        case PLAYER1:
                             auto.setLosses(auto.getLosses() + 1);
                             break;
-                        case PLAYER_2:
+                        case PLAYER2:
                             auto.setWins(auto.getWins() + 1);
                             break;
                         default:
@@ -234,10 +234,10 @@ public class MatchService {
                 }
             } else if (match.getPlayerId1() == userId) {
                 switch (match.getVerdict()) {
-                    case PLAYER_1:
+                    case PLAYER1:
                         initiated.setWins(initiated.getWins() + 1);
                         break;
-                    case PLAYER_2:
+                    case PLAYER2:
                         initiated.setLosses(initiated.getLosses() + 1);
                         break;
                     default:
@@ -245,10 +245,10 @@ public class MatchService {
                 }
             } else if (match.getPlayerId2() == userId) {
                 switch (match.getVerdict()) {
-                    case PLAYER_1:
+                    case PLAYER1:
                         faced.setLosses(faced.getLosses() + 1);
                         break;
-                    case PLAYER_2:
+                    case PLAYER2:
                         faced.setWins(faced.getWins() + 1);
                         break;
                     default:
@@ -289,13 +289,13 @@ public class MatchService {
 
         for (var match : matches) {
             switch (match.getVerdict()) {
-                case PLAYER_1:
+                case PLAYER1:
                     if (match.getPlayerId1().equals(userId))
                         matchStats.setWins(matchStats.getWins() + 1);
                     else
                         matchStats.setLosses(matchStats.getLosses() + 1);
                     break;
-                case PLAYER_2:
+                case PLAYER2:
                     if (match.getPlayerId2().equals(userId))
                         matchStats.setWins(matchStats.getWins() + 1);
                     else
@@ -389,6 +389,7 @@ public class MatchService {
             match.setStatus(Status.EXECUTE_ERROR);
             matchRepository.save(match);
 
+            socketService.sendMessage(socketMatchResultDest + match.getPlayerId1(), "Error: " + updateMatchRequest.getError());
             socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
             return;
         }
@@ -462,9 +463,9 @@ public class MatchService {
     private void updateMatchScore(Match match, List<UpdateGameDetails> gameDetails) {
         Integer player1Wins = 0, player2Wins = 0;
         for (var game : gameDetails) {
-            if (game.getVerdict().equals(PLAYER_1))
+            if (game.getVerdict().equals(PLAYER1))
                 player1Wins++;
-            if (game.getVerdict().equals(PLAYER_2))
+            if (game.getVerdict().equals(PLAYER2))
                 player2Wins++;
         }
 
@@ -493,11 +494,11 @@ public class MatchService {
         switch (verdict) {
             case TIE:
                 return "Match tied against " + opponentUsername;
-            case PLAYER_1:
+            case PLAYER1:
                 if (isPlayer1)
                     return "Won match against " + opponentUsername;
                 return "Lost match against " + opponentUsername;
-            case PLAYER_2:
+            case PLAYER2:
                 if (isPlayer1)
                     return "Lost match against " + opponentUsername;
                 return "Won match against " + opponentUsername;
@@ -530,14 +531,14 @@ public class MatchService {
     public Verdict deduceMatchVerdict(List<UpdateGameDetails> gameDetails) {
         Integer player1Wins = 0, player2Wins = 0;
         for (var game : gameDetails) {
-            if (game.getVerdict().equals(PLAYER_1))
+            if (game.getVerdict().equals(PLAYER1))
                 player1Wins++;
-            if (game.getVerdict().equals(PLAYER_2))
+            if (game.getVerdict().equals(PLAYER2))
                 player2Wins++;
         }
 
-        if (player1Wins > player2Wins) return PLAYER_1;
-        if (player2Wins > player1Wins) return PLAYER_2;
+        if (player1Wins > player2Wins) return PLAYER1;
+        if (player2Wins > player1Wins) return PLAYER2;
         return TIE;
     }
 }
