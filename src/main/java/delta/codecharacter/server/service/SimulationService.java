@@ -74,11 +74,9 @@ public class SimulationService {
         Integer playerId1 = Integer.valueOf(simulateMatchRequest.getPlayerId1());
         Integer playerId2 = Integer.valueOf(simulateMatchRequest.getPlayerId2());
         Integer socketListenerId = null;
-        if (simulateMatchRequest.getMatchMode() != MatchMode.AUTO) {
-            socketListenerId = playerId1;
-        }
 
         if (!simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.AUTO))) {
+            socketListenerId = playerId1;
             Long remTime = matchService.getWaitTime(playerId1);
             if (remTime != 0) {
                 socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Please wait for " + remTime + " seconds to initiate next match");
@@ -97,7 +95,7 @@ public class SimulationService {
         String dll1 = null, dll2 = null;
         String player1Code = null, player2Code = null;
 
-        if (simulateMatchRequest.getMatchMode() == MatchMode.MANUAL || simulateMatchRequest.getMatchMode() == MatchMode.AUTO) {
+        if (simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.MANUAL)) || simulateMatchRequest.getMatchMode().equals(String.valueOf(MatchMode.AUTO))) {
             dll1 = DllUtil.getDll(playerId1, DllId.DLL_1);
             dll2 = DllUtil.getDll(playerId2, DllId.DLL_2);
             if (dll1 == null) {
@@ -131,7 +129,7 @@ public class SimulationService {
         Match match;
         List<ExecuteGameDetails> executeGames = new ArrayList<>();
 
-        switch (simulateMatchRequest.getMatchMode()) {
+        switch (MatchMode.valueOf(simulateMatchRequest.getMatchMode())) {
             case SELF: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
