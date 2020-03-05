@@ -14,7 +14,7 @@ public class LeaderboardData {
 
     private String username;
 
-    private Integer rating;
+    private Double rating;
 
     private Division division;
 
