@@ -28,9 +28,9 @@ public class CodeStatusService {
     }
 
     public void initializeCodeStatusData(Integer userId) {
-        Integer id = getMaxId() + 1;
+        Integer codeStatusId = getMaxId() + 1;
         var codeStatus = CodeStatus.builder()
-                .userId(getMaxId())
+                .id(codeStatusId)
                 .userId(userId)
                 .build();
 
