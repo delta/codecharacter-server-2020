@@ -151,10 +151,10 @@ public class UserRatingService {
         double score;
 
         switch (verdict) {
-            case PLAYER_1:
+            case PLAYER1:
                 score = 1d;
                 break;
-            case PLAYER_2:
+            case PLAYER2:
                 score = 0d;
                 break;
             default:
