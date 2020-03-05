@@ -14,6 +14,10 @@ import java.util.Date;
 @Builder
 public class CodeStatus {
     @Id
+    @NotNull
+    @Positive
+    private Integer id;
+
     @Field("user_id")
     @NotNull
     @Positive

@@ -28,10 +28,20 @@ public class CodeStatusService {
     }
 
     public void initializeCodeStatusData(Integer userId) {
+        Integer id = getMaxId() + 1;
         var codeStatus = CodeStatus.builder()
+                .userId(getMaxId())
                 .userId(userId)
                 .build();
 
         codeStatusRepository.save(codeStatus);
+    }
+
+    public Integer getMaxId() {
+        var codeStatus = codeStatusRepository.findFirstByOrderByIdDesc();
+        if (codeStatus == null) {
+            return 0;
+        }
+        return codeStatus.getId();
     }
 }
