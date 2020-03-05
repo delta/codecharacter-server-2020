@@ -5,12 +5,8 @@ spring.data.mongodb.database=codecharacter-2020
 
 #storage
 storage.dir=storage
-<<<<<<< HEAD
 storage.playercode.dir=storage/codes
 storage.playercode.default.user.id=0
-=======
-storage.playercode.dir=/storage/codes
->>>>>>> save locked codes in separate directory
 storage.playerLockedcode.dir=/storage/locked_codes
 storage.playercode.filename=main.cpp
 storage.playerLockedCode.filename=locked.cpp

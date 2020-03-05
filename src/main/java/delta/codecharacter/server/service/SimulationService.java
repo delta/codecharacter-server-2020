@@ -129,7 +129,7 @@ public class SimulationService {
         Match match;
         List<ExecuteGameDetails> executeGames = new ArrayList<>();
 
-        switch (simulateMatchRequest.getMatchMode()) {
+        switch (MatchMode.valueOf(simulateMatchRequest.getMatchMode())) {
             case SELF: {
                 Integer mapId = simulateMatchRequest.getMapId();
                 if (mapId == null) {
