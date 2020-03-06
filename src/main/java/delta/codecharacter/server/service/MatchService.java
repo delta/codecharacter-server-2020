@@ -137,13 +137,15 @@ public class MatchService {
      * @param userId UserId of the player
      * @return List of paginated manual and auto matches
      */
-    public List<PrivateMatchResponse> getManualAndAutoMatchesPaginated(Integer userId, Pageable pageable) {
+    public List<PrivateMatchResponse> getManualAndAutoExecutedMatchesPaginated(Integer userId, Pageable pageable) {
         Aggregation aggregation = newAggregation(
                 match(
+                    new Criteria().andOperator(
                         new Criteria().andOperator(
                                 new Criteria().orOperator(Criteria.where("player_id_1").is(userId), Criteria.where("player_id_2").is(userId)),
                                 new Criteria().orOperator(Criteria.where("match_mode").is(MatchMode.MANUAL), Criteria.where("match_mode").is(MatchMode.AUTO))
-                        )
+                        ), Criteria.where("status").is("EXECUTED")
+                    )
                 ),
                 sort(Sort.by("createdAt").descending()),
                 skip((long) pageable.getPageNumber() * pageable.getPageSize()),

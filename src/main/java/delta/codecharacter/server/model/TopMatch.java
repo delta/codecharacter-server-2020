@@ -23,5 +23,6 @@ public class TopMatch {
 
     @NotNull
     @Field("created_at")
-    private Date createdAt;
+    @Builder.Default
+    private Date createdAt = new Date();
 }
