@@ -16,6 +16,7 @@ import delta.codecharacter.server.model.UserActivation;
 import delta.codecharacter.server.repository.PasswordResetDetailsRepository;
 import delta.codecharacter.server.repository.UserActivationRepository;
 import delta.codecharacter.server.repository.UserRepository;
+import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.UserAuthUtil.CustomUserDetails;
 import delta.codecharacter.server.util.enums.AuthMethod;
 import lombok.SneakyThrows;
@@ -176,6 +177,8 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
         // Create code repository for the new user
         versionControlService.createCodeRepository(userId);
+        
+        DllUtil.createDllRepository(userId);
 
         codeStatusService.initializeCodeStatusData(userId);
     }

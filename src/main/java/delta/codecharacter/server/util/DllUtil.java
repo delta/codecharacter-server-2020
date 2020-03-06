@@ -8,8 +8,7 @@ import java.io.File;
 
 public class DllUtil {
 
-    @Value("storage/dlls")
-    private static String dllStoragePath;
+    private static String dllStoragePath = "storage/dlls";
 
     /**
      * Return the absolute path to the dll files directory of given userId
@@ -57,6 +56,8 @@ public class DllUtil {
      */
     public static String getDll(Integer userId, DllId dllId) {
         String dllFileUri = getDllFileUri(userId, dllId);
+        if(!FileHandler.checkFileExists(dllFileUri))
+            return null;
         try {
             return FileHandler.getFileContents(dllFileUri);
         } catch (Exception e) {
@@ -73,6 +74,10 @@ public class DllUtil {
      */
     public static void setDll(Integer userId, DllId dllId, String dll) {
         String dllFileUri = getDllFileUri(userId, dllId);
+        if(!FileHandler.checkFileExists(dllFileUri))
+        {
+            FileHandler.createFile(dllFileUri);
+        }
         FileHandler.writeFileContents(dllFileUri, dll);
     }
 
