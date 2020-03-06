@@ -163,7 +163,7 @@ public class MatchService {
                     .username1(user1.getUsername())
                     .username2(user2.getUsername())
                     .avatar1(user1.getAvatarId())
-                    .avatar2(user1.getAvatarId())
+                    .avatar2(user2.getAvatarId())
                     .verdict(match.getVerdict())
                     .playedAt(match.getCreatedAt())
                     .matchMode(match.getMatchMode())
@@ -417,7 +417,7 @@ public class MatchService {
 
         if (match.getMatchMode() == MatchMode.MANUAL) {
             List<String> player1Dlls = updateMatchRequest.getPlayer1DLLs();
-            if (player1Dlls != null) {
+            if (player1Dlls.size() != 0) {
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_1, player1Dlls.get(0));
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
             }

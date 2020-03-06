@@ -57,14 +57,23 @@ public class LeaderboardService {
      */
     @Transactional
     public void initializeLeaderboardData(@NotNull Integer userId) {
+        Integer leaderboardId = getMaxId() + 1;
         var initialRating = Double.valueOf(constantService.getConstantValueByKey("INITIAL_RATING"));
         Leaderboard leaderboard = Leaderboard.builder()
+                .id(leaderboardId)
                 .userId(userId)
                 .division(Division.DIV_2)
                 .rating(initialRating)
                 .build();
 
         leaderboardRepository.save(leaderboard);
+    }
+
+    private Integer getMaxId() {
+        var leaderboard = leaderboardRepository.findFirstByOrderByIdDesc();
+        if (leaderboard == null)
+            return 0;
+        return leaderboard.getId();
     }
 
     /**

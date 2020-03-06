@@ -9,4 +9,6 @@ public interface LeaderboardRepository extends MongoRepository<Leaderboard, Inte
     Integer countByRatingGreaterThan(Double rating);
 
     Leaderboard findFirstByUserId(Integer userId);
+
+    Leaderboard findFirstByOrderByIdDesc();
 }
