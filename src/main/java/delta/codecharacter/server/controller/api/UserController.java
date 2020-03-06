@@ -158,10 +158,10 @@ public class UserController {
     }
 
     @GetMapping(value = "/match/{pageNo}/{pageSize}")
-    public ResponseEntity<List<PrivateMatchResponse>> getManualAndAutoMatches(@PathVariable Integer pageNo, @PathVariable Integer pageSize, Authentication authentication) {
+    public ResponseEntity<List<PrivateMatchResponse>> getManualAndAutoExecutedMatches(@PathVariable Integer pageNo, @PathVariable Integer pageSize, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
-        return new ResponseEntity<>(matchService.getManualAndAutoMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
+        return new ResponseEntity<>(matchService.getManualAndAutoExecutedMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
     }
 }

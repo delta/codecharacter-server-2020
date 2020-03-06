@@ -109,7 +109,6 @@ public class UserRatingService {
                 rating2.getRating(), matchService.getRecentMatchTime(userId2));
 
         rating1.setRatingDeviation(weightedRatingDeviation1);
-        rating2.setRatingDeviation(weightedRatingDeviation2);
 
         GlickoRating glickoRating1 = GlickoRating.builder()
                 .rating(rating1.getRating())
@@ -132,10 +131,10 @@ public class UserRatingService {
 
         // Calculate player 2 new rating
         List<GlickoRating> opponentRatings2 = new ArrayList<>();
-        opponentRatings1.add(glickoRating1);
+        opponentRatings2.add(glickoRating1);
 
         List<Double> matchScores2 = new ArrayList<>();
-        matchScores1.add(getVerdictScore(verdict, true));
+        matchScores2.add(getVerdictScore(verdict, true));
 
         Double newRating2 = ratingCalculator.calculateNewRating(glickoRating2, opponentRatings2, matchScores2);
 
@@ -161,7 +160,8 @@ public class UserRatingService {
                 score = 0.5d;
         }
 
-        if (isOpponent) return (1d - score);
+        if (isOpponent)
+            return (1d - score);
 
         return score;
     }
