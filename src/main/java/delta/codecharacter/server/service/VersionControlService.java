@@ -37,6 +37,9 @@ public class VersionControlService {
     @Value("${storage.playerLockedcode.dir}")
     private String lockedCodeStoragePath;
 
+    @Value("${storage.playercode.default.user.id}")
+    private String defaultCodeUserId;
+
     @Value("${storage.playercode.filename}")
     private String codeFileName;
 
@@ -210,7 +213,9 @@ public class VersionControlService {
 
         // Create code file, add and commit
         FileHandler.createFile(getCodeFileUri(userId));
+        String defaultCode = FileHandler.getFileContents(getCodeFileUri(Integer.valueOf(defaultCodeUserId)));
         FileHandler.createFile(getLockedCodeFileUri(userId));
+        FileHandler.writeFileContents(getCodeFileUri(userId), defaultCode);
 
         gitAdd(userId);
         commit(userId, "Initial Commit");
