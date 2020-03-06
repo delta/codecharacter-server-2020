@@ -395,7 +395,8 @@ public class MatchService {
             matchRepository.save(match);
 
             socketService.sendMessage(socketMatchResultDest + match.getPlayerId1(), "Error: " + updateMatchRequest.getError());
-            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
+            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Error: "
+                    + getErrorNotificationMessage(updateMatchRequest.getErrorType()));
             return;
         }
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
@@ -463,6 +464,21 @@ public class MatchService {
         match.setVerdict(matchVerdict);
         updateMatchScore(match, updateMatchRequest.getGameResults());
         matchRepository.save(match);
+    }
+
+    private String getErrorNotificationMessage(String errorType) {
+        switch (errorType) {
+            case "COMPILER_ERROR":
+                return "Compilation Error";
+            case "EXECUTE_PROCESS_ERROR":
+                return "Execution Error";
+            case "UNKNOWN_EXECUTE_ERROR":
+                return "Something went wrong!";
+            case "PLAYER_RUNTIME_ERROR":
+                return "Runtime Error";
+            default:
+                return errorType;
+        }
     }
 
     private void updateMatchScore(Match match, List<UpdateGameDetails> gameDetails) {
