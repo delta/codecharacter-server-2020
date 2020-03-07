@@ -36,5 +36,4 @@ public class MatchController {
             return;
         matchService.updateMatch(updateMatchRequest);
     }
-
 }

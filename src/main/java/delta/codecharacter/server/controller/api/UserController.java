@@ -2,7 +2,7 @@ package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.User.*;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
-import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
+import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
@@ -158,7 +158,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/match/{pageNo}/{pageSize}")
-    public ResponseEntity<List<PrivateMatchResponse>> getManualAndAutoExecutedMatches(@PathVariable Integer pageNo, @PathVariable Integer pageSize, Authentication authentication) {
+    public ResponseEntity<List<MatchResponse>> getManualAndAutoExecutedMatches(@PathVariable Integer pageNo, @PathVariable Integer pageSize, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
