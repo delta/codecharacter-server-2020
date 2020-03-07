@@ -451,13 +451,15 @@ public class MatchService {
             gameRepository.save(game);
 
             Integer gameId = gameResult.getId();
-            LogUtil.createLogRepository(gameId);
-            var gameLogs = GameLogs.builder()
-                    .gameLog(gameResult.getLog())
-                    .player1Log(gameResult.getPlayer1LogCompressed())
-                    .player2Log(gameResult.getPlayer2LogCompressed())
-                    .build();
-            LogUtil.setLogs(gameId, gameLogs);
+            if(match.getMatchMode() == MatchMode.AUTO || match.getMatchMode() == MatchMode.MANUAL){
+                LogUtil.createLogRepository(gameId);
+                var gameLogs = GameLogs.builder()
+                        .gameLog(gameResult.getLog())
+                        .player1Log(gameResult.getPlayer1LogCompressed())
+                        .player2Log(gameResult.getPlayer2LogCompressed())
+                        .build();
+                LogUtil.setLogs(gameId, gameLogs);
+            }
         }
 
         match.setStatus(Status.EXECUTED);
