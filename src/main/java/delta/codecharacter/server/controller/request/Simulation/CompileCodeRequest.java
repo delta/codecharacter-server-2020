@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class CompileCodeRequest {
+    private String jobType;
+
     private Integer userId;
 
     private String secretKey;

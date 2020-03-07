@@ -121,6 +121,7 @@ public class CodeVersionController {
 
     @PostMapping(value = "/lock")
     public void lockCode(@RequestBody LockCodeRequest lockCodeRequest) {
+        LOG.info(lockCodeRequest.toString());
         if (!lockCodeRequest.getSecretKey().equals(secretKey))
             return;
         versionControlService.lockCode(lockCodeRequest);

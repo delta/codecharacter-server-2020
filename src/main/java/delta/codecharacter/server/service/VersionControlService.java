@@ -431,14 +431,14 @@ public class VersionControlService {
         String code = getCode(userId);
 
         var compileCodeRequest = CompileCodeRequest.builder()
+                .jobType("COMPILE")
                 .userId(userId)
                 .secretKey(secretKey)
                 .code(code)
                 .build();
 
         rabbitMqService.sendMessageToQueue(gson.toJson(compileCodeRequest));
-
-
+        socketService.sendMessage(socketAlertMessageDest + userId, "Code Compiling");
     }
 
     public void lockCode(LockCodeRequest lockCodeRequest) {
@@ -446,12 +446,20 @@ public class VersionControlService {
         Boolean success = lockCodeRequest.getSuccess();
         if (!success) {
             socketService.sendMessage(socketAlertMessageDest + userId, "Failed to Submit!");
+            socketService.sendMessage(socketAlertMessageDest + userId, "Error: " + lockCodeRequest.getErrorType());
+            return;
         }
-        String lockedCodeFileUri = getLockedCodeFileUri(userId);
 
         //set isLocked to true in codeStatus table
         CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
-        codeStatus.setLocked(true);
-        codeStatusRepository.save(codeStatus);
+        if (!codeStatus.isLocked()) {
+            codeStatus.setLocked(true);
+            codeStatusRepository.save(codeStatus);
+        }
+
+        DllUtil.setDll(userId, DllId.DLL_1, lockCodeRequest.getPlayerDLLs().get(0));
+        DllUtil.setDll(userId, DllId.DLL_2, lockCodeRequest.getPlayerDLLs().get(1));
+
+        socketService.sendMessage(socketAlertMessageDest + userId, "Code Submitted Successfully");
     }
 }

@@ -14,7 +14,7 @@ public class LockCodeRequest {
 
     private Boolean success;
 
-    private List<String> playerDlls;
+    private List<String> playerDLLs;
 
     private String errorType;
 
