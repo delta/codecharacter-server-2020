@@ -1,6 +1,10 @@
 package delta.codecharacter.server.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.Codeversion.CommitResponse;
+import delta.codecharacter.server.controller.request.LockCodeRequest;
+import delta.codecharacter.server.controller.request.Simulation.CompileCodeRequest;
 import delta.codecharacter.server.model.CodeStatus;
 import delta.codecharacter.server.repository.CodeStatusRepository;
 import delta.codecharacter.server.util.DllUtil;
@@ -30,6 +34,13 @@ import java.util.logging.Logger;
 public class VersionControlService {
 
     private static final Logger LOG = Logger.getLogger(VersionControlService.class.getName());
+    Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
+
+    @Value("${compilebox.secret-key}")
+    private String secretKey;
+
+    @Value("/socket/response/alert/")
+    private String socketAlertMessageDest;
 
     @Value("${storage.playercode.dir}")
     private String codeStoragePath;
@@ -47,10 +58,16 @@ public class VersionControlService {
     private String lockedCodeFileName;
 
     @Autowired
+    private RabbitMqService rabbitMqService;
+
+    @Autowired
     private CodeStatusService codeStatusService;
 
     @Autowired
     private CodeStatusRepository codeStatusRepository;
+
+    @Autowired
+    private SocketService socketService;
 
     /**
      * Commit the saved code
@@ -403,7 +420,7 @@ public class VersionControlService {
      * @param userId UserId of user
      */
     @SneakyThrows
-    public boolean setLockedCode(Integer userId) {
+    public void submitCode(Integer userId) {
         if (!checkLockedCodeRepositoryExists(userId))
             throw new Exception("No repository found");
 
@@ -411,15 +428,30 @@ public class VersionControlService {
         DllUtil.deleteDllFile(userId, DllId.DLL_1);
         DllUtil.deleteDllFile(userId, DllId.DLL_2);
 
-        String lockedCodeFileUri = getLockedCodeFileUri(userId);
         String code = getCode(userId);
-        FileHandler.writeFileContents(lockedCodeFileUri, code);
+
+        var compileCodeRequest = CompileCodeRequest.builder()
+                .userId(userId)
+                .secretKey(secretKey)
+                .code(code)
+                .build();
+
+        rabbitMqService.sendMessageToQueue(gson.toJson(compileCodeRequest));
+
+
+    }
+
+    public void lockCode(LockCodeRequest lockCodeRequest) {
+        Integer userId = lockCodeRequest.getUserId();
+        Boolean success = lockCodeRequest.getSuccess();
+        if (!success) {
+            socketService.sendMessage(socketAlertMessageDest + userId, "Failed to Submit!");
+        }
+        String lockedCodeFileUri = getLockedCodeFileUri(userId);
 
         //set isLocked to true in codeStatus table
         CodeStatus codeStatus = codeStatusService.getCodeStatusByUserId(userId);
         codeStatus.setLocked(true);
         codeStatusRepository.save(codeStatus);
-
-        return true;
     }
 }

@@ -1,20 +1,25 @@
 package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.Codeversion.CommitResponse;
+import delta.codecharacter.server.controller.request.LockCodeRequest;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.service.UserService;
 import delta.codecharacter.server.service.VersionControlService;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 import java.util.logging.Logger;
 
+@Controller
 @RestController
 @RequestMapping(value = "/code")
 public class CodeVersionController {
@@ -25,6 +30,9 @@ public class CodeVersionController {
 
     @Autowired
     UserService userService;
+
+    @Value("${compilebox.secret-key}")
+    private String secretKey;
 
     @GetMapping(value = "/latest")
     @SneakyThrows
@@ -46,17 +54,6 @@ public class CodeVersionController {
         if (!versionControlService.setCode(user.getUserId(), code))
             return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
         return new ResponseEntity<>("Saved Code", HttpStatus.OK);
-    }
-
-    @PutMapping(value = "/submit")
-    @SneakyThrows
-    public ResponseEntity<String> setLockedCode(Authentication authentication) {
-        String email = userService.getEmailFromAuthentication(authentication);
-        User user = userService.getUserByEmail(email);
-        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
-        if (!versionControlService.setLockedCode(user.getUserId()))
-            return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
-        return new ResponseEntity<>("Code Submitted", HttpStatus.OK);
     }
 
     @PostMapping(value = "/commit")
@@ -111,5 +108,21 @@ public class CodeVersionController {
         if (!versionControlService.forkCommitByHash(user.getUserId(), commitHash))
             return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
         return new ResponseEntity<>("Forked successfully", HttpStatus.OK);
+    }
+
+    @SneakyThrows
+    @MessageMapping("/submit")
+    public void submitCode(Authentication authentication) {
+        String email = userService.getEmailFromAuthentication(authentication);
+        User user = userService.getUserByEmail(email);
+
+        versionControlService.submitCode(user.getUserId());
+    }
+
+    @PostMapping(value = "/lock")
+    public void lockCode(@RequestBody LockCodeRequest lockCodeRequest) {
+        if (!lockCodeRequest.getSecretKey().equals(secretKey))
+            return;
+        versionControlService.lockCode(lockCodeRequest);
     }
 }
