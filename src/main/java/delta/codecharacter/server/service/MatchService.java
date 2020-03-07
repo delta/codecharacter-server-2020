@@ -403,6 +403,7 @@ public class MatchService {
 
         List<GameLogs> gameLogsList = new ArrayList<>();
         var gameResults = updateMatchRequest.getGameResults();
+        String errorType = null;
         if (match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
@@ -412,13 +413,19 @@ public class MatchService {
                         .player2Log(game.getPlayer2LogCompressed())
                         .build();
                 gameLogsList.add(gameLogs);
+                errorType = game.getErrorType();
             }
 
-            Integer playerId = match.getPlayerId1();
-            socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-            createMatchNotification(playerId, matchMessage);
+            Integer socketListenerId = match.getPlayerId1();
+            socketService.sendMessage(socketMatchResultDest + socketListenerId, gameLogsList.toString());
+            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, socketListenerId);
+            socketService.sendMessage(socketAlertMessageDest + socketListenerId, matchMessage);
+            if (errorType != null && (errorType.equals(String.valueOf(ErrorType.TIMEOUT)) || errorType.equals(String.valueOf(ErrorType.PLAYER_RUNTIME_ERROR)))) {
+                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Match won by " + errorType);
+                createMatchNotification(socketListenerId, matchMessage, errorType, Type.ERROR);
+            } else {
+                createMatchNotification(socketListenerId, "Match Result", matchMessage, Type.INFO);
+            }
         }
 
         if (match.getMatchMode() == MatchMode.MANUAL) {
@@ -432,7 +439,7 @@ public class MatchService {
             Integer playerId = match.getPlayerId2();
             String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
             socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-            createMatchNotification(playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage, errorType, Type.INFO);
 
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
@@ -451,7 +458,7 @@ public class MatchService {
             gameRepository.save(game);
 
             Integer gameId = gameResult.getId();
-            if(match.getMatchMode() == MatchMode.AUTO || match.getMatchMode() == MatchMode.MANUAL){
+            if (match.getMatchMode() == MatchMode.AUTO || match.getMatchMode() == MatchMode.MANUAL) {
                 LogUtil.createLogRepository(gameId);
                 var gameLogs = GameLogs.builder()
                         .gameLog(gameResult.getLog())
@@ -535,12 +542,12 @@ public class MatchService {
      * @param playerId            userId of the player
      * @param notificationContent Content of the notification
      */
-    private void createMatchNotification(Integer playerId, String notificationContent) {
+    private void createMatchNotification(Integer playerId, String notificationTitle, String notificationContent, Type notificationType) {
         CreateNotificationRequest createNotificationRequest = CreateNotificationRequest.builder()
                 .userId(playerId)
-                .title("Match Result")
+                .title(notificationTitle)
                 .content(notificationContent)
-                .type(Type.INFO)
+                .type(notificationType)
                 .build();
         notificationService.createNotification(createNotificationRequest);
     }

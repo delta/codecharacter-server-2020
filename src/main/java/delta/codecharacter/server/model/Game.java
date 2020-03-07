@@ -32,6 +32,8 @@ public class Game {
     @Builder.Default
     private Verdict verdict = Verdict.TIE;
 
+    private String winType;
+
     @Field("points_1")
     @Builder.Default
     private Integer points1 = 0;

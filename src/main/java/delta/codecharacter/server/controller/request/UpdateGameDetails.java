@@ -15,6 +15,8 @@ public class UpdateGameDetails {
 
     private Verdict verdict;
 
+    private String winType;
+
     private Integer matchId;
 
     private Integer points1;
@@ -24,5 +26,7 @@ public class UpdateGameDetails {
     private String player1LogCompressed;
 
     private String player2LogCompressed;
+
+    private String errorType;
 }
 

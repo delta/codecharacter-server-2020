@@ -110,7 +110,6 @@ public class CodeVersionController {
         return new ResponseEntity<>("Forked successfully", HttpStatus.OK);
     }
 
-    @SneakyThrows
     @MessageMapping("/submit")
     public void submitCode(Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
