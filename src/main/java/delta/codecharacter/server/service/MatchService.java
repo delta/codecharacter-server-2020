@@ -455,6 +455,8 @@ public class MatchService {
             game.setPoints1(gameResult.getPoints1());
             game.setPoints2(gameResult.getPoints2());
             game.setVerdict(gameResult.getVerdict());
+            game.setErrorType(gameResult.getErrorType());
+            game.setWinType(gameResult.getWinType());
             gameRepository.save(game);
 
             Integer gameId = gameResult.getId();

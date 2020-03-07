@@ -34,6 +34,8 @@ public class Game {
 
     private String winType;
 
+    private String errorType;
+
     @Field("points_1")
     @Builder.Default
     private Integer points1 = 0;
