@@ -46,7 +46,6 @@ public class CodeVersionController {
     }
 
     @PutMapping(value = "")
-    @SneakyThrows
     public ResponseEntity<String> saveCode(@RequestBody @Valid String code, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
@@ -110,17 +109,15 @@ public class CodeVersionController {
         return new ResponseEntity<>("Forked successfully", HttpStatus.OK);
     }
 
-    @MessageMapping("/submit")
+    @MessageMapping("/code/submit")
     public void submitCode(Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
-
         versionControlService.submitCode(user.getUserId());
     }
 
     @PostMapping(value = "/lock")
     public void lockCode(@RequestBody LockCodeRequest lockCodeRequest) {
-        LOG.info(lockCodeRequest.toString());
         if (!lockCodeRequest.getSecretKey().equals(secretKey))
             return;
         versionControlService.lockCode(lockCodeRequest);

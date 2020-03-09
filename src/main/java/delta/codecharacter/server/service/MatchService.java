@@ -1,5 +1,7 @@
 package delta.codecharacter.server.service;
 
+
+
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
 import delta.codecharacter.server.controller.request.UpdateGameDetails;
@@ -393,17 +395,17 @@ public class MatchService {
         if (!success) {
             match.setStatus(Status.EXECUTE_ERROR);
             matchRepository.save(match);
-
-            socketService.sendMessage(socketMatchResultDest + match.getPlayerId1(), "Error: " + updateMatchRequest.getError());
             socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Error: "
                     + getErrorNotificationMessage(updateMatchRequest.getErrorType()));
             return;
         }
+
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+        String errorType = null;
 
         List<GameLogs> gameLogsList = new ArrayList<>();
         var gameResults = updateMatchRequest.getGameResults();
-        String errorType = null;
+
         if (match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
@@ -415,17 +417,18 @@ public class MatchService {
                 gameLogsList.add(gameLogs);
                 errorType = game.getErrorType();
             }
+        }
 
-            Integer socketListenerId = match.getPlayerId1();
-            socketService.sendMessage(socketMatchResultDest + socketListenerId, gameLogsList.toString());
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, socketListenerId);
+        Integer socketListenerId = match.getPlayerId1();
+        LOG.info("Message sent to "+ socketMatchResultDest+socketListenerId);
+        socketService.sendMessage(socketMatchResultDest + socketListenerId, gameLogsList.toString());
+        String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, socketListenerId);
+        if (errorType != null && (errorType.equals(String.valueOf(ErrorType.TIMEOUT)) || errorType.equals(String.valueOf(ErrorType.PLAYER_RUNTIME_ERROR)))) {
+            socketService.sendMessage(socketAlertMessageDest + socketListenerId, matchMessage + " by " + errorType);
+            createMatchNotification(socketListenerId, matchMessage, errorType, Type.ERROR);
+        } else {
             socketService.sendMessage(socketAlertMessageDest + socketListenerId, matchMessage);
-            if (errorType != null && (errorType.equals(String.valueOf(ErrorType.TIMEOUT)) || errorType.equals(String.valueOf(ErrorType.PLAYER_RUNTIME_ERROR)))) {
-                socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Match won by " + errorType);
-                createMatchNotification(socketListenerId, matchMessage, errorType, Type.ERROR);
-            } else {
-                createMatchNotification(socketListenerId, "Match Result", matchMessage, Type.INFO);
-            }
+            createMatchNotification(socketListenerId, "Match Result", matchMessage, Type.INFO);
         }
 
         if (match.getMatchMode() == MatchMode.MANUAL) {
@@ -437,7 +440,7 @@ public class MatchService {
 
             // If match mode is manual, create a notification for player 2 also.
             Integer playerId = match.getPlayerId2();
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
             socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
             createMatchNotification(playerId, matchMessage, errorType, Type.INFO);
 
