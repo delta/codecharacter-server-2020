@@ -41,6 +41,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -546,5 +547,13 @@ public class UserService implements UserDetailsService {
             return userDetailsMap.get("email");
         }
         return authentication.getName();
+    }
+
+    public void reset() {
+        List<User> users = userRepository.findAll();
+        for (var user : users) {
+            userRatingService.initializeUserRating(user.getUserId());
+            leaderboardService.initializeLeaderboardData(user.getUserId());
+        }
     }
 }

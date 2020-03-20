@@ -388,25 +388,18 @@ public class MatchService {
      * @param updateMatchRequest updateMatchRequest of the match
      */
     public void updateMatch(UpdateMatchRequest updateMatchRequest) {
+        LOG.info(updateMatchRequest.toString());
         Boolean success = updateMatchRequest.getSuccess();
         Integer matchId = updateMatchRequest.getMatchId();
         Match match = matchRepository.findFirstById(matchId);
 
-        if (!success) {
-            match.setStatus(Status.EXECUTE_ERROR);
-            matchRepository.save(match);
-            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Error: "
-                    + getErrorNotificationMessage(updateMatchRequest.getErrorType()));
-            return;
-        }
-
-        Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+        Integer socketListenerId = match.getPlayerId1();
         String errorType = null;
 
         List<GameLogs> gameLogsList = new ArrayList<>();
         var gameResults = updateMatchRequest.getGameResults();
 
-        if (match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
+        if (gameResults != null && match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
                         .playerId1(match.getPlayerId1())
@@ -419,8 +412,18 @@ public class MatchService {
             }
         }
 
-        Integer socketListenerId = match.getPlayerId1();
-        LOG.info("Message sent to "+ socketMatchResultDest+socketListenerId);
+        if (!success) {
+            match.setStatus(Status.EXECUTE_ERROR);
+            matchRepository.save(match);
+            socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Error: "
+                    + getErrorNotificationMessage(updateMatchRequest.getErrorType()));      
+            // socketService.sendMessage(socketMatchResultDest + socketListenerId, gameLogsList.toString());
+            socketService.sendMessage(socketMatchResultDest + socketListenerId, "Error: " + updateMatchRequest.getError());
+            return;
+        }
+
+        Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+        
         socketService.sendMessage(socketMatchResultDest + socketListenerId, gameLogsList.toString());
         String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, socketListenerId);
         if (errorType != null && (errorType.equals(String.valueOf(ErrorType.TIMEOUT)) || errorType.equals(String.valueOf(ErrorType.PLAYER_RUNTIME_ERROR)))) {
@@ -520,23 +523,17 @@ public class MatchService {
         Match match = matchRepository.findFirstById(matchId);
         boolean isPlayer1 = playerId.equals(match.getPlayerId1());
 
-        Integer opponentId = match.getPlayerId1();
-        if (isPlayer1)
-            opponentId = match.getPlayerId2();
-
-        String opponentUsername = userRepository.findByUserId(opponentId).getUsername();
-
         switch (verdict) {
             case TIE:
-                return "Match tied against " + opponentUsername;
+                return "Match tied";
             case PLAYER1:
                 if (isPlayer1)
-                    return "Won match against " + opponentUsername;
-                return "Lost match against " + opponentUsername;
+                    return "Won match";
+                return "Lost match";
             case PLAYER2:
                 if (isPlayer1)
-                    return "Lost match against " + opponentUsername;
-                return "Won match against " + opponentUsername;
+                    return "Lost match";
+                return "Won match";
         }
         return "";
     }

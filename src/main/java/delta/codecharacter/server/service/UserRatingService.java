@@ -83,7 +83,7 @@ public class UserRatingService {
         UserRating initialUserRating = UserRating.builder()
                 .userId(userId)
                 .rating(initialRating)
-                .ratingDeviation(350d)
+                .ratingDeviation(150d)
                 .build();
         userRatingRepository.save(initialUserRating);
     }

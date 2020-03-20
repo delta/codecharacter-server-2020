@@ -12,5 +12,6 @@ public class SocketService {
 
     public void sendMessage(String socketDest, String message) {
         simpMessagingTemplate.convertAndSend(socketDest, message);
+        System.out.println("SENT SOCKET MESSAGE: " + message);
     }
 }

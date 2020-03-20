@@ -164,6 +164,8 @@ public class SimulationService {
                         .build();
                 executeGames.add(executeGameDetails);
 
+                executeMatchRequest.setCode2(null);
+                executeMatchRequest.setDll2(null);
                 executeMatchRequest.setDll2(AiDllUtil.getAiDll(playerId2));
                 break;
             }

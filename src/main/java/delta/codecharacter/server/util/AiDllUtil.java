@@ -7,8 +7,7 @@ import java.io.File;
 
 public class AiDllUtil {
 
-    @Value("/storage/AI/dlls")
-    private static String aiDllStoragePath;
+    private static String aiDllStoragePath = "storage/AI/dlls";
 
     /**
      * Return the absolute path to the AI dll files directory of given aiId
@@ -54,6 +53,7 @@ public class AiDllUtil {
      */
     public static String getAiDll(Integer aiId) {
         String aiDllFileUri = getAiDllFileUri(aiId);
+        System.out.println(aiDllFileUri);
         try {
             return FileHandler.getFileContents(aiDllFileUri);
         } catch (Exception e) {

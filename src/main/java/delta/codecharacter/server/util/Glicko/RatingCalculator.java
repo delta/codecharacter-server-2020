@@ -113,6 +113,6 @@ public class RatingCalculator {
         long duration = currentDate.getTime() - lastMatchTime.getTime();
 
         Double numTimePeriods = TimeUnit.MILLISECONDS.toMinutes(duration) / timePeriod;
-        return Math.min(Math.sqrt(rd * rd + c * numTimePeriods), 350d);
+        return Math.min(Math.sqrt(rd * rd + c * numTimePeriods), 150d);
     }
 }
