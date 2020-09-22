@@ -29,7 +29,7 @@ Spring Boot server for Codecharacter 2020
 7. Check the status of tomcat server with `sudo systemctl status tomcat`. If it's active, stop it manually with the command `sudo systemctl stop tomcat`.
 8. Run `ant run` to compile and start the tomcat server.
 9. If it was successful your server will be hosted at `localhost:{tomcat_port_no}/{app.name}`. Tomcat port is by default 8080 and app.name is present at build.properties file
-10. The Swagger-UI will be hosted at `localhost:{tomcat_port_no}/{app.name}/swagger-ui.hyml`. Note: Swagger-UI will be displayed only if you're logged in.
+10. The Swagger-UI will be hosted at `localhost:{tomcat_port_no}/{app.name}/swagger-ui.html`. Note: Swagger-UI will be displayed only if you're logged in.
 11. While testing from frontend, if you encounter an error due to CORS, do [this](https://alfilatov.com/posts/run-chrome-without-cors/)
 12. If you wish to change the default tomcat port number do [this](https://www.ibm.com/support/pages/how-do-i-change-default-port-apache-tomcat)
 13. The storage.dir in application.properties property specifies the folder where defferent code files etc are stored. To change it or to set to a relative path, see [this](https://stackoverflow.com/questions/36940458/specifying-relative-path-in-application-properties-in-spring)
