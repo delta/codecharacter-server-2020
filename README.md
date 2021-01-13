@@ -46,7 +46,7 @@ Spring Boot server for Codecharacter 2020
 
    Make a file named application.properties in `src/main/resources` folder and copy the contents of application.properties.example
 2. run `storage.sh` with sudo once after cloning to initialise the storage dir
-2. run `start.sh` to start the server
+3. run `start.sh` to start the server
 4. Run `ant run` to inside the docker terminal. Just hit `Ctrl+C` in the terminal and run again after making changes, no need to restart docker
 5. The server is hosted at `localhost:{tomcat_port_no}/`. Tomcat port is by default set to 8080 (mapped to 8086 in docker).
 6. Swagger is hosted at `localhost:{tomcat_port_no}/{app.name}/swagger-ui.html`
