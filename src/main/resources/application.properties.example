@@ -1,5 +1,5 @@
 #mongodb
-spring.data.mongodb.host=localhost
+spring.data.mongodb.host=db
 spring.data.mongodb.port=27017
 spring.data.mongodb.database=codecharacter-2020
 
@@ -14,7 +14,7 @@ storage.maps.dir=storage/maps
 storage.matchlog.dir=storage/logs
 
 #rabbit-mq
-spring.rabbitmq.host=localhost
+spring.rabbitmq.host=rabbit
 spring.rabbitmq.queue=codechar
 
 #compilebox

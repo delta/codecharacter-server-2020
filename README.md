@@ -14,11 +14,11 @@ Spring Boot server for Codecharacter 2020
 6. [Rabbitmq](https://www.digitalocean.com/community/tutorials/how-to-install-and-manage-rabbitmq)
    
 ### Optional
+1. Docker
+2. IDE - Intellij IDEA (Preferably, makes life easier)
+3. MongoDB GUI - Robo 3T (Optional)
 
-1. IDE - Intellij IDEA (Preferably, makes life easier)
-2. MongoDB GUI - Robo 3T or Compass
-
-## Setup
+## Local Setup
 
 1. Clone the repository
 2. Create a file named build.properties and copy the contents of build.properties.example
@@ -38,4 +38,17 @@ Spring Boot server for Codecharacter 2020
 - The storage.dir in application.properties property specifies the folder where defferent code files etc are stored. To change it or to set to a relative path, see [this](https://stackoverflow.com/questions/36940458/specifying-relative-path-in-application-properties-in-spring)
 -  The volumes directive in docker-compose.yml file mounts source directories or volumes from your computer at target paths inside the container. So here the folder at path `/home/code/Server/storage` in host will be mounted on `/app/tomcat/bin/storage` in the container and that at `/home/code/.m2` will be mounted on `/root/.m2` (see docker-compose.yml file).
 
+## Docker Setup
 
+1. Clone the repository
+
+   Create a file named build.properties and copy the contents of build.properties.example
+
+   Make a file named application.properties in `src/main/resources` folder and copy the contents of application.properties.example
+2. run `storage.sh` with sudo once after cloning to initialise the storage dir
+3. run `start.sh` to start the server
+4. Run `ant run` to inside the docker terminal. Just hit `Ctrl+C` in the terminal and run again after making changes, no need to restart docker
+5. The server is hosted at `localhost:{tomcat_port_no}/`. Tomcat port is by default set to 8080 (mapped to 8086 in docker).
+6. Swagger is hosted at `localhost:{tomcat_port_no}/{app.name}/swagger-ui.html`
+7. run `down.sh` to remove the docker containers
+8. use the port number in the compose file to connect to db using MongoDB GUI
