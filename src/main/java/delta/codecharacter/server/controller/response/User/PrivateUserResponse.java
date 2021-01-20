@@ -25,4 +25,8 @@ public class PrivateUserResponse {
     private Boolean isAdmin;
 
     private int avatarId;
+
+    private Boolean isFirstLogin;
+
+    private Integer currentLevel;
 }

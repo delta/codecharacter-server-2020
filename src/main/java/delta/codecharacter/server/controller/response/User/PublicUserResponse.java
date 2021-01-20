@@ -25,4 +25,8 @@ public class PublicUserResponse {
     private Integer avatarId;
 
     private Date createdAt;
+
+    private Boolean isFirstLogin;
+
+    private Integer currentLevel;
 }

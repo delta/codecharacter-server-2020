@@ -224,6 +224,8 @@ public class UserService implements UserDetailsService {
                 .country(user.getCountry())
                 .userType(user.getUserType())
                 .createdAt(user.getCreatedAt())
+                .isFirstLogin(user.getIsFirstLogin())
+                .currentLevel(user.getCurrentLevel())
                 .build();
     }
 
@@ -246,6 +248,8 @@ public class UserService implements UserDetailsService {
                 .email(user.getEmail())
                 .avatarId(user.getAvatarId())
                 .isAdmin(user.getIsAdmin())
+                .isFirstLogin(user.getIsFirstLogin())
+                .currentLevel(user.getCurrentLevel())
                 .build();
     }
 

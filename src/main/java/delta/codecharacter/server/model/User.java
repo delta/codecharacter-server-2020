@@ -82,7 +82,7 @@ public class User {
     @Field("current_level")
     @NotNull
     @Builder.Default
-    private Integer currentLevel;
+    private Integer currentLevel = 1;
 
 
 }
