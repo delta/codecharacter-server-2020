@@ -73,4 +73,16 @@ public class User {
     @NotNull
     @Builder.Default
     private Date createdAt = new Date();
+
+    @Field("is_login")
+    @NotNull
+    @Builder.Default
+    private Boolean isLogin = false;
+
+    @Field("questLevel")
+    @NotNull
+    @Builder.Default
+    private Integer questLevel;
+
+
 }
