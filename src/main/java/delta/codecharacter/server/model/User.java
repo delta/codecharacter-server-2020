@@ -74,15 +74,15 @@ public class User {
     @Builder.Default
     private Date createdAt = new Date();
 
-    @Field("is_login")
+    @Field("is_first_login")
     @NotNull
     @Builder.Default
-    private Boolean isLogin = false;
+    private Boolean isFirstLogin = true;
 
-    @Field("questLevel")
+    @Field("current_level")
     @NotNull
     @Builder.Default
-    private Integer questLevel;
+    private Integer currentLevel;
 
 
 }
