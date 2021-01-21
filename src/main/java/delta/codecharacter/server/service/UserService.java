@@ -557,10 +557,10 @@ public class UserService implements UserDetailsService {
         return authentication.getName();
     }
 
-    public String updateLevel(String email){
+    public Integer updateLevel(String email){
 
         User user = userRepository.findByEmail(email);
         user.setCurrentLevel(user.getCurrentLevel()+1);
-        return "Updated Level Successfully";
+        return  user.getCurrentLevel();
     }
 }
