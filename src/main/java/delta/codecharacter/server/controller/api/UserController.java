@@ -164,4 +164,9 @@ public class UserController {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
         return new ResponseEntity<>(matchService.getManualAndAutoExecutedMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
     }
+
+    public ResponseEntity<String> updateLevel(Authentication authentication){
+        String email = userService.getEmailFromAuthentication(authentication);
+        return new ResponseEntity<String>(userService.updateLevel(email),HttpStatus.OK);
+    }
 }
