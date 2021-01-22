@@ -79,6 +79,9 @@ public class UserService implements UserDetailsService {
     @Autowired
     private CodeStatusService codeStatusService;
 
+    @Autowired
+    private LevelStatusService levelStatusService;
+
     @Value("${pragyan.event-id}")
     private String pragyanEventId;
 
@@ -177,7 +180,9 @@ public class UserService implements UserDetailsService {
         userRatingService.initializeUserRating(userId);
         // Create code repository for the new user
         versionControlService.createCodeRepository(userId);
-        
+        // Create initial entry for new user in LevelStatus table
+        levelStatusService.initializeLevelStatus(userId);
+
         DllUtil.createDllRepository(userId);
 
         codeStatusService.initializeCodeStatusData(userId);
