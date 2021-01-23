@@ -165,6 +165,7 @@ public class UserController {
         return new ResponseEntity<>(matchService.getManualAndAutoExecutedMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
     }
 
+    @PatchMapping(value = "/update-level")
     public ResponseEntity<Integer> updateLevel(Authentication authentication){
         String email = userService.getEmailFromAuthentication(authentication);
         return new ResponseEntity<Integer>(userService.updateLevel(email),HttpStatus.OK);
