@@ -558,9 +558,9 @@ public class UserService implements UserDetailsService {
     }
 
     public Integer updateLevel(String email){
-
         User user = userRepository.findByEmail(email);
         user.setCurrentLevel(user.getCurrentLevel()+1);
+        userRepository.save(user);
         return  user.getCurrentLevel();
     }
 }
