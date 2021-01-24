@@ -164,4 +164,11 @@ public class UserController {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize);
         return new ResponseEntity<>(matchService.getManualAndAutoExecutedMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
     }
+
+    // Route to increase player's quest level by one.
+    @PatchMapping(value = "/update-level")
+    public ResponseEntity<Integer> updateLevel(Authentication authentication){
+        String email = userService.getEmailFromAuthentication(authentication);
+        return new ResponseEntity<Integer>(userService.updateLevel(email),HttpStatus.OK);
+    }
 }

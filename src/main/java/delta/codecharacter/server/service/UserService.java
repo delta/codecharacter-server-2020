@@ -224,6 +224,8 @@ public class UserService implements UserDetailsService {
                 .country(user.getCountry())
                 .userType(user.getUserType())
                 .createdAt(user.getCreatedAt())
+                .isFirstLogin(user.getIsFirstLogin())
+                .currentLevel(user.getCurrentLevel())
                 .build();
     }
 
@@ -246,6 +248,8 @@ public class UserService implements UserDetailsService {
                 .email(user.getEmail())
                 .avatarId(user.getAvatarId())
                 .isAdmin(user.getIsAdmin())
+                .isFirstLogin(user.getIsFirstLogin())
+                .currentLevel(user.getCurrentLevel())
                 .build();
     }
 
@@ -551,5 +555,18 @@ public class UserService implements UserDetailsService {
             return userDetailsMap.get("email");
         }
         return authentication.getName();
+    }
+
+    /**
+     * Update user's quest level
+     *
+     * @param email - user's email
+     * @return user's current level after updating
+     */
+    public Integer updateLevel(String email){
+        User user = userRepository.findByEmail(email);
+        user.setCurrentLevel(user.getCurrentLevel()+1);
+        userRepository.save(user);
+        return  user.getCurrentLevel();
     }
 }

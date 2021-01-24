@@ -73,4 +73,16 @@ public class User {
     @NotNull
     @Builder.Default
     private Date createdAt = new Date();
+
+    @Field("is_first_login")
+    @NotNull
+    @Builder.Default
+    private Boolean isFirstLogin = true;
+
+    @Field("current_level")
+    @NotNull
+    @Builder.Default
+    private Integer currentLevel = 1;
+
+
 }
