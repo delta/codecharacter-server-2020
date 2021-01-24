@@ -166,12 +166,13 @@ public class UserController {
     }
 
     // Route to increase player's quest level by one.
-    @PatchMapping(value = "/update-level")
+    @PatchMapping(value = "/quest-status")
     public ResponseEntity<Integer> updateLevel(Authentication authentication){
         String email = userService.getEmailFromAuthentication(authentication);
 
         return new ResponseEntity<Integer>(userService.updateLevel(email),HttpStatus.OK);
     }
+
 
 
 }
