@@ -43,18 +43,24 @@ public class LevelStatusService {
      * @param userId - User id of the user
      * @return LevelStatusResponse - Level and stars of that level of the user
      */
-    public LevelStatusResponse getLevelStatus(Integer userId){
+    public List<LevelStatusResponse> getLevelStatus(Integer userId){
         List<Integer> levelStatus = levelStatusRepository.findByUserId(userId).getStars();
-        List<Integer> level = new ArrayList<>();
+        List<LevelStatusResponse> levelStatuses = new ArrayList<>();
 
         for(int i=0 ; i< levelStatus.size();i++){
-            level.add(i+1);
+            if(levelStatus.get(i)!=0) {
+                levelStatuses.add(LevelStatusResponse.builder()
+                        .level(i + 1)
+                        .star(levelStatus.get(i))
+                        .build());
+            }
+            else{
+                break;
+            }
         }
 
-        return LevelStatusResponse.builder()
-                .level(level)
-                .stars(levelStatus)
-                .build();
+        return levelStatuses;
+
 
     }
 }

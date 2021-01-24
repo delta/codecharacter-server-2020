@@ -172,9 +172,9 @@ public class UserController {
 
     // Route to get status of the user's quest levels.
     @GetMapping(value = "/quest-status")
-    public ResponseEntity<LevelStatusResponse> getLevelStatus(Authentication authentication){
+    public ResponseEntity<List<LevelStatusResponse>> getLevelStatus(Authentication authentication){
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
-        return new ResponseEntity<LevelStatusResponse>(levelStatusService.getLevelStatus(user.getUserId()),HttpStatus.OK);
+        return new ResponseEntity<List<LevelStatusResponse>>(levelStatusService.getLevelStatus(user.getUserId()),HttpStatus.OK);
     }
 
 

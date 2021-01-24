@@ -8,6 +8,6 @@ import java.util.List;
 @Data
 @Builder
 public class LevelStatusResponse {
-    private List<Integer> level;
-    private List<Integer> stars;
+    private Integer level;
+    private Integer star;
 }
