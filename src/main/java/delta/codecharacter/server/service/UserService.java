@@ -557,16 +557,4 @@ public class UserService implements UserDetailsService {
         return authentication.getName();
     }
 
-    /**
-     * Update user's quest level
-     *
-     * @param email - user's email
-     * @return user's current level after updating
-     */
-    public Integer updateLevel(String email){
-        User user = userRepository.findByEmail(email);
-        user.setCurrentLevel(user.getCurrentLevel()+1);
-        userRepository.save(user);
-        return  user.getCurrentLevel();
-    }
 }
