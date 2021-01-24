@@ -35,6 +35,4 @@ public class LevelStatusService {
 
         levelStatusRepository.save(levelStatus);
     }
-
-
 }
