@@ -170,7 +170,7 @@ public class UserController {
         return new ResponseEntity<>(matchService.getManualAndAutoExecutedMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
     }
 
-    // Route to increase player's quest level by one.
+    // Route to get status of the user's quest levels.
     @PatchMapping(value = "/quest-status")
     public ResponseEntity<LevelStatusResponse> getLevelStatus(Authentication authentication){
         User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
