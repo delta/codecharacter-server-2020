@@ -1,5 +1,6 @@
 package delta.codecharacter.server.service;
 
+import delta.codecharacter.server.controller.response.LevelStatusResponse;
 import delta.codecharacter.server.model.Leaderboard;
 import delta.codecharacter.server.model.LevelStatus;
 import delta.codecharacter.server.repository.LevelStatusRepository;
@@ -34,5 +35,26 @@ public class LevelStatusService {
                 .build();
 
         levelStatusRepository.save(levelStatus);
+    }
+
+    /**
+     * Return LevelStatus of a user
+     *
+     * @param userId - User id of the user
+     * @return LevelStatusResponse - Level and stars of that level of the user
+     */
+    public LevelStatusResponse getLevelStatus(Integer userId){
+        List<Integer> levelStatus = levelStatusRepository.findByUserId(userId).getStars();
+        List<Integer> level = new ArrayList<>();
+
+        for(int i=0 ; i< levelStatus.size();i++){
+            level.add(i+1);
+        }
+
+        return LevelStatusResponse.builder()
+                .level(level)
+                .stars(levelStatus)
+                .build();
+
     }
 }
