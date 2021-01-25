@@ -491,7 +491,12 @@ public class MatchService {
         if (isPlayer1)
             opponentId = match.getPlayerId2();
 
-        String opponentUsername = userRepository.findByUserId(opponentId).getUsername();
+        String opponentUsername;
+        if(match.getMatchMode().equals(MatchMode.AI)){
+            opponentUsername = "AI";
+        }else{
+            opponentUsername = userRepository.findByUserId(opponentId).getUsername();   
+        }
 
         switch (verdict) {
             case TIE:
