@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LevelStatusRepository extends MongoRepository<LevelStatus,Integer> {
+    LevelStatus findByUserId(Integer userId);
 }

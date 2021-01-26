@@ -1,8 +1,10 @@
 package delta.codecharacter.server.service;
 
+import delta.codecharacter.server.controller.response.LevelStatusResponse;
 import delta.codecharacter.server.model.Leaderboard;
 import delta.codecharacter.server.model.LevelStatus;
 import delta.codecharacter.server.repository.LevelStatusRepository;
+import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.enums.Division;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ public class LevelStatusService {
     @Autowired
     private LevelStatusRepository levelStatusRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     /**
      * Initialize leveStatus for new user
      *
@@ -34,5 +39,25 @@ public class LevelStatusService {
                 .build();
 
         levelStatusRepository.save(levelStatus);
+    }
+
+    /**
+     * Return LevelStatus of a user
+     *
+     * @param userId - User id of the user
+     * @return LevelStatusResponse - Level and stars of that level of the user
+     */
+    public List<LevelStatusResponse> getLevelStatus(Integer userId){
+        List<Integer> levelStatus = levelStatusRepository.findByUserId(userId).getStars();
+        Integer currentLevel = userRepository.findByUserId(userId).getCurrentLevel();
+        List<LevelStatusResponse> levelStatuses = new ArrayList<>();
+
+        for(int i=0 ; i< currentLevel;i++){
+            levelStatuses.add(LevelStatusResponse.builder()
+                    .level(i + 1)
+                    .stars(levelStatus.get(i))
+                    .build());
+        }
+        return levelStatuses;
     }
 }

@@ -1,12 +1,14 @@
 package delta.codecharacter.server.controller.api;
 
 import delta.codecharacter.server.controller.request.User.*;
+import delta.codecharacter.server.controller.response.LevelStatusResponse;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.controller.response.User.PrivateUserResponse;
 import delta.codecharacter.server.controller.response.User.PublicUserResponse;
 import delta.codecharacter.server.controller.response.UserRatingsResponse;
 import delta.codecharacter.server.model.User;
+import delta.codecharacter.server.service.LevelStatusService;
 import delta.codecharacter.server.service.MatchService;
 import delta.codecharacter.server.service.UserRatingService;
 import delta.codecharacter.server.service.UserService;
@@ -45,6 +47,9 @@ public class UserController {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private LevelStatusService levelStatusService;
 
     @PostMapping(value = "")
     public ResponseEntity<String> registerUser(@RequestBody @Valid RegisterUserRequest registerUserRequest) {
@@ -165,10 +170,13 @@ public class UserController {
         return new ResponseEntity<>(matchService.getManualAndAutoExecutedMatchesPaginated(user.getUserId(), pageable), HttpStatus.OK);
     }
 
-    // Route to increase player's quest level by one.
-    @PatchMapping(value = "/update-level")
-    public ResponseEntity<Integer> updateLevel(Authentication authentication){
-        String email = userService.getEmailFromAuthentication(authentication);
-        return new ResponseEntity<Integer>(userService.updateLevel(email),HttpStatus.OK);
+    // Route to get status of the user's quest levels.
+    @GetMapping(value = "/quest-status")
+    public ResponseEntity<List<LevelStatusResponse>> getLevelStatus(Authentication authentication){
+        User user = userService.getUserByEmail(userService.getEmailFromAuthentication(authentication));
+        return new ResponseEntity<List<LevelStatusResponse>>(levelStatusService.getLevelStatus(user.getUserId()),HttpStatus.OK);
     }
+
+
+
 }
