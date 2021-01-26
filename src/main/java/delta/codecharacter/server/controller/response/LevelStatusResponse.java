@@ -9,5 +9,5 @@ import java.util.List;
 @Builder
 public class LevelStatusResponse {
     private Integer level;
-    private Integer star;
+    private Integer stars;
 }
