@@ -48,13 +48,11 @@ public class LevelStatusService {
         List<LevelStatusResponse> levelStatuses = new ArrayList<>();
 
         for(int i=0 ; i< levelStatus.size();i++){
-            if(levelStatus.get(i)!=0) {
-                levelStatuses.add(LevelStatusResponse.builder()
-                        .level(i + 1)
-                        .star(levelStatus.get(i))
-                        .build());
-            }
-            else{
+            levelStatuses.add(LevelStatusResponse.builder()
+                    .level(i + 1)
+                    .star(levelStatus.get(i))
+                    .build());
+            if(levelStatus.get(i)==0) {
                 break;
             }
         }
