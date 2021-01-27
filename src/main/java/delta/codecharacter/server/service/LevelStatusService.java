@@ -72,7 +72,7 @@ public class LevelStatusService {
     public void updateLevelStatus(Integer userId, Integer levelNumber, Integer starsCount){
         LevelStatus levelStatus = levelStatusRepository.findByUserId(userId);
         List<Integer> stars = levelStatus.getStars();
-        if(stars.size() == levelNumber && starsCount > 0){
+        if(stars.size() == levelNumber){
             stars.add(0);
             User user = userRepository.findByUserId(userId);
             user.setCurrentLevel(stars.size());
