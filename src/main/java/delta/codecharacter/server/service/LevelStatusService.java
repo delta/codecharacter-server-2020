@@ -77,7 +77,6 @@ public class LevelStatusService {
             User user = userRepository.findByUserId(userId);
             user.setCurrentLevel(stars.size());
             userRepository.save(user);
-            System.out.println("user = " + user);
         }
         if(stars.size() > levelNumber && stars.get(levelNumber-1) < starsCount){
             stars.set(levelNumber-1,starsCount);
