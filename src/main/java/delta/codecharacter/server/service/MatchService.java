@@ -79,6 +79,9 @@ public class MatchService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private LevelStatusService levelStatusService;
+
     /**
      * Create a new match for the given players and matchMode
      *
@@ -482,8 +485,7 @@ public class MatchService {
             if (player1 > 3*AI) starCount = 3;
             else if (player1 > 2*AI) starCount = 2;
             else if (player1 > AI) starCount = 1;
-
-            // TODO: Call updateLevelStatus() with playerId,currentLevel and starCount
+            levelStatusService.updateLevelStatus(playerId,currentLevel,starCount);
         }
 
         matchRepository.save(match);
