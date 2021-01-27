@@ -60,4 +60,15 @@ public class LevelStatusService {
         }
         return levelStatuses;
     }
+
+     public void updateLevelStatus(Integer userId, Integer levelNumber, Integer starsCount){
+        LevelStatus levelStatus = levelStatusRepository.findByUserId(userId);
+        List<Integer> stars = levelStatus.getStars();
+        if(stars.size() < levelNumber){
+            stars.add(starsCount);
+        }else if(stars.get(levelNumber-1) < starsCount){
+            stars.set(levelNumber-1,starsCount);
+        }
+        levelStatusRepository.save(levelStatus);
+    }   
 }
