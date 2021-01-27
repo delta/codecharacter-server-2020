@@ -3,6 +3,7 @@ package delta.codecharacter.server.service;
 import delta.codecharacter.server.controller.response.LevelStatusResponse;
 import delta.codecharacter.server.model.Leaderboard;
 import delta.codecharacter.server.model.LevelStatus;
+import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.LevelStatusRepository;
 import delta.codecharacter.server.repository.UserRepository;
 import delta.codecharacter.server.util.enums.Division;
@@ -32,7 +33,7 @@ public class LevelStatusService {
      */
     @Transactional
     public void initializeLevelStatus(@NotNull Integer userId) {
-        List<Integer> initialStars = Arrays.asList(0,0,0,0);
+        List<Integer> initialStars = Arrays.asList(0);
         LevelStatus levelStatus = LevelStatus.builder()
                 .userId(userId)
                 .stars(initialStars)
@@ -61,12 +62,24 @@ public class LevelStatusService {
         return levelStatuses;
     }
 
-     public void updateLevelStatus(Integer userId, Integer levelNumber, Integer starsCount){
+    /**
+     * Update LevelStatus after the game
+     *
+     * @param userId - User id of the user
+     * @param levelNumber - current level for which the game is played(initial level 1)
+     * @param starsCount - stars got in the game
+     */
+    public void updateLevelStatus(Integer userId, Integer levelNumber, Integer starsCount){
         LevelStatus levelStatus = levelStatusRepository.findByUserId(userId);
         List<Integer> stars = levelStatus.getStars();
-        if(stars.size() < levelNumber){
-            stars.add(starsCount);
-        }else if(stars.get(levelNumber-1) < starsCount){
+        if(stars.size() == levelNumber && starsCount > 0){
+            stars.add(0);
+            User user = userRepository.findByUserId(userId);
+            user.setCurrentLevel(stars.size());
+            userRepository.save(user);
+            System.out.println("user = " + user);
+        }
+        if(stars.size() > levelNumber && stars.get(levelNumber-1) < starsCount){
             stars.set(levelNumber-1,starsCount);
         }
         levelStatusRepository.save(levelStatus);
