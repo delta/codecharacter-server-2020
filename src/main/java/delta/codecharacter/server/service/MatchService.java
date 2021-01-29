@@ -481,11 +481,11 @@ public class MatchService {
         if (match.getMatchMode() == MatchMode.AI){
             Integer playerId = match.getPlayerId1();
             Integer currentLevel = userRepository.findByUserId(playerId).getCurrentLevel();
-            int player1=match.getScore1(),AI = match.getScore2(),starCount = 0;
+            Integer player1=match.getScore1(),AI = match.getScore2(),starCount = 0;
             if (player1 > 3*AI) starCount = 3;
             else if (player1 > 2*AI) starCount = 2;
             else if (player1 > AI) starCount = 1;
-            levelStatusService.updateLevelStatus(playerId,currentLevel,starCount);
+            if (starCount > 0) levelStatusService.updateLevelStatus(playerId,currentLevel,starCount);
         }
 
         matchRepository.save(match);
