@@ -438,21 +438,6 @@ public class MatchService {
             userRatingService.calculateMatchRatings(match.getPlayerId1(), match.getPlayerId2(), matchVerdict);
         }
 
-        if (match.getMatchMode() == MatchMode.AI){
-            Integer playerId = match.getPlayerId1();
-            Integer currentLevel = userRepository.findByUserId(playerId).getCurrentLevel();
-            int player1=0,AI = 0,starCount = 0;
-            for (var gameDetails:updateMatchRequest.getGameResults()){
-                if (gameDetails.getVerdict() == PLAYER1) player1++;
-                else if (gameDetails.getVerdict() == PLAYER2) AI++;
-            }
-            if (player1 > 3*AI) starCount = 3;
-            else if (player1 > 2*AI) starCount = 2;
-            else if (player1 > AI) starCount = 1;
-
-            // TODO: Call updateLevelStatus() with playerId,currentLevel and starCount
-        }
-
         if (match.getMatchMode() == MatchMode.AUTO) {
             // TODO: Find whether an auto match is complete and send socket message
         }
