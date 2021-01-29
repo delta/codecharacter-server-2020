@@ -143,12 +143,12 @@ public class MatchService {
     public List<PrivateMatchResponse> getManualAndAutoExecutedMatchesPaginated(Integer userId, Pageable pageable) {
         Aggregation aggregation = newAggregation(
                 match(
-                    new Criteria().andOperator(
                         new Criteria().andOperator(
-                                new Criteria().orOperator(Criteria.where("player_id_1").is(userId), Criteria.where("player_id_2").is(userId)),
-                                new Criteria().orOperator(Criteria.where("match_mode").is(MatchMode.MANUAL), Criteria.where("match_mode").is(MatchMode.AUTO))
-                        ), Criteria.where("status").is("EXECUTED")
-                    )
+                                new Criteria().andOperator(
+                                        new Criteria().orOperator(Criteria.where("player_id_1").is(userId), Criteria.where("player_id_2").is(userId)),
+                                        new Criteria().orOperator(Criteria.where("match_mode").is(MatchMode.MANUAL), Criteria.where("match_mode").is(MatchMode.AUTO))
+                                ), Criteria.where("status").is("EXECUTED")
+                        )
                 ),
                 sort(Sort.by("createdAt").descending()),
                 skip((long) pageable.getPageNumber() * pageable.getPageSize()),
@@ -463,16 +463,16 @@ public class MatchService {
         match.setVerdict(matchVerdict);
         updateMatchScore(match, updateMatchRequest.getGameResults());
 
-        if (match.getMatchMode() == MatchMode.AI){
+        if (match.getMatchMode() == MatchMode.AI) {
             Integer playerId = match.getPlayerId1();
-            Integer currentLevel = userRepository.findByUserId(playerId).getCurrentLevel();
-            Integer player1=match.getScore1(),AI = match.getScore2(),starCount = 0;
-            
-            if (player1 > 3*AI) starCount = 3;
-            else if (player1 > 2*AI) starCount = 2;
+            Integer currentLevel = match.getPlayerId2();
+            Integer player1 = match.getScore1(), AI = match.getScore2(), starCount = 0;
+
+            if (player1 > 3 * AI) starCount = 3;
+            else if (player1 > 2 * AI) starCount = 2;
             else if (player1 > AI) starCount = 1;
-            
-            if (starCount > 0) levelStatusService.updateLevelStatus(playerId,currentLevel,starCount);
+
+            if (starCount > 0) levelStatusService.updateLevelStatus(playerId, currentLevel, starCount);
         }
 
         matchRepository.save(match);
@@ -508,10 +508,10 @@ public class MatchService {
             opponentId = match.getPlayerId2();
 
         String opponentUsername;
-        if(match.getMatchMode().equals(MatchMode.AI)){
+        if (match.getMatchMode().equals(MatchMode.AI)) {
             opponentUsername = "AI";
-        }else{
-            opponentUsername = userRepository.findByUserId(opponentId).getUsername();   
+        } else {
+            opponentUsername = userRepository.findByUserId(opponentId).getUsername();
         }
 
         switch (verdict) {
