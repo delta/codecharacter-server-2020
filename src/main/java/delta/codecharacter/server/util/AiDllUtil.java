@@ -1,14 +1,12 @@
 package delta.codecharacter.server.util;
 
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 
 public class AiDllUtil {
 
-    @Value("/storage/AI/dlls")
-    private static String aiDllStoragePath;
+    private static String aiDllStoragePath = "/storage/AI/dlls";
 
     /**
      * Return the absolute path to the AI dll files directory of given aiId
