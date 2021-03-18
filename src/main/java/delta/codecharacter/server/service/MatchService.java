@@ -1,5 +1,7 @@
 package delta.codecharacter.server.service;
 
+
+
 import delta.codecharacter.server.controller.api.UserController;
 import delta.codecharacter.server.controller.request.Notification.CreateNotificationRequest;
 import delta.codecharacter.server.controller.request.UpdateGameDetails;
@@ -7,7 +9,6 @@ import delta.codecharacter.server.controller.request.UpdateMatchRequest;
 import delta.codecharacter.server.controller.response.GameLogs;
 import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsResponse;
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
-import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.*;
@@ -121,8 +122,10 @@ public class MatchService {
             MatchResponse matchResponse = MatchResponse.builder()
                     .username1(user1.getUsername())
                     .username2(user2.getUsername())
-                    .avatarId1(user1.getAvatarId())
-                    .avatarId2(user2.getAvatarId())
+                    .avatar1(user1.getAvatarId())
+                    .avatar2(user2.getAvatarId())
+                    .score1(match.getScore1())
+                    .score2(match.getScore2())
                     .verdict(match.getVerdict())
                     .matchMode(match.getMatchMode())
                     .games(gameService.getAllGamesByMatchId(match.getId()))
@@ -140,7 +143,7 @@ public class MatchService {
      * @param userId UserId of the player
      * @return List of paginated manual and auto matches
      */
-    public List<PrivateMatchResponse> getManualAndAutoExecutedMatchesPaginated(Integer userId, Pageable pageable) {
+    public List<MatchResponse> getManualAndAutoExecutedMatchesPaginated(Integer userId, Pageable pageable) {
         Aggregation aggregation = newAggregation(
                 match(
                         new Criteria().andOperator(
@@ -158,26 +161,28 @@ public class MatchService {
         var groupResults = mongoTemplate.aggregate(aggregation, Match.class, Match.class);
         List<Match> matches = groupResults.getMappedResults();
 
-        List<PrivateMatchResponse> privateMatchResponse = new ArrayList<>();
+        List<MatchResponse> matchResponseList = new ArrayList<>();
         for (var match : matches) {
 
             User user1 = userRepository.findByUserId(match.getPlayerId1());
             User user2 = userRepository.findByUserId(match.getPlayerId2());
 
-            var matchResponse = PrivateMatchResponse.builder()
+            var matchResponse = MatchResponse.builder()
                     .username1(user1.getUsername())
                     .username2(user2.getUsername())
                     .avatar1(user1.getAvatarId())
                     .avatar2(user2.getAvatarId())
+                    .score1(match.getScore1())
+                    .score2(match.getScore2())
                     .verdict(match.getVerdict())
                     .playedAt(match.getCreatedAt())
                     .matchMode(match.getMatchMode())
                     .games(gameService.getAllGamesByMatchId(match.getId()))
                     .build();
 
-            privateMatchResponse.add(matchResponse);
+            matchResponseList.add(matchResponse);
         }
-        return privateMatchResponse;
+        return matchResponseList;
     }
 
     /**
@@ -393,15 +398,17 @@ public class MatchService {
         if (!success) {
             match.setStatus(Status.EXECUTE_ERROR);
             matchRepository.save(match);
-
-            socketService.sendMessage(socketMatchResultDest + match.getPlayerId1(), "Error: " + updateMatchRequest.getError());
-            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
+            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Error: "
+                    + getErrorNotificationMessage(updateMatchRequest.getErrorType()));
             return;
         }
+
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
+        String errorType = null;
 
         List<GameLogs> gameLogsList = new ArrayList<>();
         var gameResults = updateMatchRequest.getGameResults();
+
         if (match.getMatchMode() != MatchMode.AUTO && match.getMatchMode() != MatchMode.MANUAL) {
             for (var game : gameResults) {
                 var gameLogs = GameLogs.builder()
@@ -411,13 +418,20 @@ public class MatchService {
                         .player2Log(game.getPlayer2LogCompressed())
                         .build();
                 gameLogsList.add(gameLogs);
+                errorType = game.getErrorType();
             }
+        }
 
-            Integer playerId = match.getPlayerId1();
-            socketService.sendMessage(socketMatchResultDest + playerId, gameLogsList.toString());
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-            createMatchNotification(playerId, matchMessage);
+        Integer socketListenerId = match.getPlayerId1();
+        LOG.info("Message sent to "+ socketMatchResultDest+socketListenerId);
+        socketService.sendMessage(socketMatchResultDest + socketListenerId, gameLogsList.toString());
+        String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, socketListenerId);
+        if (errorType != null && (errorType.equals(String.valueOf(ErrorType.TIMEOUT)) || errorType.equals(String.valueOf(ErrorType.PLAYER_RUNTIME_ERROR)))) {
+            socketService.sendMessage(socketAlertMessageDest + socketListenerId, matchMessage + " by " + errorType);
+            createMatchNotification(socketListenerId, matchMessage, errorType, Type.ERROR);
+        } else {
+            socketService.sendMessage(socketAlertMessageDest + socketListenerId, matchMessage);
+            createMatchNotification(socketListenerId, "Match Result", matchMessage, Type.INFO);
         }
 
         if (match.getMatchMode() == MatchMode.MANUAL) {
@@ -429,9 +443,9 @@ public class MatchService {
 
             // If match mode is manual, create a notification for player 2 also.
             Integer playerId = match.getPlayerId2();
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
+            matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
             socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-            createMatchNotification(playerId, matchMessage);
+            createMatchNotification(playerId, matchMessage, errorType, Type.INFO);
 
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
@@ -447,16 +461,20 @@ public class MatchService {
             game.setPoints1(gameResult.getPoints1());
             game.setPoints2(gameResult.getPoints2());
             game.setVerdict(gameResult.getVerdict());
+            game.setErrorType(gameResult.getErrorType());
+            game.setWinType(gameResult.getWinType());
             gameRepository.save(game);
 
             Integer gameId = gameResult.getId();
-            LogUtil.createLogRepository(gameId);
-            var gameLogs = GameLogs.builder()
-                    .gameLog(gameResult.getLog())
-                    .player1Log(gameResult.getPlayer1LogCompressed())
-                    .player2Log(gameResult.getPlayer2LogCompressed())
-                    .build();
-            LogUtil.setLogs(gameId, gameLogs);
+            if (match.getMatchMode() == MatchMode.AUTO || match.getMatchMode() == MatchMode.MANUAL) {
+                LogUtil.createLogRepository(gameId);
+                var gameLogs = GameLogs.builder()
+                        .gameLog(gameResult.getLog())
+                        .player1Log(gameResult.getPlayer1LogCompressed())
+                        .player2Log(gameResult.getPlayer2LogCompressed())
+                        .build();
+                LogUtil.setLogs(gameId, gameLogs);
+            }
         }
 
         match.setStatus(Status.EXECUTED);
@@ -476,6 +494,21 @@ public class MatchService {
         }
 
         matchRepository.save(match);
+    }
+
+    private String getErrorNotificationMessage(String errorType) {
+        switch (errorType) {
+            case "COMPILER_ERROR":
+                return "Compilation Error";
+            case "EXECUTE_PROCESS_ERROR":
+                return "Execution Error";
+            case "UNKNOWN_EXECUTE_ERROR":
+                return "Something went wrong!";
+            case "PLAYER_RUNTIME_ERROR":
+                return "Runtime Error";
+            default:
+                return errorType;
+        }
     }
 
     private void updateMatchScore(Match match, List<UpdateGameDetails> gameDetails) {
@@ -535,12 +568,12 @@ public class MatchService {
      * @param playerId            userId of the player
      * @param notificationContent Content of the notification
      */
-    private void createMatchNotification(Integer playerId, String notificationContent) {
+    private void createMatchNotification(Integer playerId, String notificationTitle, String notificationContent, Type notificationType) {
         CreateNotificationRequest createNotificationRequest = CreateNotificationRequest.builder()
                 .userId(playerId)
-                .title("Match Result")
+                .title(notificationTitle)
                 .content(notificationContent)
-                .type(Type.INFO)
+                .type(notificationType)
                 .build();
         notificationService.createNotification(createNotificationRequest);
     }

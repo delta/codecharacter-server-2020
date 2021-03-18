@@ -6,6 +6,7 @@ import delta.codecharacter.server.repository.GameRepository;
 import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.util.LogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +19,12 @@ public class GameService {
 
     @Autowired
     private MatchRepository matchRepository;
+
+    @Autowired
+    private SocketService socketService;
+
+    @Value("/socket/response/alert/")
+    private String socketAlertMessageDest;
 
     /**
      * Create a new game for the given matchId
@@ -45,12 +52,16 @@ public class GameService {
      * @param gameId Game Id of the game
      * @return game log, player1 log and player2 log of the game
      */
-    public GameLogs getGameLog(Integer gameId) {
+    public GameLogs getGameLog(Integer gameId, Integer userId) {
+        var game = gameRepository.findFirstById(gameId);
+        if (!game.getWinType().equals("SCORE")) {
+            socketService.sendMessage(socketAlertMessageDest + userId, game.getVerdict() + " won by " + game.getWinType());
+            return null;
+        }
         var gameLogs = LogUtil.getLogs(gameId);
         if (gameLogs == null)
             return null;
 
-        var game = gameRepository.findFirstById(gameId);
         var match = matchRepository.findFirstById(game.getMatchId());
         gameLogs.setPlayerId1(match.getPlayerId1());
 

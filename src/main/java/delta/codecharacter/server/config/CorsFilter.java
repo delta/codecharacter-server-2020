@@ -14,7 +14,7 @@ import java.io.IOException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsFilter implements Filter {
 
-    @Value("${client.request.origin}")
+    @Value("${client.request.cors.origin}")
     private String origin;
 
     @Override
