@@ -6,6 +6,7 @@ import delta.codecharacter.server.util.UserAuthUtil.CustomAuthProcessingFilter;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationFailureHandler;
 import delta.codecharacter.server.util.UserAuthUtil.CustomAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -54,6 +55,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private CorsFilter corsFilter;
 
+    @Value("${security.enable-csrf}")
+    private boolean csrfEnabled;
+
     // Configures where to fetch the user from
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -71,6 +75,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().ignoringAntMatchers(ignoringAntMatchers).csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
                 .addFilterBefore(corsFilter, ChannelProcessingFilter.class)
                 .addFilterBefore(ssoFilters(), BasicAuthenticationFilter.class);
+        if(!csrfEnabled)
+        {
+            http.csrf().disable();
+        }
     }
 
     //Fetch data present in application.properties
