@@ -1,6 +1,6 @@
 package delta.codecharacter.server.util.UserAuthUtil;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.google.gson.Gson;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
@@ -18,7 +18,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         res.put("message", "Authenticated");
         res.put("status", "200");
 
-        httpServletResponse.getWriter().write(new ObjectMapper().writeValueAsString(res));
+        httpServletResponse.getWriter().write(new Gson().toJson(res));
         httpServletResponse.setStatus(200);
     }
 }
