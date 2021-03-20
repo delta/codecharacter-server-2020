@@ -1,0 +1,50 @@
+version: "3.6"
+services:
+
+  mongo:
+    container_name: codecharacter_mongo
+    image: mongo:latest
+    ports:
+      - 27013:27017
+    volumes:
+      - ./config/mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./data/mongo:/data/db
+    networks:
+      - common
+    environment:
+      MONGO_INITDB_DATABASE: codecharacter-2021
+    restart: always
+
+
+  rabbitmq:
+    container_name: codecharacter_rabbitmq
+    image: rabbitmq:management-alpine
+    hostname: 'codecharacter_rabbitmq'
+    ports:
+      - 5672:5672
+      - 15670:15672
+    volumes:
+      - ./config/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./data/rabbitmq:/var/lib/rabbitmq/mnesia/
+    networks:
+      - common
+    restart: always
+
+  core:
+    container_name: codecharacter_core
+    build:
+      context: .
+    ports:
+      - 8086:8080
+    depends_on:
+      - mongo
+      - rabbitmq
+    volumes:
+      - ./storage:/server/storage
+    networks:
+      - common
+    restart: always
+
+networks:
+  common:
+    driver: bridge

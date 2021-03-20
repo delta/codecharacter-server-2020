@@ -1,0 +1,6 @@
+docker-compose.yml
+Dockerfile
+config
+storage
+data
+*.sh
