@@ -31,8 +31,7 @@ dependencies {
 	implementation 'com.google.code.gson:gson'
 	implementation 'com.rabbitmq:amqp-client:5.11.0'
 	implementation 'com.sendgrid:sendgrid-java:4.7.2'
-	implementation 'io.springfox:springfox-swagger2:3.0.0'
-	implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+	implementation "io.springfox:springfox-boot-starter:3.0.0"
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
