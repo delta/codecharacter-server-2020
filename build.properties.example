@@ -1,3 +1,0 @@
-app.name = server
-tomcat.dir = /tomcat
-jvm.options = -Xverify:none -XX:TieredStopAtLevel=1
