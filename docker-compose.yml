@@ -47,4 +47,5 @@ services:
 
 networks:
   common:
+    name: codecharacter_common
     driver: bridge
