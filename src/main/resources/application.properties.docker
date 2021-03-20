@@ -1,9 +1,11 @@
 server.servlet.context-path=/server
 spring.profiles.active=production
-spring.output.ansi.enabled=ALWAYS
+
+#csrf
+security.enable-csrf=false
 
 #mongodb
-spring.data.mongodb.host=localhost
+spring.data.mongodb.host=mongo
 spring.data.mongodb.port=27017
 spring.data.mongodb.database=codecharacter-2021
 
@@ -18,17 +20,14 @@ storage.maps.dir=storage/maps
 storage.matchlog.dir=storage/logs
 
 #rabbit-mq
-spring.rabbitmq.host=localhost
+spring.rabbitmq.host=rabbitmq
 spring.rabbitmq.queue=codechar
 
 #compilebox
 compilebox.secret-key=I_am_aw3sOme
 
-#csrf
-security.enable-csrf=false
-
 #pragyan-api
-pragyan.event-login-url=https://api.pragyan.org/20/event/login
+pragyan.event-login-url=https://api.pragyan.org/21/event/login
 pragyan.event-id=<>
 pragyan.event-secret=<>
 
