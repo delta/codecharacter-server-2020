@@ -8,10 +8,10 @@ COPY ./src/main/resources/application.properties.docker ./src/main/resources/app
 RUN ./gradlew assemble
 
 
-FROM openjdk:11-jdk-slim
+FROM openjdk:11-jre-slim
 WORKDIR /server
-COPY --from=builder /server/build/libs/server.jar .
 RUN useradd -m spring
 RUN chown -R spring:spring /server
+COPY --chmod=spring:spring --from=builder /server/build/libs/server.jar .
 USER spring
 ENTRYPOINT ["java", "-jar", "server.jar"]
