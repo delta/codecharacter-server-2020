@@ -1,7 +1,7 @@
 #mongodb
 spring.data.mongodb.host=db
 spring.data.mongodb.port=27017
-spring.data.mongodb.database=codecharacter-2020
+spring.data.mongodb.database=codecharacter-2021
 
 #storage
 storage.dir=storage

@@ -41,8 +41,8 @@ public class SendGridService {
 
         String subject = "Code Character - Account Activation";
         String message = "Greetings " + user.getUsername() + "!,\nKindly use the link below " +
-                "to activate your account for Code Character 2020\n" +
-                BASE_URL + "/#/user-activate?authToken=" + authToken + "&userId=" + user.getUserId() + "\nThis link is valid only for 24 hours";
+                "to activate your account for Code Character 2021\n" +
+                BASE_URL + "/user-activate?authToken=" + authToken + "&userId=" + user.getUserId() + "\nThis link is valid only for 24 hours";
 
         sendMail(user.getEmail(), subject, message);
     }
@@ -59,7 +59,7 @@ public class SendGridService {
         String subject = "Code Character - Password Reset Instructions";
         String message = "Greetings " + user.getUsername() + "!,\nKindly use the link below " +
                 "to reset the password of your Code Character 2020 account\n" +
-                BASE_URL + "/#/reset-password?passwordResetToken=" + passwordResetToken + "&userId=" + user.getUserId() + "\nThis link is valid only for 24 hours";
+                BASE_URL + "/reset-password?passwordResetToken=" + passwordResetToken + "&userId=" + user.getUserId() + "\nThis link is valid only for 24 hours";
 
         sendMail(user.getEmail(), subject, message);
     }
