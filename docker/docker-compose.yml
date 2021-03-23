@@ -24,7 +24,7 @@ services:
       - mongodb:/data/db
       - mongoconfig:/data/configdb
     environment:
-            MONGO_INITDB_DATABASE: codecharacter-2020
+            MONGO_INITDB_DATABASE: codecharacter-2021
         
 
   rabbit:
