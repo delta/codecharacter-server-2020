@@ -427,11 +427,16 @@ public class MatchService {
                 DllUtil.setDll(match.getPlayerId1(), DllId.DLL_2, player1Dlls.get(1));
             }
 
+            Integer playerId1 = match.getPlayerId1();
+            String matchMessage1 = getMatchResultByVerdict(matchId, matchVerdict, playerId1);
+            socketService.sendMessage(socketAlertMessageDest + playerId1, matchMessage1);
+            createMatchNotification(playerId1, matchMessage1);
+
             // If match mode is manual, create a notification for player 2 also.
-            Integer playerId = match.getPlayerId2();
-            String matchMessage = getMatchResultByVerdict(matchId, matchVerdict, playerId);
-            socketService.sendMessage(socketAlertMessageDest + playerId, matchMessage);
-            createMatchNotification(playerId, matchMessage);
+            Integer playerId2 = match.getPlayerId2();
+            String matchMessage2 = getMatchResultByVerdict(matchId, matchVerdict, playerId2);
+            socketService.sendMessage(socketAlertMessageDest + playerId2, matchMessage2);
+            createMatchNotification(playerId2, matchMessage2);
 
             // Add an entry to User rating table
             // NOTE: CalculateMatchRatings will add an entry in User Rating and update Leaderboard
