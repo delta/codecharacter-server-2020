@@ -13,9 +13,9 @@ public class HomeController {
     HomeService homeService;
 
     @GetMapping(value = "/")
-    public String getHomeString(Authentication authentication) {
+    public String getSuccessfulLoginString(Authentication authentication) {
         if (authentication == null)
             return "Invalid Login";
-        return homeService.getHomeString();
+        return homeService.getSuccessfulLoginString();
     }
 }
