@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.Cookie;
 
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     @Override
@@ -19,6 +20,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         res.put("status", "200");
 
         httpServletResponse.getWriter().write(new ObjectMapper().writeValueAsString(res));
-        httpServletResponse.setStatus(200);
+		httpServletResponse.setHeader("Set-Cookie", "SameSite=None; Secure");
+        httpServletResponse.addCookie(new Cookie("SameSite", "None"));
+	    httpServletResponse.setStatus(200);
     }
 }

@@ -20,20 +20,20 @@ docker-compose \
 #$? is 0 if already running, 1 if not (0=no error)
 ALREADY_RUNNING=$?
 
-if [ "$ALREADY_RUNNING" -eq 0 ];
-then
-  echo "Service already running, only opening shell"
-else
+#if [ "$ALREADY_RUNNING" -eq 0 ];
+#then
+#  echo "Service already running, only opening shell"
+#else
   docker-compose \
     -f docker/docker-compose.yml \
     --project-name codechar \
     --project-directory . \
     up -d
-fi
+#fi
 
 echo "Connecting to docker shell and running command $COMMAND..."
-docker-compose \
-  -f docker/docker-compose.yml \
-  --project-name codechar \
-  --project-directory . \
-  exec core $COMMAND
+# docker-compose \
+#  -f docker/docker-compose.yml \
+#  --project-name codechar \
+#  --project-directory . \
+#  exec core $COMMAND

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping(value = "/code")
 public class CodeVersionController {
     private final Logger LOG = Logger.getLogger(CodeVersionController.class.getName());
@@ -29,7 +30,7 @@ public class CodeVersionController {
     @GetMapping(value = "/latest")
     @SneakyThrows
     public ResponseEntity<String> getLatestCode(Authentication authentication) {
-        String email = userService.getEmailFromAuthentication(authentication);
+	    String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
         if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
         String code = versionControlService.getCode(user.getUserId());
@@ -42,7 +43,8 @@ public class CodeVersionController {
     public ResponseEntity<String> saveCode(@RequestBody @Valid String code, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
-        if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        if (user == null)
+            return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
         if (!versionControlService.setCode(user.getUserId(), code))
             return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);
         return new ResponseEntity<>("Saved Code", HttpStatus.OK);
@@ -64,6 +66,11 @@ public class CodeVersionController {
     public ResponseEntity<String> commit(@RequestBody @Valid String commitMessage, Authentication authentication) {
         String email = userService.getEmailFromAuthentication(authentication);
         User user = userService.getUserByEmail(email);
+	if (user == null){ 
+                System.out.println("User null!!!");
+                 return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        }
+
         if (user == null) return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
         String commitHash = versionControlService.commitCode(user.getUserId(), commitMessage);
         if (commitHash == null) return new ResponseEntity<>("Code repository not created", HttpStatus.FORBIDDEN);

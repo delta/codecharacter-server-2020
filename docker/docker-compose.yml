@@ -1,11 +1,11 @@
 version: "3.6"
 services:
   core:
-    build: 
+    build:
       context: .
       dockerfile: ./docker/core.dockerfile
     container_name: codechar_server
-    command: ["sleep","inf"]
+    command: ["ant","run"]
     ports:
       - 8086:8080
     volumes:
@@ -14,7 +14,7 @@ services:
       - ./:/app
 
   db:
-    build: 
+    build:
       context: .
       dockerfile: ./docker/mongo.dockerfile
     container_name: codechar_mongo
@@ -24,8 +24,8 @@ services:
       - mongodb:/data/db
       - mongoconfig:/data/configdb
     environment:
-            MONGO_INITDB_DATABASE: codecharacter-2021
-        
+      MONGO_INITDB_DATABASE: codecharacter-2020
+
 
   rabbit:
     image: rabbitmq:3.5.3-management
