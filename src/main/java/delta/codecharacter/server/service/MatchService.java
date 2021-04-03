@@ -9,6 +9,7 @@ import delta.codecharacter.server.controller.response.Match.DetailedMatchStatsRe
 import delta.codecharacter.server.controller.response.Match.MatchResponse;
 import delta.codecharacter.server.controller.response.Match.PrivateMatchResponse;
 import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.model.SubmitStatus;
 import delta.codecharacter.server.model.User;
 import delta.codecharacter.server.repository.*;
 import delta.codecharacter.server.util.DllUtil;
@@ -81,6 +82,12 @@ public class MatchService {
 
     @Autowired
     private LevelStatusService levelStatusService;
+
+    @Autowired
+    private SubmitStatusRepository submitStatusRepository;
+
+    @Autowired
+    private VersionControlService versionControlService;
 
     /**
      * Create a new match for the given players and matchMode
@@ -394,8 +401,19 @@ public class MatchService {
             match.setStatus(Status.EXECUTE_ERROR);
             matchRepository.save(match);
 
+            if (match.getMatchMode() == MatchMode.AI){
+                SubmitStatus submitStatus = submitStatusRepository.findByUserId(match.getPlayerId1());
+                if (submitStatus !=null && submitStatus.getIsPending()) {
+                    socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Code cannot be Locked");
+                    submitStatus.setIsPending(false);
+                    submitStatusRepository.save(submitStatus);
+                }
+                else
+                    socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
+            }
+            else
+                socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
             socketService.sendMessage(socketMatchResultDest + match.getPlayerId1(), "Error: " + updateMatchRequest.getError());
-            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
             return;
         }
         Verdict matchVerdict = deduceMatchVerdict(updateMatchRequest.getGameResults());
@@ -478,6 +496,11 @@ public class MatchService {
             else if (player1 > AI) starCount = 1;
 
             if (starCount > 0) levelStatusService.updateLevelStatus(playerId, currentLevel, starCount);
+
+            SubmitStatus submitStatus = submitStatusRepository.findByUserId(playerId);
+            if (submitStatus !=null && submitStatus.getIsPending())
+                versionControlService.confirmLockedCode(playerId);
+            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Code Locked");
         }
 
         matchRepository.save(match);

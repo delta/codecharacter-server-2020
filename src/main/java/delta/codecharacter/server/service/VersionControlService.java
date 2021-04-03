@@ -1,11 +1,17 @@
 package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.request.Codeversion.CommitResponse;
+import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
 import delta.codecharacter.server.model.CodeStatus;
+import delta.codecharacter.server.model.Leaderboard;
+import delta.codecharacter.server.model.SubmitStatus;
 import delta.codecharacter.server.repository.CodeStatusRepository;
+import delta.codecharacter.server.repository.SubmitStatusRepository;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.FileHandler;
+import delta.codecharacter.server.util.enums.Division;
 import delta.codecharacter.server.util.enums.DllId;
+import delta.codecharacter.server.util.enums.MatchMode;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
@@ -51,6 +57,12 @@ public class VersionControlService {
 
     @Autowired
     private CodeStatusRepository codeStatusRepository;
+
+    @Autowired
+    private SubmitStatusRepository submitStatusRepository;
+
+    @Autowired
+    private SimulationService simulationService;
 
     /**
      * Commit the saved code
@@ -397,13 +409,57 @@ public class VersionControlService {
         return FileHandler.getFileContents(lockedCodeFileUri);
     }
 
+    private Integer getMaxId() {
+        var submitStatus = submitStatusRepository.findFirstByOrderByIdDesc();
+        if (submitStatus == null)
+            return 0;
+        return submitStatus.getId();
+    }
+
     /**
-     * Set locked code of given userId
+     * Add check to for submission of code of given userId
      *
      * @param userId UserId of user
      */
     @SneakyThrows
     public boolean setLockedCode(Integer userId) {
+        if (!checkLockedCodeRepositoryExists(userId))
+            throw new Exception("No repository found");
+
+        Integer submitStatusId = getMaxId() + 1;
+        SubmitStatus submitStatus = submitStatusRepository.findByUserId(userId);
+        if (submitStatus == null){
+            SubmitStatus newSubmitStatus = SubmitStatus.builder()
+                    .id(submitStatusId)
+                    .userId(userId)
+                    .isPending(true)
+                    .build();
+            submitStatusRepository.save(newSubmitStatus);
+        }
+        else{
+            submitStatus.setIsPending(true);
+            submitStatusRepository.save(submitStatus);
+        }
+
+        SimulateMatchRequest simulateMatchRequest = SimulateMatchRequest.builder()
+                .playerId1(String.valueOf(userId))
+                .playerId2("1")
+                .mapId(1)
+                .commitHash("latest")
+                .matchMode("AI")
+                .build();
+        simulationService.simulateMatch(simulateMatchRequest);
+
+        return true;
+    }
+
+    /**
+     * Confirm locked code of given userId
+     *
+     * @param userId UserId of user
+     */
+    @SneakyThrows
+    public boolean confirmLockedCode(Integer userId) {
         if (!checkLockedCodeRepositoryExists(userId))
             throw new Exception("No repository found");
 
@@ -420,6 +476,12 @@ public class VersionControlService {
         codeStatus.setLocked(true);
         codeStatusRepository.save(codeStatus);
 
+        SubmitStatus submitStatus = submitStatusRepository.findByUserId(userId);
+        submitStatus.setIsPending(false);
+        submitStatusRepository.save(submitStatus);
+
         return true;
     }
+
+
 }
