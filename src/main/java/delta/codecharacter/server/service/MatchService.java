@@ -403,8 +403,11 @@ public class MatchService {
 
             if (match.getMatchMode() == MatchMode.AI){
                 SubmitStatus submitStatus = submitStatusRepository.findByUserId(match.getPlayerId1());
-                if (submitStatus !=null && submitStatus.getIsPending())
+                if (submitStatus !=null && submitStatus.getIsPending()) {
                     socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Code cannot be Locked");
+                    submitStatus.setIsPending(false);
+                    submitStatusRepository.save(submitStatus);
+                }
                 else
                     socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Execute Error");
             }
