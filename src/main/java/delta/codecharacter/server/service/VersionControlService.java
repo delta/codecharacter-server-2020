@@ -2,10 +2,14 @@ package delta.codecharacter.server.service;
 
 import delta.codecharacter.server.controller.request.Codeversion.CommitResponse;
 import delta.codecharacter.server.model.CodeStatus;
+import delta.codecharacter.server.model.Match;
 import delta.codecharacter.server.repository.CodeStatusRepository;
+import delta.codecharacter.server.repository.MatchRepository;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.FileHandler;
 import delta.codecharacter.server.util.enums.DllId;
+import delta.codecharacter.server.util.enums.MatchMode;
+import delta.codecharacter.server.util.enums.Status;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
@@ -51,6 +55,9 @@ public class VersionControlService {
 
     @Autowired
     private CodeStatusRepository codeStatusRepository;
+
+    @Autowired
+    private MatchRepository matchRepository;
 
     /**
      * Commit the saved code
@@ -406,6 +413,11 @@ public class VersionControlService {
     public boolean setLockedCode(Integer userId) {
         if (!checkLockedCodeRepositoryExists(userId))
             throw new Exception("No repository found");
+
+        Match match = matchRepository.findFirstByPlayerId1AndMatchModeOrderByCreatedAtDesc(userId, MatchMode.AI);
+        if (match.getStatus() == Status.EXECUTE_ERROR || match.getStatus() == Status.EXECUTING){
+            return false;
+        }
 
         //Since code changes the dlls become obsolete
         DllUtil.deleteDllFile(userId, DllId.DLL_1);
