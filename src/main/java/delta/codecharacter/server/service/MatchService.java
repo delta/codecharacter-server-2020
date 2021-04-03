@@ -498,9 +498,10 @@ public class MatchService {
             if (starCount > 0) levelStatusService.updateLevelStatus(playerId, currentLevel, starCount);
 
             SubmitStatus submitStatus = submitStatusRepository.findByUserId(playerId);
-            if (submitStatus !=null && submitStatus.getIsPending())
+            if (submitStatus !=null && submitStatus.getIsPending()){
                 versionControlService.confirmLockedCode(playerId);
-            socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Code Locked");
+            	socketService.sendMessage(socketAlertMessageDest + match.getPlayerId1(), "Code Locked");
+	    }
         }
 
         matchRepository.save(match);
