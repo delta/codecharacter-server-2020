@@ -5,12 +5,10 @@ import com.google.gson.GsonBuilder;
 import delta.codecharacter.server.controller.request.Simulation.ExecuteGameDetails;
 import delta.codecharacter.server.controller.request.Simulation.ExecuteMatchRequest;
 import delta.codecharacter.server.controller.request.Simulation.SimulateMatchRequest;
-import delta.codecharacter.server.model.CodeStatus;
-import delta.codecharacter.server.model.Game;
-import delta.codecharacter.server.model.Map;
-import delta.codecharacter.server.model.Match;
+import delta.codecharacter.server.model.*;
 import delta.codecharacter.server.repository.CodeStatusRepository;
 import delta.codecharacter.server.repository.MatchRepository;
+import delta.codecharacter.server.repository.SubmitStatusRepository;
 import delta.codecharacter.server.util.AiDllUtil;
 import delta.codecharacter.server.util.DllUtil;
 import delta.codecharacter.server.util.MapUtil;
@@ -63,6 +61,9 @@ public class SimulationService {
     @Autowired
     private CodeStatusRepository codeStatusRepository;
 
+    @Autowired
+    private SubmitStatusRepository submitStatusRepository;
+
     /**
      * Send an execute match request to compile-box
      *
@@ -88,6 +89,7 @@ public class SimulationService {
             Boolean isIdleMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(playerId1, Status.IDLE, MatchMode.AUTO) != null;
             Boolean isExecutingMatchPresent = matchRepository.findFirstByPlayerId1AndStatusAndMatchModeNot(playerId1, Status.EXECUTING, MatchMode.AUTO) != null;
             if (isIdleMatchPresent || isExecutingMatchPresent) {
+                //TODO:// check isPending
                 socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Previous match has not completed");
                 return;
             }
@@ -234,7 +236,9 @@ public class SimulationService {
 
         rabbitMqService.sendMessageToQueue(gson.toJson(executeMatchRequest));
 
-        socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Match is executing");
+        SubmitStatus submitStatus = submitStatusRepository.findByUserId(playerId1);
+        if (!(match.getMatchMode() == MatchMode.AI && submitStatus != null && submitStatus.getIsPending()))
+            socketService.sendMessage(socketAlertMessageDest + socketListenerId, "Match is executing");
 
         // Set match status to EXECUTING
         match.setStatus(Status.EXECUTING);
