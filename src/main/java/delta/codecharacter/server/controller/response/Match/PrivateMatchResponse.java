@@ -17,9 +17,9 @@ public class PrivateMatchResponse {
 
     private String username2;
 
-    private Integer avatar1;
+    private Integer avatarId1;
 
-    private Integer avatar2;
+    private Integer avatarId2;
 
     private Integer score1;
 
