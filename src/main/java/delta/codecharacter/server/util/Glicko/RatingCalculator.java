@@ -10,7 +10,7 @@ public class RatingCalculator {
     // Constants
     private Double q = (Math.log(10) / 400);
 
-    private Double minRatingDeviation = 50d;
+    private Double minRatingDeviation = 30d;
 
     // Amount which decides how much a player's rating deviation changes every time period
     private Double c = 416d;
@@ -25,10 +25,10 @@ public class RatingCalculator {
      * @return g(rd)
      */
     private Double calculateGRD(Double rd) {
-        Double numerator = 1d + 3d * (q * q) * (rd * rd);
+        Double numerator = 3d * (q * q) * (rd * rd);
         Double pi = Math.PI;
         Double denominator = pi * pi;
-        return (1d / Math.sqrt(numerator / denominator));
+        return (1d / Math.sqrt(1d + (numerator / denominator)));
     }
 
     /**
