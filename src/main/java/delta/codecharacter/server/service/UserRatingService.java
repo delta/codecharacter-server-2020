@@ -104,9 +104,9 @@ public class UserRatingService {
 
         // Calculate weighted rating deviations for both players
         Double weightedRatingDeviation1 = ratingCalculator.calculateWeightedRatingDeviation(
-                rating1.getRating(), matchService.getRecentMatchTime(userId1));
+                rating1.getRatingDeviation(), matchService.getRecentMatchTime(userId1));
         Double weightedRatingDeviation2 = ratingCalculator.calculateWeightedRatingDeviation(
-                rating2.getRating(), matchService.getRecentMatchTime(userId2));
+                rating2.getRatingDeviation(), matchService.getRecentMatchTime(userId2));
 
         rating1.setRatingDeviation(weightedRatingDeviation1);
 

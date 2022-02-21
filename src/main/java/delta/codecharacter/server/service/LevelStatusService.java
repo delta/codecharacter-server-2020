@@ -33,6 +33,8 @@ public class LevelStatusService {
      */
     @Transactional
     public void initializeLevelStatus(@NotNull Integer userId) {
+        if (levelStatusRepository.findByUserId(userId) != null)
+            return;
         List<Integer> initialStars = Arrays.asList(0);
         LevelStatus levelStatus = LevelStatus.builder()
                 .userId(userId)
